@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String      @id @default(uuid())
+  email         String?     @unique
+  isPremium     Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  birthDate     String?
+  birthPlace    String?
+  birthTime     String?
+  gender        String?
+  language      String?     @default("ja")
+  name          String?
+  characterType String?
+  enneagram     String?
+  mbti          String?
+  widgetOrder   String?  // JSON: ["daily","calendar","chat","profile"]
+  profileType   String?  @default("self") // "self" | "family" | "friend"
+  expiresAt     DateTime?
+  chatLogs      ChatLog[]
+  dailyLogs     DailyLog[]
+  diagnoses     Diagnosis[]
+}
+
+model Diagnosis {
+  id        String   @id @default(uuid())
+  userId    String
+  data      String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model ChatLog {
+  id        String   @id @default(uuid())
+  userId    String
+  messages  String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model DailyLog {
+  id        String   @id @default(uuid())
+  userId    String
+  date      String
+  data      String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date])
+}
+
+model TransferCode {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
