@@ -11,6 +11,8 @@ import {
 import { useTheme } from '@/app/components/ThemeProvider';
 import { cn } from '@/lib/utils';
 import { type AnalysisResult, type DailyContent } from '@/types';
+import { CharacterAvatar, CHARACTER_META, type CharacterType } from '@/app/components/CharacterAvatar';
+import { OrbField } from '@/app/components/OrbField';
 
 function copyToClipboard(text: string): Promise<void> {
     if (navigator.clipboard?.writeText) {
@@ -132,14 +134,14 @@ function DailyWidget({ userId }: { userId: string }) {
     );
 }
 
-function CalendarWidget({ birthDate }: { birthDate: string }) {
+function CalendarWidget({ userId }: { userId: string }) {
     const router = useRouter();
     const [scores, setScores] = useState<{ date: string; score: number; phase: string }[]>([]);
 
     useEffect(() => {
-        fetch(`/api/fortune-score?birthDate=${birthDate}&range=14`)
+        fetch(`/api/fortune-score?userId=${userId}&range=14`)
             .then(r => r.json()).then(setScores).catch(() => {});
-    }, [birthDate]);
+    }, [userId]);
 
     const today = new Date().toISOString().split('T')[0];
     const days = scores.slice(0, 7);
@@ -341,9 +343,9 @@ function WidgetShell({ id, editMode, children }: { id: WidgetId; editMode: boole
     return (
         <motion.div layout className="glass p-5 relative overflow-hidden">
             <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2 text-white/40">
+                <div className="flex items-center gap-2 text-white/45">
                     {WIDGET_META[id].icon}
-                    <span className="text-[10px] uppercase tracking-[0.25em] font-bold">{WIDGET_META[id].label}</span>
+                    <span className="text-xs font-serif-jp tracking-wide">{WIDGET_META[id].label}</span>
                 </div>
                 {editMode && (
                     <div className="cursor-grab active:cursor-grabbing text-white/20 hover:text-white/60 transition-colors">
@@ -560,7 +562,7 @@ export default function MyPage() {
                 return <DailyWidget userId={userData.id} />;
             case 'calendar':
                 return userData.birthDate
-                    ? <CalendarWidget birthDate={userData.birthDate} />
+                    ? <CalendarWidget userId={userData.id} />
                     : <p className="text-sm text-white/30">プロフィール登録後に表示されます。</p>;
             case 'chat':
                 return <ChatWidget />;
@@ -570,10 +572,14 @@ export default function MyPage() {
     };
 
     return (
-        <div className="min-h-screen bg-mesh text-white flex flex-col">
+        <div className="min-h-screen bg-mesh text-white flex flex-col relative">
+            <OrbField count={14} />
 
             {/* ── 上部タブバー ───────────────────────────── */}
             <header className="flex-none px-3 pt-4 pb-3 flex items-center justify-between border-b border-white/5 bg-black/20 backdrop-blur-xl sticky top-0 z-30">
+                <div className="flex-none mr-2">
+                    <CharacterAvatar type={(userData.characterType as CharacterType) in CHARACTER_META ? (userData.characterType as CharacterType) : 'sage'} size={36} />
+                </div>
                 <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-x-auto scrollbar-none">
                     <div className="flex items-center gap-1 bg-white/5 rounded-full p-1 min-w-0">
                         {profiles.map(p => (
@@ -644,7 +650,7 @@ export default function MyPage() {
             </header>
 
             {/* ── ウィジェットエリア ─────────────────────── */}
-            <main className="flex-1 px-4 py-4 overflow-y-auto pb-28">
+            <main className="flex-1 px-4 py-4 overflow-y-auto pb-28 relative z-10">
                 {editMode && (
                     <div className="mb-3 px-1 flex items-center justify-between">
                         <p className="text-[10px] text-white/30 uppercase tracking-widest">ウィジェットを並び替え・プロフィールタブを削除</p>

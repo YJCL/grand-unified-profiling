@@ -19,7 +19,19 @@
       "PowerShell(Get-Process -Name \"node\" -ErrorAction SilentlyContinue)",
       "PowerShell(Stop-Process -Force)",
       "PowerShell(\"done\")",
-      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); gh auth status 2>&1)"
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); gh auth status 2>&1)",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "mcp__Claude_in_Chrome__navigate",
+      "WebSearch",
+      "WebFetch(domain:rili.00cha.net)",
+      "WebFetch(domain:wannianli.tianqi.com)",
+      "Bash(node -e \"const c=require\\('city-timezones'\\); const r=c.lookupViaCity\\('Tokyo'\\); console.log\\(JSON.stringify\\(r[0],null,2\\)\\); console.log\\('---count check---'\\); console.log\\('Osaka:', c.lookupViaCity\\('Osaka'\\).length\\); console.log\\('total cities:', c.cityMapping.length\\);\")",
+      "Bash(npx tsx -e ' *)",
+      "Bash(curl -s \"http://localhost:3000/api/fortune-score?birthDate=1985-07-20&range=7\")",
+      "PowerShell(try { $r = Invoke-RestMethod -Uri \"http://localhost:3000/api/fortune-score?birthDate=1985-07-20&range=7\" -TimeoutSec 60; $r | ConvertTo-Json -Depth 4 } catch { \"ERROR: $_\" })",
+      "Bash(curl -s -m 60 \"http://localhost:3000/api/fortune-score?birthDate=1985-07-20&range=7\")",
+      "Bash(echo \"---EXIT $?---\")",
+      "Bash(curl -s -m 120 -X POST \"http://localhost:3000/api/divine\" -H \"Content-Type: application/json\" -d '{\"userProfile\":{\"name\":\"テスト太郎\",\"birthDate\":\"1985-07-20\",\"birthTime\":\"14:30\",\"birthPlace\":\"東京\",\"gender\":\"male\",\"currentWorry\":\"転職すべきか迷っている\",\"language\":\"ja\",\"characterType\":\"fairy\",\"mbti\":\"INFJ\",\"enneagram\":\"4\",\"answers\":[]}}')"
     ]
   }
 }

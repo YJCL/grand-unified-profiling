@@ -25,6 +25,7 @@ function ScoreRing({ score, size = 48 }: { score: number; size?: number }) {
 
 export default function CalendarPage() {
     const router = useRouter();
+    const [userId, setUserId] = useState<string | null>(null);
     const [birthDate, setBirthDate] = useState<string | null>(null);
     const [scores, setScores] = useState<DayScore[]>([]);
     const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
@@ -40,17 +41,18 @@ export default function CalendarPage() {
             if (!res.ok) { router.push('/'); return; }
             const user = await res.json();
             if (!user.birthDate) { router.push('/mypage'); return; }
+            setUserId(id);
             setBirthDate(user.birthDate);
         };
         init();
     }, [router]);
 
     useEffect(() => {
-        if (!birthDate) return;
-        fetch(`/api/fortune-score?birthDate=${birthDate}&range=42`)
+        if (!userId) return;
+        fetch(`/api/fortune-score?userId=${userId}&range=42`)
             .then(r => r.json())
             .then(setScores);
-    }, [birthDate]);
+    }, [userId]);
 
     // 週表示用: 今週 + weekOffset
     const getWeekDays = () => {
@@ -95,11 +97,11 @@ export default function CalendarPage() {
 
                 {/* Header */}
                 <header className="flex items-center justify-between">
-                    <button onClick={() => router.push('/mypage')} className="flex items-center gap-2 text-sm text-white/40 hover:text-white transition-colors">
-                        <ChevronLeft className="w-4 h-4" /> Dashboard
+                    <button onClick={() => router.push('/mypage')} className="flex items-center gap-1.5 text-sm text-white/40 hover:text-white transition-colors">
+                        <ChevronLeft className="w-4 h-4" /> 戻る
                     </button>
-                    <h1 className="text-sm font-bold tracking-[0.3em] uppercase text-white/60">Fortune Calendar</h1>
-                    <div className="w-20" />
+                    <h1 className="text-base font-serif-jp text-white/80">運気カレンダー</h1>
+                    <div className="w-12" />
                 </header>
 
                 {/* 今日のスコア — ヒーロー */}

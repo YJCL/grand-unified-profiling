@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import Anthropic from '@anthropic-ai/sdk';
+import { buildProfileFromUser } from '@/lib/engine/profile';
+import { computeDailyState } from '@/lib/engine/daily';
+import { summarizeProfile, summarizeDaily } from '@/lib/engine/summarize';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -59,6 +62,11 @@ export async function POST(request: Request) {
             year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
         });
 
+        // ★ 出生図と今日の運気を実計算（LLMはこれを解釈するだけ）
+        const grand = buildProfileFromUser(user);
+        const factSheet = grand ? summarizeProfile(grand) : '';
+        const dailySheet = grand ? summarizeDaily(computeDailyState(grand)) : '';
+
         // System prompt: ユーザープロフィールを毎回注入
         const systemPrompt = `# グランド・ユニファイド・ライフパートナー（GULFP）
 
@@ -81,6 +89,11 @@ ${latestDiagnosis ? (() => {
 行動戦略: ${r.strategy}
 現在の運気: ${r.timing}`;
 })() : ''}
+${factSheet ? `
+## 占術データ（天体暦による実計算。これらの数値・配置を根拠に語り、自分で計算し直さない）
+${factSheet}
+
+${dailySheet}` : ''}
 
 ## 動作モード
 
