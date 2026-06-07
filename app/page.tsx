@@ -220,7 +220,10 @@ function Conversation({ char, profileType, userId }: { char: CharacterType; prof
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userProfile: { ...d, language: 'ja', characterType: char, mbti: '', enneagram: '', answers: [] } as UserProfile }),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail ? `${res.status}: ${err.detail}` : `HTTP ${res.status}`);
+      }
       const r: AnalysisResult = await res.json();
       setResult(r);
       setMessages((m) => [...m, { from: 'orb', text: s.reveal }]);

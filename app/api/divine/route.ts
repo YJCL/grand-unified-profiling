@@ -68,37 +68,53 @@ ${answersText ? '## 心理テスト傾向（補助）\n' + answersText : ''}
 
 上記のデータを統合し、deliver_reading ツールで鑑定結果を返してください。`;
 
-        const response = await anthropic.messages.create({
-            model: 'claude-haiku-4-5-20251001',
-            max_tokens: 2048,
-            system: systemPrompt,
-            tools: [{
-                name: 'deliver_reading',
-                description: '統合鑑定の結果を構造化して返す',
-                input_schema: {
-                    type: 'object',
-                    properties: {
-                        coreNature: { type: 'string', description: '【魂のプロファイリング】データを統合した本質・才能・行動原理。日主とHD、太陽月のサインを織り込み、サビアン度数で詩的に締める（300文字程度）' },
-                        strategy: { type: 'string', description: '【最強の戦略】HDのタイプ＆権威に基づく意思決定と動き方を断言（200文字程度）' },
-                        timing: { type: 'string', description: '【現在の運気】今が攻めか守りかを明確に。根拠に触れる（150文字程度）' },
-                        advice: { type: 'string', description: '【具体的ソリューション】悩みに対し明日から実行できる具体策（200文字程度）' },
-                        dailyTheme: { type: 'string', description: '今日のテーマ（10文字以内）' },
-                        luckyAction: { type: 'string', description: '今日の具体的アクション（1つ）' },
-                    },
-                    required: ['coreNature', 'strategy', 'timing', 'advice', 'dailyTheme', 'luckyAction'],
+        const tools: Anthropic.Tool[] = [{
+            name: 'deliver_reading',
+            description: '統合鑑定の結果を構造化して返す',
+            input_schema: {
+                type: 'object',
+                properties: {
+                    coreNature: { type: 'string', description: '【魂のプロファイリング】データを統合した本質・才能・行動原理。日主とHD、太陽月のサインを織り込み、サビアン度数で詩的に締める（300文字程度）' },
+                    strategy: { type: 'string', description: '【最強の戦略】HDのタイプ＆権威に基づく意思決定と動き方を断言（200文字程度）' },
+                    timing: { type: 'string', description: '【現在の運気】今が攻めか守りかを明確に。根拠に触れる（150文字程度）' },
+                    advice: { type: 'string', description: '【具体的ソリューション】悩みに対し明日から実行できる具体策（200文字程度）' },
+                    dailyTheme: { type: 'string', description: '今日のテーマ（10文字以内）' },
+                    luckyAction: { type: 'string', description: '今日の具体的アクション（1つ）' },
                 },
-            }],
-            tool_choice: { type: 'tool', name: 'deliver_reading' },
-            messages: [{ role: 'user', content: userMessage }]
-        });
+                required: ['coreNature', 'strategy', 'timing', 'advice', 'dailyTheme', 'luckyAction'],
+            },
+        }];
 
-        const toolUse = response.content.find((c) => c.type === 'tool_use');
-        if (!toolUse || toolUse.type !== 'tool_use') throw new Error('No structured output');
+        // Anthropic API の間欠的なエラー（過負荷等）に備えてリトライ
+        let toolUse: Anthropic.ToolUseBlock | undefined;
+        let lastErr: unknown;
+        for (let i = 0; i < 3; i++) {
+            try {
+                const response = await anthropic.messages.create({
+                    model: 'claude-haiku-4-5-20251001',
+                    max_tokens: 2048,
+                    system: systemPrompt,
+                    tools,
+                    tool_choice: { type: 'tool', name: 'deliver_reading' },
+                    messages: [{ role: 'user', content: userMessage }],
+                });
+                const block = response.content.find((c) => c.type === 'tool_use');
+                if (block && block.type === 'tool_use') { toolUse = block; break; }
+                lastErr = new Error('No tool_use in response');
+            } catch (e) {
+                lastErr = e;
+            }
+            await new Promise((r) => setTimeout(r, 600));
+        }
 
+        if (!toolUse) throw lastErr ?? new Error('No structured output');
         return NextResponse.json(toolUse.input);
 
     } catch (error) {
         console.error('Error generating fortune:', error);
-        return NextResponse.json({ error: 'Failed to generate fortune' }, { status: 500 });
+        return NextResponse.json(
+            { error: 'Failed to generate fortune', detail: error instanceof Error ? error.message : String(error) },
+            { status: 500 }
+        );
     }
 }
