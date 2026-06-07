@@ -12,6 +12,10 @@ type Phase = 'select' | 'chat' | 'analyzing' | 'result';
 type ProfileType = 'self' | 'family' | 'friend';
 type Turn = 'name' | 'gender' | 'birth' | 'time' | 'place' | 'concern';
 const TURNS: Turn[] = ['name', 'gender', 'birth', 'time', 'place', 'concern'];
+// ターン名 → 収集データのキー（'birth'→'birthDate' 等のズレを吸収）
+const TURN_KEY: Record<Turn, 'name' | 'gender' | 'birthDate' | 'birthTime' | 'birthPlace' | 'currentWorry'> = {
+  name: 'name', gender: 'gender', birth: 'birthDate', time: 'birthTime', place: 'birthPlace', concern: 'currentWorry',
+};
 
 // ── キャラごとの会話スクリプト（口調を一貫） ──────────────
 type Script = {
@@ -204,7 +208,7 @@ function Conversation({ char, profileType, userId }: { char: CharacterType; prof
   const advance = (value: string, display: string) => {
     const turn = TURNS[turnIndex];
     const stored = turn === 'name' ? cleanName(value) : value;
-    const newData = { ...data, [turn === 'concern' ? 'currentWorry' : turn]: stored };
+    const newData = { ...data, [TURN_KEY[turn]]: stored };
     setData(newData);
     setDraft('');
     setMessages((m) => [...m, { from: 'user', text: display || '（スキップ）' }]);
