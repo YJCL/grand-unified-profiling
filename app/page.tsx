@@ -181,49 +181,52 @@ function Conversation({ char, profileType, userId }: { char: CharacterType; prof
   const [turnIndex, setTurnIndex] = useState(0);
   const [messages, setMessages] = useState<Msg[]>([{ from: 'orb', text: s.greet }, { from: 'orb', text: s.name }]);
   const [draft, setDraft] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
   const [data, setData] = useState({ name: '', gender: '', birthDate: '', birthTime: '', birthPlace: '', currentWorry: '' });
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { scrollRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, phase]);
+  useEffect(() => { scrollRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, phase, isTyping]);
 
   const currentTurn = TURNS[turnIndex];
 
   const advance = (value: string, display: string) => {
     const turn = TURNS[turnIndex];
-    const next = [...messages, { from: 'user' as const, text: display || '（スキップ）' }];
     const newData = { ...data, [turn === 'concern' ? 'currentWorry' : turn]: value };
     setData(newData);
     setDraft('');
+    setMessages((m) => [...m, { from: 'user', text: display || '（スキップ）' }]);
 
+    // 少し「書き込み中」の間をおいてから相棒が返す
     const ni = turnIndex + 1;
-    if (ni < TURNS.length) {
-      next.push({ from: 'orb', text: s[TURNS[ni]] });
-      setMessages(next);
-      setTurnIndex(ni);
-    } else {
-      next.push({ from: 'orb', text: s.analyzing });
-      setMessages(next);
-      setPhase('analyzing');
-      runAnalysis(newData);
-    }
+    setIsTyping(true);
+    setTimeout(() => {
+      setIsTyping(false);
+      if (ni < TURNS.length) {
+        setMessages((m) => [...m, { from: 'orb', text: s[TURNS[ni]] }]);
+        setTurnIndex(ni);
+      } else {
+        setMessages((m) => [...m, { from: 'orb', text: s.analyzing }]);
+        setPhase('analyzing');
+        runAnalysis(newData);
+      }
+    }, 850);
   };
 
   const runAnalysis = async (d: typeof data) => {
     try {
-      await new Promise((r) => setTimeout(r, 700));
       const res = await fetch('/api/divine', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userProfile: { ...d, language: 'ja', characterType: char, mbti: '', enneagram: '', answers: [] } as UserProfile }),
       });
-      if (!res.ok) throw new Error('failed');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const r: AnalysisResult = await res.json();
       setResult(r);
       setMessages((m) => [...m, { from: 'orb', text: s.reveal }]);
       setPhase('result');
-    } catch {
-      setMessages((m) => [...m, { from: 'orb', text: 'ごめん、うまく読み取れなかった…もう一度試してくれる？' }]);
+    } catch (e) {
+      setMessages((m) => [...m, { from: 'orb', text: `ごめん、うまく読み取れなかった…もう一度試してくれる？（${e instanceof Error ? e.message : 'error'}）` }]);
       setPhase('chat');
     }
   };
@@ -284,7 +287,7 @@ function Conversation({ char, profileType, userId }: { char: CharacterType; prof
           ))}
         </AnimatePresence>
 
-        {phase === 'analyzing' && (
+        {(phase === 'analyzing' || isTyping) && (
           <div className="flex justify-start"><div className="card px-4 py-3 rounded-2xl rounded-bl-sm flex gap-1.5">
             {[0, 1, 2].map((i) => <motion.span key={i} animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 1.1, repeat: Infinity, delay: i * 0.18 }} className="w-1.5 h-1.5 rounded-full bg-amber-200/70" />)}
           </div></div>
@@ -322,7 +325,7 @@ function Conversation({ char, profileType, userId }: { char: CharacterType; prof
       </div>
 
       {/* 入力エリア */}
-      {phase === 'chat' && (
+      {phase === 'chat' && !isTyping && (
         <div className="sticky bottom-0 bg-gradient-to-t from-[#0a0820] via-[#0a0820]/95 to-transparent pt-3 pb-5">
           <Composer turn={currentTurn} draft={draft} setDraft={setDraft} onAnswer={advance} />
         </div>

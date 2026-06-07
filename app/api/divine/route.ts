@@ -69,7 +69,7 @@ ${answersText ? '## 心理テスト傾向（補助）\n' + answersText : ''}
 上記のデータを統合し、deliver_reading ツールで鑑定結果を返してください。`;
 
         const response = await anthropic.messages.create({
-            model: 'claude-sonnet-4-6',
+            model: 'claude-haiku-4-5-20251001',
             max_tokens: 2048,
             system: systemPrompt,
             tools: [{
