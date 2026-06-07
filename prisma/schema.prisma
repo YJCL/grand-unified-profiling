@@ -10,6 +10,7 @@ datasource db {
 model User {
   id            String      @id @default(uuid())
   email         String?     @unique
+  passwordHash  String?     // scrypt(salt:hash)。本登録済みユーザーのみ。平文は保存しない
   isPremium     Boolean     @default(false)
   createdAt     DateTime    @default(now())
   birthDate     String?

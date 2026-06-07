@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { type UserProfile, type AnalysisResult } from '@/types';
 import { CharacterAvatar, CHARACTER_META, type CharacterType } from '@/app/components/CharacterAvatar';
 import { OrbField } from '@/app/components/OrbField';
+import { AuthModal } from '@/app/components/AuthModal';
 
 type Phase = 'select' | 'chat' | 'analyzing' | 'result';
 type ProfileType = 'self' | 'family' | 'friend';
@@ -111,6 +112,7 @@ function OrbSelect({ onSelect, isNewProfile }: { onSelect: (t: CharacterType) =>
   const [code, setCode] = useState('');
   const [codeErr, setCodeErr] = useState('');
   const [codeLoading, setCodeLoading] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
 
   const redeem = async () => {
     if (code.length < 6) return;
@@ -182,7 +184,18 @@ function OrbSelect({ onSelect, isNewProfile }: { onSelect: (t: CharacterType) =>
         {isNewProfile && (
           <button onClick={() => router.push('/mypage')} className="text-[11px] text-white/25 hover:text-white/50 tracking-wide">← ダッシュボードに戻る</button>
         )}
+        <button onClick={() => setShowAuth(true)} className="text-[11px] text-white/40 hover:text-white/70 tracking-wide">
+          登録済みの方はログイン →
+        </button>
       </div>
+
+      <AnimatePresence>
+        {showAuth && (
+          <AuthModal initialMode="login"
+            onClose={() => setShowAuth(false)}
+            onSuccess={() => router.push('/mypage')} />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

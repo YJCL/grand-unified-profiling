@@ -6,13 +6,14 @@ import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import {
     Sparkles, MessageSquare, CalendarDays, User,
     Zap, Shield, Target, RefreshCw, GripVertical,
-    Settings, Crown, Moon, Plus, X, Copy, Check, Clock, Share2, Sun
+    Settings, Crown, Moon, Plus, X, Copy, Check, Clock, Share2, Sun, LogOut, UserPlus
 } from 'lucide-react';
 import { useTheme } from '@/app/components/ThemeProvider';
 import { cn } from '@/lib/utils';
 import { type AnalysisResult, type DailyContent } from '@/types';
 import { CharacterAvatar, CHARACTER_META, type CharacterType } from '@/app/components/CharacterAvatar';
 import { OrbField } from '@/app/components/OrbField';
+import { AuthModal } from '@/app/components/AuthModal';
 
 function copyToClipboard(text: string): Promise<void> {
     if (navigator.clipboard?.writeText) {
@@ -43,6 +44,7 @@ type ProfileTab = {
 
 type UserData = {
     id: string;
+    email: string | null;
     name: string | null;
     birthDate: string | null;
     birthTime: string | null;
@@ -419,6 +421,15 @@ export default function MyPage() {
     const [genCode, setGenCode] = useState<string | null>(null);
     const [genCodeLoading, setGenCodeLoading] = useState(false);
     const [genCodeCopied, setGenCodeCopied] = useState(false);
+    const [showAuth, setShowAuth] = useState(false);
+
+    const handleLogout = async () => {
+        await fetch('/api/auth/logout', { method: 'POST' });
+        localStorage.removeItem('guf_user_id');
+        localStorage.removeItem('guf_profiles');
+        localStorage.removeItem('guf_premium');
+        router.push('/');
+    };
 
     const loadProfile = useCallback(async (id: string) => {
         const res = await fetch(`/api/user?id=${id}`);
@@ -640,6 +651,18 @@ export default function MyPage() {
                     >
                         <Share2 className="w-3.5 h-3.5" />
                     </button>
+                    {/* アカウント（本登録 / ログアウト） */}
+                    {userData.email ? (
+                        <button onClick={handleLogout} title={`${userData.email}\nログアウト`}
+                            className="p-1.5 text-white/20 hover:text-white/60 transition-colors">
+                            <LogOut className="w-3.5 h-3.5" />
+                        </button>
+                    ) : (
+                        <button onClick={() => setShowAuth(true)}
+                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[10px] font-bold text-amber-200/90 border border-amber-300/30 bg-amber-400/10 hover:bg-amber-400/20 transition-all whitespace-nowrap">
+                            <UserPlus className="w-3 h-3" /> 本登録
+                        </button>
+                    )}
                     <button onClick={() => setEditMode(e => !e)}
                         className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all',
                             editMode ? 'bg-yellow-400/15 text-yellow-400 border border-yellow-400/30' : 'text-white/30 hover:text-white/60'
@@ -716,6 +739,11 @@ export default function MyPage() {
 
             {/* ── Modals ────────────────────────────────── */}
             <AnimatePresence>
+                {showAuth && (
+                    <AuthModal initialMode="register" userId={userData.id}
+                        onClose={() => setShowAuth(false)}
+                        onSuccess={() => { setShowAuth(false); window.location.reload(); }} />
+                )}
                 {deleteTarget && (
                     <DeleteModal
                         profile={deleteTarget}
