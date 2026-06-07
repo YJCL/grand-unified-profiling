@@ -26,8 +26,12 @@ export function toUTCDate(
   const [y, m, d] = birthDate.split('-').map(Number);
   const hasExactTime = !!birthTime;
   const [hh, mm] = (birthTime || '12:00').split(':').map(Number);
+  const off = Number.isFinite(tzOffsetMinutes) ? tzOffsetMinutes : 540;
   // ローカル時刻をUTCへ：UTC = local - offset
-  const utcMs = Date.UTC(y, m - 1, d, hh, mm) - tzOffsetMinutes * 60_000;
+  let utcMs = Date.UTC(y, m - 1, d, hh, mm) - off * 60_000;
+  // 不正な日付になった場合は正午UTCで安全にフォールバック（落とさない）
+  if (Number.isNaN(utcMs)) utcMs = Date.UTC(y, m - 1, d, 12, 0);
+  if (Number.isNaN(utcMs)) utcMs = Date.now();
   return { date: new Date(utcMs), hasExactTime };
 }
 

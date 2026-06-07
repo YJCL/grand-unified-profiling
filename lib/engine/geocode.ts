@@ -84,10 +84,15 @@ export function resolveTzOffset(
   const [y, m, d] = birthDate.split('-').map(Number);
   const [hh, mm] = birthTime.split(':').map(Number);
   // 壁時計をUTCと見なした仮の瞬間
-  const guess = new Date(Date.UTC(y, m - 1, d, hh, mm));
-  let offset = instantOffsetMinutes(iana, guess);
-  // 真の瞬間で再評価（DST境界の補正）
-  const real = new Date(guess.getTime() - offset * 60000);
-  offset = instantOffsetMinutes(iana, real);
-  return offset;
+  try {
+    const guess = new Date(Date.UTC(y, m - 1, d, hh, mm));
+    let offset = instantOffsetMinutes(iana, guess);
+    if (!Number.isFinite(offset)) return 540;
+    // 真の瞬間で再評価（DST境界の補正）
+    const real = new Date(guess.getTime() - offset * 60000);
+    offset = instantOffsetMinutes(iana, real);
+    return Number.isFinite(offset) ? offset : 540;
+  } catch {
+    return 540; // 何かあってもJSTにフォールバック（落とさない）
+  }
 }

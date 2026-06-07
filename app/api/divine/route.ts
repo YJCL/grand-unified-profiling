@@ -24,14 +24,19 @@ export async function POST(request: Request) {
         const langName = language === 'en' ? 'English' : language === 'es' ? 'Spanish' : 'Japanese';
 
         // ★ 占術データは天体暦で実計算（LLMには計算させない）
-        const profile = buildGrandProfile({
-            name: userProfile.name,
-            birthDate: userProfile.birthDate,
-            birthTime: userProfile.birthTime || undefined,
-            birthPlace: userProfile.birthPlace || undefined,
-            gender: userProfile.gender || undefined,
-        });
-        const factSheet = summarizeProfile(profile);
+        let factSheet: string;
+        try {
+            const profile = buildGrandProfile({
+                name: userProfile.name,
+                birthDate: userProfile.birthDate,
+                birthTime: userProfile.birthTime || undefined,
+                birthPlace: userProfile.birthPlace || undefined,
+                gender: userProfile.gender || undefined,
+            });
+            factSheet = summarizeProfile(profile);
+        } catch (e) {
+            throw new Error(`engine(${userProfile.birthDate}/${userProfile.birthTime}/${userProfile.birthPlace}): ${e instanceof Error ? e.message : String(e)}`);
+        }
 
         // 心理テスト回答は補助的なヒントとして添える
         const answersText = (userProfile.answers || []).map(ans => {
