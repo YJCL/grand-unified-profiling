@@ -7,6 +7,8 @@ import { summarizeProfile, summarizeDaily } from '@/lib/engine/summarize';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
     try {
         const body = await request.json();

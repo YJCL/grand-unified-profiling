@@ -11,13 +11,13 @@ import { cn } from '@/lib/utils';
 export type CharacterType = 'fairy' | 'shaman' | 'sage' | 'friend' | 'cool' | 'burn';
 
 // 6色を色相環で明確に分離
-const ORBS: Record<CharacterType, { hue: number; sat: number; label: string }> = {
-  fairy:  { hue: 46,  sat: 92, label: '妖精オーブ' },   // 金
-  burn:   { hue: 8,   sat: 88, label: '焔オーブ' },     // 朱
-  shaman: { hue: 322, sat: 70, label: '巫女オーブ' },   // 薔薇
-  sage:   { hue: 250, sat: 68, label: '賢者オーブ' },   // 藍
-  cool:   { hue: 190, sat: 78, label: '氷オーブ' },     // 青緑
-  friend: { hue: 150, sat: 62, label: '親友オーブ' },   // 緑
+const ORBS: Record<CharacterType, { hue: number; sat: number; label: string; tone: string }> = {
+  fairy:  { hue: 46,  sat: 92, label: '妖精オーブ', tone: 'ふわっと優しく、無邪気に寄り添う' },   // 金
+  burn:   { hue: 8,   sat: 88, label: '焔オーブ',   tone: '熱量高め、力強く背中を押す' },         // 朱
+  shaman: { hue: 322, sat: 70, label: '巫女オーブ', tone: '凛として神秘的、言葉に重みがある' },   // 薔薇
+  sage:   { hue: 250, sat: 68, label: '賢者オーブ', tone: '落ち着いて論理的、知的で包容力' },     // 藍
+  cool:   { hue: 190, sat: 78, label: '氷オーブ',   tone: '端的でシャープ、的確な一言' },         // 青緑
+  friend: { hue: 150, sat: 62, label: '親友オーブ', tone: 'フランクで等身大、一緒に考える' },     // 緑
 };
 
 export function CharacterAvatar({

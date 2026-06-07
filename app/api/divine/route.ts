@@ -8,6 +8,9 @@ import { characterToneBlock } from '@/lib/character';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+// 深い鑑定の生成は時間がかかるため、関数タイムアウトを延長
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
     try {
         const body = await request.json();

@@ -130,17 +130,21 @@ function OrbSelect({ onSelect, isNewProfile }: { onSelect: (t: CharacterType) =>
       <h1 className="text-3xl md:text-5xl mb-3 leading-tight bg-gradient-to-b from-white to-white/55 bg-clip-text text-transparent">
         数ある無数のオーブの中から、<br className="hidden md:block" />君だけのパートナーを。
       </h1>
-      <p className="text-white/45 mb-10 font-serif-jp text-sm md:text-base">
+      <p className="text-white/45 mb-2 font-serif-jp text-sm md:text-base">
         ひとつ選んでください。その光が、あなたの人生にそっと寄り添います。
+      </p>
+      <p className="text-white/30 mb-9 text-xs">
+        ※ 選ぶオーブで変わるのは<span className="text-amber-200/70">話し方（口調）だけ</span>。鑑定結果（占いの中身）は同じです。後からいつでも変えられます。
       </p>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
         {types.map((t) => (
           <motion.button key={t} whileHover={{ y: -4, scale: 1.02 }} whileTap={{ scale: 0.97 }}
             onClick={() => onSelect(t)}
-            className="card p-6 flex flex-col items-center gap-3 transition-colors hover:border-white/25">
-            <CharacterAvatar type={t} size={110} />
+            className="card p-5 flex flex-col items-center gap-2.5 text-center transition-colors hover:border-white/25">
+            <CharacterAvatar type={t} size={96} />
             <p className="text-base md:text-lg font-serif-jp">{CHARACTER_META[t].label}</p>
+            <p className="text-[11px] text-white/45 leading-snug font-serif-jp">{CHARACTER_META[t].tone}</p>
           </motion.button>
         ))}
       </div>
@@ -208,7 +212,7 @@ function Conversation({ char, profileType, userId }: { char: CharacterType; prof
 
   const runAnalysis = async (d: typeof data) => {
     try {
-      await new Promise((r) => setTimeout(r, 2600));
+      await new Promise((r) => setTimeout(r, 700));
       const res = await fetch('/api/divine', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userProfile: { ...d, language: 'ja', characterType: char, mbti: '', enneagram: '', answers: [] } as UserProfile }),
