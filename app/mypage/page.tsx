@@ -128,7 +128,7 @@ function DailyWidget({ userId }: { userId: string }) {
                     </p>
                 </div>
             ) : (
-                <p className="text-sm text-white/30">プロフィール登録後に表示されます。</p>
+                <p className="text-sm text-white/30">鑑定後に表示されます。</p>
             )}
         </div>
     );
@@ -563,7 +563,7 @@ export default function MyPage() {
             case 'calendar':
                 return userData.birthDate
                     ? <CalendarWidget userId={userData.id} />
-                    : <p className="text-sm text-white/30">プロフィール登録後に表示されます。</p>;
+                    : <p className="text-sm text-white/30">鑑定後に表示されます。</p>;
             case 'chat':
                 return <ChatWidget />;
             case 'profile':
@@ -576,7 +576,8 @@ export default function MyPage() {
             <OrbField count={14} />
 
             {/* ── 上部タブバー ───────────────────────────── */}
-            <header className="flex-none px-3 pt-4 pb-3 flex items-center justify-between border-b border-white/5 bg-black/20 backdrop-blur-xl sticky top-0 z-30">
+            <header className="flex-none border-b border-white/5 bg-black/20 backdrop-blur-xl sticky top-0 z-30">
+              <div className="px-3 pt-4 pb-3 flex items-center justify-between max-w-2xl mx-auto w-full">
                 <div className="flex-none mr-2">
                     <CharacterAvatar type={(userData.characterType as CharacterType) in CHARACTER_META ? (userData.characterType as CharacterType) : 'sage'} size={36} />
                 </div>
@@ -647,10 +648,11 @@ export default function MyPage() {
                         {editMode ? '完了' : 'カスタマイズ'}
                     </button>
                 </div>
+              </div>
             </header>
 
             {/* ── ウィジェットエリア ─────────────────────── */}
-            <main className="flex-1 px-4 py-4 overflow-y-auto pb-28 relative z-10">
+            <main className="flex-1 px-4 py-6 overflow-y-auto pb-28 relative z-10 w-full max-w-2xl mx-auto">
                 {editMode && (
                     <div className="mb-3 px-1 flex items-center justify-between">
                         <p className="text-[10px] text-white/30 uppercase tracking-widest">ウィジェットを並び替え・プロフィールタブを削除</p>
@@ -676,7 +678,7 @@ export default function MyPage() {
             </main>
 
             {/* ── 下部サブスクバー ───────────────────────── */}
-            <div className="fixed bottom-0 left-0 right-0 z-30 bg-black/60 backdrop-blur-xl border-t border-white/5 px-4 py-3">
+            <div className="fixed bottom-0 left-0 right-0 z-30 bg-black/60 backdrop-blur-xl border-t border-white/5 px-4 py-3 [&>*]:max-w-2xl [&>*]:mx-auto">
                 {isDevicePremium ? (
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">

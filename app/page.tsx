@@ -89,6 +89,16 @@ const SCRIPT: Record<CharacterType, Script> = {
 
 type Msg = { from: 'orb' | 'user'; text: string };
 
+// 「〇〇です。」「〇〇と申します」等から名前部分だけを抽出
+function cleanName(raw: string): string {
+  let n = raw.trim();
+  n = n.replace(/[。．.、,，!！?？\s]+$/g, '');
+  n = n.replace(/(と申します|といいます|と言います|って言います|っていいます|です|でーす|だよ|だす)$/g, '');
+  n = n.replace(/^(私は|わたしは|僕は|ぼくは|俺は|おれは|名前は)/g, '');
+  n = n.replace(/[。．.、,，!！?？\s]+$/g, '');
+  return n.trim() || raw.trim();
+}
+
 // ── オーブ選択画面 ────────────────────────────────────────
 function OrbSelect({ onSelect, isNewProfile }: { onSelect: (t: CharacterType) => void; isNewProfile: boolean }) {
   const router = useRouter();
@@ -193,7 +203,8 @@ function Conversation({ char, profileType, userId }: { char: CharacterType; prof
 
   const advance = (value: string, display: string) => {
     const turn = TURNS[turnIndex];
-    const newData = { ...data, [turn === 'concern' ? 'currentWorry' : turn]: value };
+    const stored = turn === 'name' ? cleanName(value) : value;
+    const newData = { ...data, [turn === 'concern' ? 'currentWorry' : turn]: stored };
     setData(newData);
     setDraft('');
     setMessages((m) => [...m, { from: 'user', text: display || '（スキップ）' }]);
