@@ -9,6 +9,40 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export const maxDuration = 60;
 
+// 保存済みのチャット履歴を返す（画面に過去の会話を表示するため）
+export async function GET(request: Request) {
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+    if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 });
+
+    try {
+        const log = await prisma.chatLog.findFirst({
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
+        });
+        if (!log) return NextResponse.json({ messages: [] });
+        const messages = JSON.parse(log.messages) as { role: string; content: string }[];
+        return NextResponse.json({ messages });
+    } catch (error) {
+        console.error('Error fetching chat history:', error);
+        return NextResponse.json({ messages: [] });
+    }
+}
+
+// 会話履歴をリセット（新しい会話を始める）
+export async function DELETE(request: Request) {
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+    if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 });
+    try {
+        await prisma.chatLog.deleteMany({ where: { userId } });
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error('Error clearing chat:', error);
+        return NextResponse.json({ error: 'Failed to clear chat' }, { status: 500 });
+    }
+}
+
 export async function POST(request: Request) {
     try {
         const body = await request.json();

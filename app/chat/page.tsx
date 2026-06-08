@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Send, ChevronLeft } from 'lucide-react';
+import { Send, ChevronLeft, PenSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CharacterAvatar, CHARACTER_META, type CharacterType } from '@/app/components/CharacterAvatar';
 import { OrbField } from '@/app/components/OrbField';
@@ -29,12 +29,26 @@ function ChatPageInner() {
             setUserId(id);
             try {
                 const res = await fetch(`/api/user?id=${id}`);
+                let name = 'あなた';
                 if (res.ok) {
                     const data = await res.json();
                     if (data.characterType && CHARACTER_META[data.characterType as CharacterType]) setChar(data.characterType);
-                    const name = data.name ? `${data.name}` : 'あなた';
+                    name = data.name ? `${data.name}` : 'あなた';
+                }
+                // 過去の会話履歴を読み込んで表示
+                const hist = await fetch(`/api/chat?userId=${id}`).then(r => r.ok ? r.json() : { messages: [] }).catch(() => ({ messages: [] }));
+                const past: Message[] = (hist.messages || [])
+                    .filter((m: { role: string }) => m.role === 'user' || m.role === 'assistant')
+                    .map((m: { role: string; content: string }, i: number) => ({ id: `h${i}`, role: m.role as 'user' | 'assistant', content: m.content }));
+
+                if (past.length > 0) {
+                    setMessages([
+                        { id: 'welcome', role: 'assistant', content: `${name}、おかえり。前回の続きから話せるよ。` },
+                        ...past,
+                    ]);
+                } else {
                     setMessages([{ id: 'welcome', role: 'assistant',
-                        content: `${name}、おかえり。\n今日はどんなことを話す？日々の悩みでも、大きな決断でも、なんでも聞かせて。「鑑定して」と言えば、本格的に視るよ。` }]);
+                        content: `${name}、はじめまして。\n今日はどんなことを話す？日々の悩みでも、大きな決断でも、なんでも聞かせて。「鑑定して」と言えば、本格的に視るよ。` }]);
                 }
             } catch (e) { console.error(e); }
         };
@@ -68,10 +82,22 @@ function ChatPageInner() {
                     <ChevronLeft className="w-5 h-5" />
                 </button>
                 <CharacterAvatar type={char} size={40} speaking={isLoading} />
-                <div>
+                <div className="flex-1">
                     <p className="text-sm font-serif-jp text-white/90">{CHARACTER_META[char].label}</p>
                     <p className="text-[10px] text-white/35">あなたのパートナー</p>
                 </div>
+                <button
+                    onClick={async () => {
+                        if (!userId || isLoading) return;
+                        if (!window.confirm('これまでの会話履歴を消して、新しい会話を始めますか？')) return;
+                        await fetch(`/api/chat?userId=${userId}`, { method: 'DELETE' });
+                        setMessages([{ id: 'welcome', role: 'assistant', content: 'うん、新しく始めよう。今日はどんなことを話す？' }]);
+                    }}
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[10px] text-white/40 hover:text-white/80 border border-white/10 hover:border-white/25 transition-all whitespace-nowrap"
+                    title="新しい会話を始める"
+                >
+                    <PenSquare className="w-3 h-3" /> 新しい会話
+                </button>
             </header>
 
             {/* Messages */}
