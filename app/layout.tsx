@@ -27,10 +27,15 @@ const cormorant = Cormorant_Garamond({
   display: "swap",
 });
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://grand-unified-profiling.vercel.app";
+const APP_DESC = "あなただけのパートナーオーブ。Orbaはあなたを深く知り、迷ったとき道を照らすパーソナルパートナーです。";
+
 export const metadata: Metadata = {
-  title: "Grand Unified Fortune | パートナーオーブ",
-  description: "あなたの人生にそっと寄り添う、君だけのパートナーオーブ。西洋・東洋占術、心理学、ヒューマンデザインを統合した自己解析と日々の相談を。",
+  metadataBase: new URL(APP_URL),
+  title: "Orba | あなただけのパートナーオーブ",
+  description: APP_DESC,
   manifest: "/manifest.json",
+  applicationName: "Orba",
   icons: {
     icon: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
     apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
@@ -38,7 +43,20 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "オーブ",
+    title: "Orba",
+  },
+  openGraph: {
+    type: "website",
+    siteName: "Orba",
+    title: "Orba | あなただけのパートナーオーブ",
+    description: APP_DESC,
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Orba" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Orba | あなただけのパートナーオーブ",
+    description: APP_DESC,
+    images: ["/og.png"],
   },
 };
 

@@ -1,7 +1,7 @@
 {
-  "name": "Grand Unified Fortune — パートナーオーブ",
-  "short_name": "オーブ",
-  "description": "あなたの人生にそっと寄り添う、君だけのパートナーオーブ。あらゆる占術を統合した自己解析と日々の相談を。",
+  "name": "Orba — あなただけのパートナーオーブ",
+  "short_name": "Orba",
+  "description": "あなただけのパートナーオーブ。Orbaはあなたを深く知り、迷ったとき道を照らすパーソナルパートナーです。",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

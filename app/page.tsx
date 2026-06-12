@@ -142,7 +142,7 @@ function OrbSelect({ onSelect, isNewProfile }: { onSelect: (t: CharacterType) =>
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="relative z-10 max-w-4xl mx-auto px-6 py-14 min-h-screen flex flex-col justify-center">
-      <p className="font-display italic text-amber-200/70 text-xl md:text-2xl mb-2">Grand Unified Fortune</p>
+      <p className="font-display italic text-amber-200/70 text-3xl md:text-4xl mb-2 tracking-wide">Orba</p>
       <h1 className="text-3xl md:text-5xl mb-3 leading-tight bg-gradient-to-b from-white to-white/55 bg-clip-text text-transparent">
         数ある無数のオーブの中から、<br className="hidden md:block" />君だけのパートナーを。
       </h1>

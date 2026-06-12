@@ -34,7 +34,7 @@ export const TRANSLATIONS: Record<Language, {
     catalyticAction: string;
 }> = {
     ja: {
-        title: "Grand Unified Fortune",
+        title: "Orba",
         subtitle: "西洋・東洋占星術、心理学、ヒューマンデザインを統合した究極の自己解析シミュレーター",
         initialize: "鑑定を始める",
         configTitle: "プロフィール入力",
@@ -72,7 +72,7 @@ export const TRANSLATIONS: Record<Language, {
         catalyticAction: "ラッキーアクション"
     },
     en: {
-        title: "Grand Unified Fortune",
+        title: "Orba",
         subtitle: "The ultimate self-analysis simulator integrating Western & Eastern Astrology, Psychology, and Human Design.",
         initialize: "Start Reading",
         configTitle: "Profile Entry",
@@ -110,7 +110,7 @@ export const TRANSLATIONS: Record<Language, {
         catalyticAction: "Lucky Action"
     },
     es: {
-        title: "Grand Unified Fortune",
+        title: "Orba",
         subtitle: "El simulador de autoanálisis definitivo que integra Astrología Occidental y Oriental, Psicología y Diseño Humano.",
         initialize: "Comenzar",
         configTitle: "Perfil",

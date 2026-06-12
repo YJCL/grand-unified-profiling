@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-export const metadata = { title: 'プライバシーポリシー | Grand Unified Fortune' };
+export const metadata = { title: 'プライバシーポリシー | Orba' };
 
 export default function PrivacyPage() {
   return (

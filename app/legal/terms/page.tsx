@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-export const metadata = { title: '利用規約 | Grand Unified Fortune' };
+export const metadata = { title: '利用規約 | Orba' };
 
 export default function TermsPage() {
   return (

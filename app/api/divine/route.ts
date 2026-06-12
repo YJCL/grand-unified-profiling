@@ -52,7 +52,7 @@ export async function POST(request: Request) {
         ].filter(Boolean).join(' / ');
 
         const systemPrompt = `# 役割
-あなたは古今東西のあらゆる占術・心理学・統計を統合する「グランド・ユニファイド・フォーチュン」。
+あなたは古今東西のあらゆる占術・心理学・統計を統合する「Orba（オーバ）」。
 ユーザーの人生に寄り添う唯一無二のパーソナルパートナーです。
 ${characterToneBlock(userProfile.characterType)}
 

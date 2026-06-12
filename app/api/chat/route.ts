@@ -109,7 +109,7 @@ export async function POST(request: Request) {
         const dailySheet = grand ? summarizeDaily(computeDailyState(grand)) : '';
 
         // System prompt: ユーザープロフィールを毎回注入
-        const systemPrompt = `# グランド・ユニファイド・ライフパートナー（GULFP）
+        const systemPrompt = `# Orba（オーバ） — あなただけのパートナーオーブ
 
 ## あなたの役割
 ユーザーの人生に常に寄り添う、唯一無二のパーソナルパートナーです。
