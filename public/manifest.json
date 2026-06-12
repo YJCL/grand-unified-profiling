@@ -1,0 +1,17 @@
+{
+  "name": "Grand Unified Fortune — パートナーオーブ",
+  "short_name": "オーブ",
+  "description": "あなたの人生にそっと寄り添う、君だけのパートナーオーブ。あらゆる占術を統合した自己解析と日々の相談を。",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#080818",
+  "theme_color": "#0a0820",
+  "lang": "ja",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

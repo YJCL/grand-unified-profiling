@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { checkUserAccess } from '@/lib/auth';
 
 function generateCode(): string {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -14,10 +15,8 @@ function generateCode(): string {
 export async function POST(request: Request) {
     try {
         const { userId } = await request.json();
-        if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 });
-
-        const user = await prisma.user.findUnique({ where: { id: userId } });
-        if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        const access = await checkUserAccess(userId);
+        if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
 
         // Generate unique code
         let code = generateCode();

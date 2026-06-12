@@ -4,6 +4,9 @@ import Anthropic from '@anthropic-ai/sdk';
 import { buildProfileFromUser } from '@/lib/engine/profile';
 import { computeDailyState } from '@/lib/engine/daily';
 import { summarizeProfile, summarizeDaily } from '@/lib/engine/summarize';
+import { checkUserAccess } from '@/lib/auth';
+
+const FREE_DAILY_LIMIT = 3;
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -13,11 +16,12 @@ export const maxDuration = 60;
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
-    if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 });
+    const access = await checkUserAccess(userId);
+    if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
 
     try {
         const log = await prisma.chatLog.findFirst({
-            where: { userId },
+            where: { userId: userId! },
             orderBy: { createdAt: 'desc' },
         });
         if (!log) return NextResponse.json({ messages: [] });
@@ -33,9 +37,10 @@ export async function GET(request: Request) {
 export async function DELETE(request: Request) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
-    if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 });
+    const access = await checkUserAccess(userId);
+    if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
     try {
-        await prisma.chatLog.deleteMany({ where: { userId } });
+        await prisma.chatLog.deleteMany({ where: { userId: userId! } });
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error('Error clearing chat:', error);
@@ -52,6 +57,9 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'userId and message required' }, { status: 400 });
         }
 
+        const access = await checkUserAccess(userId);
+        if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
+
         const user = await prisma.user.findUnique({
             where: { id: userId },
             include: {
@@ -62,24 +70,21 @@ export async function POST(request: Request) {
 
         if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
-        // 無料ユーザーは1日3回まで
+        // 無料ユーザーは1日3回まで（サーバー側カウンタで強制）
+        const todayKey = new Date().toISOString().split('T')[0];
         if (!user.isPremium) {
-            const todayStart = new Date();
-            todayStart.setHours(0, 0, 0, 0);
-            const todayLog = user.chatLogs[0];
-            if (todayLog) {
-                const msgs = JSON.parse(todayLog.messages) as { role: string }[];
-                const userMsgCount = msgs.filter(m => m.role === 'user').length;
-                // 当日のメッセージ数チェック（ChatLogのcreatedAtが今日なら）
-                const logDate = new Date(todayLog.createdAt);
-                if (logDate >= todayStart && userMsgCount >= 3) {
-                    return NextResponse.json({
-                        error: 'Daily limit reached',
-                        limitReached: true,
-                        message: '本日の無料相談回数（3回）に達しました。明日またお話しましょう。'
-                    }, { status: 429 });
-                }
+            const usedToday = user.chatDate === todayKey ? user.chatUsed : 0;
+            if (usedToday >= FREE_DAILY_LIMIT) {
+                return NextResponse.json({
+                    error: 'Daily limit reached',
+                    limitReached: true,
+                    message: `本日の無料相談回数（${FREE_DAILY_LIMIT}回）に達しました。明日またお話しましょう。プレミアムなら無制限で相談できます。`
+                }, { status: 429 });
             }
+            await prisma.user.update({
+                where: { id: userId },
+                data: { chatDate: todayKey, chatUsed: usedToday + 1 },
+            });
         }
 
         const latestDiagnosis = user.diagnoses[0];

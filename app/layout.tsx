@@ -28,8 +28,26 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "Grand Unified Fortune | Soul Profiling",
-  description: "Western & Eastern Astrology, Psychology, and Human Design Integrated.",
+  title: "Grand Unified Fortune | パートナーオーブ",
+  description: "あなたの人生にそっと寄り添う、君だけのパートナーオーブ。西洋・東洋占術、心理学、ヒューマンデザインを統合した自己解析と日々の相談を。",
+  manifest: "/manifest.json",
+  icons: {
+    icon: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "オーブ",
+  },
+};
+
+export const viewport = {
+  themeColor: "#0a0820",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover" as const,
 };
 
 export default function RootLayout({

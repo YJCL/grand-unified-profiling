@@ -481,12 +481,8 @@ export default function MyPage() {
                 setProfiles(stored);
             }
 
-            // Device-level premium
-            const devicePremium = localStorage.getItem('guf_premium') === 'true' || data.isPremium;
-            if (data.isPremium && localStorage.getItem('guf_premium') !== 'true') {
-                localStorage.setItem('guf_premium', 'true');
-            }
-            setIsDevicePremium(devicePremium);
+            // 会員状態はサーバー（DB）の isPremium のみを信頼する
+            setIsDevicePremium(data.isPremium);
 
             setLoading(false);
         };
@@ -721,13 +717,18 @@ export default function MyPage() {
                         </div>
                         <button
                             onClick={async () => {
-                                await fetch('/api/user', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ id: userData.id, isPremium: true })
-                                });
-                                localStorage.setItem('guf_premium', 'true');
-                                window.location.reload();
+                                // 本登録していない場合は先にアカウント登録へ
+                                if (!userData.email) { setShowAuth(true); return; }
+                                const res = await fetch('/api/billing/upgrade', { method: 'POST' });
+                                const data = await res.json().catch(() => ({}));
+                                if (res.ok) {
+                                    localStorage.setItem('guf_premium', 'true');
+                                    window.location.reload();
+                                } else if (data.needsRegistration) {
+                                    setShowAuth(true);
+                                } else {
+                                    alert(data.error || 'アップグレードに失敗しました。ログインし直してください。');
+                                }
                             }}
                             className="flex-none px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-black text-xs font-bold rounded-full hover:opacity-90 transition-opacity whitespace-nowrap"
                         >

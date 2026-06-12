@@ -31,7 +31,10 @@
       "PowerShell(try { $r = Invoke-RestMethod -Uri \"http://localhost:3000/api/fortune-score?birthDate=1985-07-20&range=7\" -TimeoutSec 60; $r | ConvertTo-Json -Depth 4 } catch { \"ERROR: $_\" })",
       "Bash(curl -s -m 60 \"http://localhost:3000/api/fortune-score?birthDate=1985-07-20&range=7\")",
       "Bash(echo \"---EXIT $?---\")",
-      "Bash(curl -s -m 120 -X POST \"http://localhost:3000/api/divine\" -H \"Content-Type: application/json\" -d '{\"userProfile\":{\"name\":\"テスト太郎\",\"birthDate\":\"1985-07-20\",\"birthTime\":\"14:30\",\"birthPlace\":\"東京\",\"gender\":\"male\",\"currentWorry\":\"転職すべきか迷っている\",\"language\":\"ja\",\"characterType\":\"fairy\",\"mbti\":\"INFJ\",\"enneagram\":\"4\",\"answers\":[]}}')"
+      "Bash(curl -s -m 120 -X POST \"http://localhost:3000/api/divine\" -H \"Content-Type: application/json\" -d '{\"userProfile\":{\"name\":\"テスト太郎\",\"birthDate\":\"1985-07-20\",\"birthTime\":\"14:30\",\"birthPlace\":\"東京\",\"gender\":\"male\",\"currentWorry\":\"転職すべきか迷っている\",\"language\":\"ja\",\"characterType\":\"fairy\",\"mbti\":\"INFJ\",\"enneagram\":\"4\",\"answers\":[]}}')",
+      "Bash(node -e \"try{const s=require\\('sharp'\\);console.log\\('sharp OK', s.versions?.sharp||''\\)}catch\\(e\\){console.log\\('NO SHARP:', e.message.split\\('\\\\n'\\)[0]\\)}\")",
+      "Bash(node scripts/gen-icons.mjs)",
+      "Bash(npx tsx *)"
     ]
   }
 }

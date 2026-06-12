@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { checkUserAccess } from '@/lib/auth';
 
 export async function POST(request: Request) {
     try {
@@ -10,10 +11,9 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'User ID and Data required' }, { status: 400 });
         }
 
-        // Verify user exists
-        const user = await prisma.user.findUnique({ where: { id: userId } });
-        if (!user) {
-            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        const access = await checkUserAccess(userId);
+        if (!access.ok) {
+            return NextResponse.json({ error: access.error }, { status: access.status });
         }
 
         const diagnosis = await prisma.diagnosis.create({

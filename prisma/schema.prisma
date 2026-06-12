@@ -24,6 +24,8 @@ model User {
   mbti          String?
   widgetOrder   String?  // JSON: ["daily","calendar","chat","profile"]
   profileType   String?  @default("self") // "self" | "family" | "friend"
+  chatDate      String?  // 無料枠カウントの対象日 YYYY-MM-DD
+  chatUsed      Int      @default(0) // その日の使用回数（無料は1日3回）
   expiresAt     DateTime?
   chatLogs      ChatLog[]
   dailyLogs     DailyLog[]

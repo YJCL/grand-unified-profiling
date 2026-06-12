@@ -7,6 +7,8 @@
 
 import { scryptSync, randomBytes, timingSafeEqual, createHmac } from 'crypto';
 import { cookies } from 'next/headers';
+import { prisma } from '@/lib/prisma';
+import type { User } from '@prisma/client';
 
 const SECRET = process.env.AUTH_SECRET || 'dev-insecure-secret-change-me';
 export const SESSION_COOKIE = 'guf_session';
@@ -68,4 +70,25 @@ export async function getSessionUserId(): Promise<string | null> {
   const token = store.get(SESSION_COOKIE)?.value;
   if (!token) return null;
   return verifySessionToken(token);
+}
+
+// ── アクセス制御 ──────────────────────────────────────────
+//  ルール：本登録済みユーザー（passwordHashあり）のデータは
+//  セッション一致が必須。インスタントアカウントは従来通り
+//  「IDを知っている端末」を所有者とみなす（登録した瞬間から保護される）。
+export type AccessResult =
+  | { ok: true; user: User }
+  | { ok: false; status: number; error: string };
+
+export async function checkUserAccess(userId: string | null | undefined): Promise<AccessResult> {
+  if (!userId) return { ok: false, status: 400, error: 'userId required' };
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) return { ok: false, status: 404, error: 'User not found' };
+  if (user.passwordHash) {
+    const sessionId = await getSessionUserId();
+    if (sessionId !== user.id) {
+      return { ok: false, status: 403, error: 'ログインが必要です' };
+    }
+  }
+  return { ok: true, user };
 }

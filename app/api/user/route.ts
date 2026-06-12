@@ -1,17 +1,24 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { checkUserAccess, createSessionToken, sessionCookieOptions, SESSION_COOKIE } from '@/lib/auth';
 
 export async function POST(request: Request) {
     try {
         const body = await request.json().catch(() => ({}));
-        const { id, email, isPremium, name, birthDate, birthTime, birthPlace, gender, language, characterType, mbti, enneagram, widgetOrder } = body;
+        // 注意: isPremium はここでは受け付けない（課金状態はサーバー側でのみ変更可能）
+        const { id, email, name, birthDate, birthTime, birthPlace, gender, language, characterType, mbti, enneagram, widgetOrder, profileType, expiresAt } = body;
 
-        let user;
+        let user = null;
 
         if (id) {
-            user = await prisma.user.findUnique({ where: { id } });
+            const access = await checkUserAccess(id);
+            if (!access.ok && access.status !== 404) {
+                return NextResponse.json({ error: access.error }, { status: access.status });
+            }
+            if (access.ok) user = access.user;
         }
 
+        let created = false;
         if (!user) {
             user = await prisma.user.create({
                 data: {
@@ -22,13 +29,16 @@ export async function POST(request: Request) {
                     birthPlace: birthPlace || null,
                     gender: gender || null,
                     language: language || 'ja',
+                    characterType: characterType || null,
+                    profileType: profileType || 'self',
+                    expiresAt: expiresAt ? new Date(expiresAt) : null,
                 }
             });
+            created = true;
         } else {
-            // Update any provided fields
+            // Update any provided fields（isPremium は除外）
             const updateData: Record<string, unknown> = {};
             if (email !== undefined) updateData.email = email;
-            if (isPremium !== undefined) updateData.isPremium = isPremium;
             if (name !== undefined) updateData.name = name;
             if (birthDate !== undefined) updateData.birthDate = birthDate;
             if (birthTime !== undefined) updateData.birthTime = birthTime;
@@ -39,6 +49,8 @@ export async function POST(request: Request) {
             if (mbti !== undefined) updateData.mbti = mbti;
             if (enneagram !== undefined) updateData.enneagram = enneagram;
             if (widgetOrder !== undefined) updateData.widgetOrder = widgetOrder;
+            if (profileType !== undefined) updateData.profileType = profileType;
+            if (expiresAt !== undefined) updateData.expiresAt = expiresAt ? new Date(expiresAt) : null;
 
             if (Object.keys(updateData).length > 0) {
                 user = await prisma.user.update({ where: { id: user.id }, data: updateData });
@@ -47,7 +59,12 @@ export async function POST(request: Request) {
 
         const { passwordHash: _ph, ...safe } = user;
         void _ph;
-        return NextResponse.json(safe);
+        const res = NextResponse.json(safe);
+        // 新規作成（インスタントアカウント）にもセッションを発行しておく
+        if (created) {
+            res.cookies.set(SESSION_COOKIE, createSessionToken(user.id), sessionCookieOptions);
+        }
+        return res;
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
         console.error('Error in /api/user:', message);
@@ -61,6 +78,9 @@ export async function DELETE(request: Request) {
     if (!id) return NextResponse.json({ error: 'User ID required' }, { status: 400 });
 
     try {
+        const access = await checkUserAccess(id);
+        if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
+
         await prisma.chatLog.deleteMany({ where: { userId: id } });
         await prisma.dailyLog.deleteMany({ where: { userId: id } });
         await prisma.diagnosis.deleteMany({ where: { userId: id } });
@@ -81,6 +101,9 @@ export async function GET(request: Request) {
     }
 
     try {
+        const access = await checkUserAccess(id);
+        if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
+
         const user = await prisma.user.findUnique({
             where: { id },
             include: {

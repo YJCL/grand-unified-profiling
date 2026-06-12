@@ -6,6 +6,7 @@ import { buildProfileFromUser } from '@/lib/engine/profile';
 import { computeDailyState } from '@/lib/engine/daily';
 import { summarizeProfile, summarizeDaily } from '@/lib/engine/summarize';
 import { characterToneBlock } from '@/lib/character';
+import { checkUserAccess } from '@/lib/auth';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -18,6 +19,9 @@ export async function GET(request: Request) {
     if (!userId) {
         return NextResponse.json({ error: 'userId required' }, { status: 400 });
     }
+
+    const access = await checkUserAccess(userId);
+    if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
 
     const today = new Date().toISOString().split('T')[0];
 
