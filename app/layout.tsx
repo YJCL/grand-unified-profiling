@@ -27,7 +27,7 @@ const cormorant = Cormorant_Garamond({
   display: "swap",
 });
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://grand-unified-profiling.vercel.app";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://orba.life";
 const APP_DESC = "あなただけのパートナーオーブ。Orbaはあなたを深く知り、迷ったとき道を照らすパーソナルパートナーです。";
 
 export const metadata: Metadata = {

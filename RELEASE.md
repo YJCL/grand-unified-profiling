@@ -24,7 +24,7 @@
 
 - [ ] レート制限（連打・bot対策。Vercel WAF か upstash/ratelimit）
 - [ ] メールアドレス確認（誤入力・なりすまし対策）
-- [ ] カスタムドメイン（vercel.appのままでも可だが信頼感）
+- [ ] カスタムドメイン **`orba.life`（取得済み）** を Vercel → Settings → Domains に追加し、`NEXT_PUBLIC_APP_URL=https://orba.life` を設定して Redeploy（SSLは自動発行）
 - [ ] DBバックアップ方針の確認（SupabaseはFreeプランで7日PITRなし→課金検討）
 - [ ] エラー監視（Vercel Logs / Sentry）
 - [ ] 多言語（en/es）は現在UI辞書のみ・会話はja固定 → 当面jaのみで出すのが現実的
