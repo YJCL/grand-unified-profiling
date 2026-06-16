@@ -35,7 +35,9 @@
       "Bash(node -e \"try{const s=require\\('sharp'\\);console.log\\('sharp OK', s.versions?.sharp||''\\)}catch\\(e\\){console.log\\('NO SHARP:', e.message.split\\('\\\\n'\\)[0]\\)}\")",
       "Bash(node scripts/gen-icons.mjs)",
       "Bash(npx tsx *)",
-      "Bash(node scripts/gen-og.mjs)"
+      "Bash(node scripts/gen-og.mjs)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -m 10 http://localhost:3000/api/auth/me)",
+      "Bash(grep -vE 'warn|Prisma|^\\\\s*$')"
     ]
   }
 }

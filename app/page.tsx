@@ -187,9 +187,10 @@ function OrbSelect({ onSelect, isNewProfile }: { onSelect: (t: CharacterType) =>
         <button onClick={() => setShowAuth(true)} className="text-[11px] text-white/40 hover:text-white/70 tracking-wide">
           登録済みの方はログイン →
         </button>
-        <div className="flex gap-5 mt-2 text-[10px] text-white/20">
+        <div className="flex flex-wrap gap-x-5 gap-y-1 justify-center mt-2 text-[10px] text-white/20">
           <a href="/legal/terms" className="hover:text-white/50">利用規約</a>
           <a href="/legal/privacy" className="hover:text-white/50">プライバシーポリシー</a>
+          <a href="/legal/tokushoho" className="hover:text-white/50">特定商取引法に基づく表記</a>
         </div>
       </div>
 

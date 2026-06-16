@@ -5,7 +5,7 @@
 //  外部サービス不要。秘密鍵は AUTH_SECRET（サーバーのみ）。
 // ─────────────────────────────────────────────────────────────
 
-import { scryptSync, randomBytes, timingSafeEqual, createHmac } from 'crypto';
+import { scryptSync, randomBytes, timingSafeEqual, createHmac, createHash } from 'crypto';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import type { User } from '@prisma/client';
@@ -54,6 +54,16 @@ export function verifySessionToken(token: string): string | null {
   } catch {
     return null;
   }
+}
+
+// ── パスワードリセット用トークン ─────────────────────────
+// 生トークンはメールでのみ送り、DBにはSHA-256ハッシュを保存する。
+export function generateResetToken(): { raw: string; hash: string } {
+  const raw = randomBytes(32).toString('hex');
+  return { raw, hash: createHash('sha256').update(raw).digest('hex') };
+}
+export function hashResetToken(raw: string): string {
+  return createHash('sha256').update(raw).digest('hex');
 }
 
 export const sessionCookieOptions = {

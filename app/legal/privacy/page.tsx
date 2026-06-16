@@ -64,6 +64,7 @@ export default function PrivacyPage() {
         <div className="mt-12 flex gap-6 text-xs text-white/40">
           <Link href="/" className="hover:text-white/70">← トップへ</Link>
           <Link href="/legal/terms" className="hover:text-white/70">利用規約</Link>
+          <Link href="/legal/tokushoho" className="hover:text-white/70">特商法表記</Link>
         </div>
       </div>
     </main>

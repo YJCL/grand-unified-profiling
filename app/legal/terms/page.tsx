@@ -61,6 +61,7 @@ export default function TermsPage() {
         <div className="mt-12 flex gap-6 text-xs text-white/40">
           <Link href="/" className="hover:text-white/70">← トップへ</Link>
           <Link href="/legal/privacy" className="hover:text-white/70">プライバシーポリシー</Link>
+          <Link href="/legal/tokushoho" className="hover:text-white/70">特商法表記</Link>
         </div>
       </div>
     </main>

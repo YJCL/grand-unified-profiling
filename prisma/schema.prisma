@@ -66,3 +66,11 @@ model TransferCode {
   expiresAt DateTime
   createdAt DateTime @default(now())
 }
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique // 生トークンのSHA-256。生値はメールのみ
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}

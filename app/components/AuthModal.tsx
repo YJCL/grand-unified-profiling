@@ -74,6 +74,11 @@ export function AuthModal({
           className="mt-4 w-full text-center text-xs text-white/40 hover:text-white/70">
           {mode === 'register' ? 'アカウントをお持ちの方はログイン' : '新規登録はこちら'}
         </button>
+        {mode === 'login' && (
+          <a href="/forgot" className="mt-2 block w-full text-center text-[11px] text-white/30 hover:text-white/60">
+            パスワードをお忘れですか？
+          </a>
+        )}
 
         <p className="mt-4 text-[10px] text-white/25 leading-relaxed">
           パスワードは暗号化（一方向ハッシュ）して保存され、運営も元のパスワードを見ることはできません。
