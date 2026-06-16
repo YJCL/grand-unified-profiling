@@ -14,7 +14,7 @@
 
 ## 2. リリース前に必須（ブロッカー）
 
-- [ ] **決済の実装**: `/api/billing/upgrade` は現在**決済なしのテスト用スタブ**。Stripe Checkout + Webhook（PWAの場合）に置換するまで公開リリース不可
+- [x] **決済の実装**: Stripe Payment Link + Webhook 実装済み。→ **要セットアップ**：Stripe で 商品(¥500/月) + 支払いリンク + Webhook(`/api/billing/webhook`) を作成し、Vercel環境変数に `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` / `NEXT_PUBLIC_STRIPE_PAYMENT_LINK` を設定。まずテストモードで検証→本番キーに差し替え。本番課金にはStripeのセキュリティ申告書(割賦販売法)の提出が必要
 - [ ] **Vercel環境変数 `AUTH_SECRET`**: 未設定だと開発用の弱い鍵で動く。設定必須（設定後に再デプロイ）
 - [x] **特定商取引法に基づく表記**: `/legal/tokushoho` 作成済み。→ **ページ冒頭の `SELLER` を実情報（氏名/屋号・連絡先メール）に差し替えること**（住所/電話は「請求に応じ開示」で可）
 - [x] **パスワードリセット**: 実装済み（`/forgot`→メール→`/reset`）。→ **メール送信に Resend のセットアップが必要**：

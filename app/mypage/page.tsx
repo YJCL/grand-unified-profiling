@@ -705,8 +705,15 @@ export default function MyPage() {
                             <span className="text-sm font-bold text-white">Premium</span>
                             <span className="text-xs text-white/30">すべての機能が使えます</span>
                         </div>
-                        <button className="text-[10px] text-white/20 hover:text-white/50 transition-colors uppercase tracking-widest">
-                            管理
+                        <button
+                            onClick={async () => {
+                                const res = await fetch('/api/billing/portal', { method: 'POST' });
+                                const data = await res.json().catch(() => ({}));
+                                if (res.ok && data.url) window.location.href = data.url;
+                                else alert(data.error || '管理ページを開けませんでした');
+                            }}
+                            className="text-[10px] text-white/30 hover:text-white/70 transition-colors uppercase tracking-widest">
+                            管理・解約
                         </button>
                     </div>
                 ) : (
@@ -721,13 +728,12 @@ export default function MyPage() {
                                 if (!userData.email) { setShowAuth(true); return; }
                                 const res = await fetch('/api/billing/upgrade', { method: 'POST' });
                                 const data = await res.json().catch(() => ({}));
-                                if (res.ok) {
-                                    localStorage.setItem('guf_premium', 'true');
-                                    window.location.reload();
+                                if (res.ok && data.url) {
+                                    window.location.href = data.url; // Stripe決済ページへ
                                 } else if (data.needsRegistration) {
                                     setShowAuth(true);
                                 } else {
-                                    alert(data.error || 'アップグレードに失敗しました。ログインし直してください。');
+                                    alert(data.error || 'エラーが発生しました。ログインし直してください。');
                                 }
                             }}
                             className="flex-none px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-black text-xs font-bold rounded-full hover:opacity-90 transition-opacity whitespace-nowrap"

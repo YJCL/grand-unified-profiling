@@ -22,6 +22,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "sqlite3": "^5.1.7",
+    "stripe": "^22.2.1",
     "tailwind-merge": "^3.4.1"
   },
   "devDependencies": {
