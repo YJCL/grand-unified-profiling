@@ -16,8 +16,9 @@ async function getShare(id: string) {
         include: { user: { select: { characterType: true } } },
     }).catch(() => null);
     if (!diag) return null;
-    const r = JSON.parse(diag.data) as { coreNature?: string; dailyTheme?: string };
-    return { type: VALID(diag.user.characterType || 'sage'), coreNature: r.coreNature ?? '', dailyTheme: r.dailyTheme ?? '' };
+    const r = JSON.parse(diag.data) as { summary?: string; coreNature?: string; dailyTheme?: string };
+    const summary = r.summary || (r.coreNature ? r.coreNature.split(/[。．]/)[0] : '');
+    return { type: VALID(diag.user.characterType || 'sage'), summary, coreNature: r.coreNature ?? '', dailyTheme: r.dailyTheme ?? '' };
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -25,8 +26,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     const s = await getShare(id);
     if (!s) return { title: 'Orba' };
     const label = ORB_LABEL[s.type];
-    const title = `私のパートナーオーブは「${label}」 | Orba`;
-    const desc = s.dailyTheme ? `今日のテーマ：${s.dailyTheme}。あなただけのオーブも見つけよう。` : 'あなただけのパートナーオーブを見つけよう。';
+    const title = s.summary ? `${s.summary} | Orba` : `私のパートナーオーブは「${label}」 | Orba`;
+    const desc = `${label}が視た私。あなただけのオーブも30秒で見つけよう。`;
     return {
         title,
         description: desc,
@@ -50,8 +51,10 @@ export default async function SharePage({ params }: { params: Promise<{ id: stri
                         <div className="flex justify-center mb-5">
                             <CharacterAvatar type={s.type} size={150} />
                         </div>
-                        <p className="text-white/50 text-sm font-serif-jp mb-1">このオーブは</p>
-                        <h1 className="text-3xl mb-6 font-serif-jp">{ORB_LABEL[s.type]}</h1>
+                        {s.summary && (
+                            <h1 className="text-2xl md:text-3xl mb-2 font-serif-jp leading-relaxed">&ldquo;{s.summary}&rdquo;</h1>
+                        )}
+                        <p className="text-white/50 text-sm font-serif-jp mb-6">{ORB_LABEL[s.type]}が視た、ある人の魂</p>
                         {s.coreNature && (
                             <div className="card p-6 mb-8 text-left">
                                 <p className="text-amber-200/70 text-xs tracking-widest mb-2 font-serif-jp">魂のプロファイリング</p>

@@ -79,6 +79,7 @@ ${answersText ? '## 心理テスト傾向（補助）\n' + answersText : ''}
             input_schema: {
                 type: 'object',
                 properties: {
+                    summary: { type: 'string', description: 'シェア用の一言キャッチ。その人を一言で言い表す、親しみやすく少しドキッとする短文（20〜40文字・句点なし）。例:「静かな海に、噴火を秘めた人」' },
                     coreNature: { type: 'string', description: '【魂のプロファイリング】データを統合した本質・才能・行動原理。日主とHD、太陽月のサインを織り込み、サビアン度数で詩的に締める（300文字程度）' },
                     strategy: { type: 'string', description: '【最強の戦略】HDのタイプ＆権威に基づく意思決定と動き方を断言（200文字程度）' },
                     timing: { type: 'string', description: '【現在の運気】今が攻めか守りかを明確に。根拠に触れる（150文字程度）' },
@@ -86,7 +87,7 @@ ${answersText ? '## 心理テスト傾向（補助）\n' + answersText : ''}
                     dailyTheme: { type: 'string', description: '今日のテーマ（10文字以内）' },
                     luckyAction: { type: 'string', description: '今日の具体的アクション（1つ）' },
                 },
-                required: ['coreNature', 'strategy', 'timing', 'advice', 'dailyTheme', 'luckyAction'],
+                required: ['summary', 'coreNature', 'strategy', 'timing', 'advice', 'dailyTheme', 'luckyAction'],
             },
         }];
 

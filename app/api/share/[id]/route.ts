@@ -12,9 +12,11 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
         });
         if (!diag) return NextResponse.json({ error: 'not found' }, { status: 404 });
 
-        const r = JSON.parse(diag.data) as { coreNature?: string; dailyTheme?: string };
+        const r = JSON.parse(diag.data) as { summary?: string; coreNature?: string; dailyTheme?: string };
+        const summary = r.summary || (r.coreNature ? r.coreNature.split(/[。．]/)[0] : '');
         return NextResponse.json({
             characterType: diag.user.characterType || 'sage',
+            summary,
             coreNature: r.coreNature ?? '',
             dailyTheme: r.dailyTheme ?? '',
         });

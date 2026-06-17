@@ -70,21 +70,27 @@ export async function POST(request: Request) {
 
         if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
-        // 無料ユーザーは1日3回まで（サーバー側カウンタで強制）
+        // 無料ユーザーは1日3回まで。超過時はチケットを1消費して+1回（サーバー側で強制）
         const todayKey = new Date().toISOString().split('T')[0];
         if (!user.isPremium) {
             const usedToday = user.chatDate === todayKey ? user.chatUsed : 0;
             if (usedToday >= FREE_DAILY_LIMIT) {
-                return NextResponse.json({
-                    error: 'Daily limit reached',
-                    limitReached: true,
-                    message: `本日の無料相談回数（${FREE_DAILY_LIMIT}回）に達しました。明日またお話しましょう。プレミアムなら無制限で相談できます。`
-                }, { status: 429 });
+                if (user.tickets > 0) {
+                    // チケットを1消費して許可（無料枠は据え置き）
+                    await prisma.user.update({ where: { id: userId }, data: { tickets: { decrement: 1 } } });
+                } else {
+                    return NextResponse.json({
+                        error: 'Daily limit reached',
+                        limitReached: true,
+                        message: `本日の無料相談回数（${FREE_DAILY_LIMIT}回）に達しました。シェアやログインボーナスでチケットを集めると追加で相談できます。プレミアムなら無制限です。`
+                    }, { status: 429 });
+                }
+            } else {
+                await prisma.user.update({
+                    where: { id: userId },
+                    data: { chatDate: todayKey, chatUsed: usedToday + 1 },
+                });
             }
-            await prisma.user.update({
-                where: { id: userId },
-                data: { chatDate: todayKey, chatUsed: usedToday + 1 },
-            });
         }
 
         const latestDiagnosis = user.diagnoses[0];

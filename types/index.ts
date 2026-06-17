@@ -25,6 +25,7 @@ export type UserProfile = {
 };
 
 export type AnalysisResult = {
+  summary?: string;   // シェア用の一言キャッチ
   coreNature: string; // 魂の本質
   strategy: string;   // 行動戦略
   timing: string;     // 今の運気

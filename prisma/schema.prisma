@@ -29,6 +29,9 @@ model User {
   stripeCustomerId String? // Stripeの顧客ID（解約Webhookでの突き合わせ用）
   failedLogins  Int       @default(0) // 連続ログイン失敗回数
   lockedUntil   DateTime? // アカウントロック解除時刻
+  tickets       Int       @default(0) // 鑑定チケット（無料枠を超えて1回使える）
+  lastShareTicketDate String? // シェア報酬を最後に付与した日 YYYY-MM-DD（1日1回）
+  lastLoginBonusDate  String? // ログインボーナスを最後に付与した日 YYYY-MM-DD（1日1回）
   expiresAt     DateTime?
   chatLogs      ChatLog[]
   dailyLogs     DailyLog[]

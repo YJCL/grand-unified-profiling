@@ -55,6 +55,7 @@ type UserData = {
     enneagram: string | null;
     createdAt: string;
     isPremium: boolean;
+    tickets: number;
     widgetOrder: string | null;
     profileType: string | null;
     expiresAt: string | null;
@@ -265,19 +266,34 @@ function TransferCodePanel({ userId }: { userId: string }) {
     );
 }
 
-function ShareRow({ diagnosisId, characterType }: { diagnosisId: string; characterType: string | null }) {
+function ShareRow({ diagnosisId, characterType, summary, userId, isPremium, onTicket }: {
+    diagnosisId: string; characterType: string | null; summary?: string; userId: string; isPremium: boolean; onTicket?: (n: number) => void;
+}) {
     const [copied, setCopied] = useState(false);
+    const [reward, setReward] = useState('');
     const label = (characterType && CHARACTER_META[characterType as CharacterType]?.label) || 'パートナーオーブ';
     const url = typeof window !== 'undefined' ? `${window.location.origin}/s/${diagnosisId}` : `/s/${diagnosisId}`;
-    const text = `私のパートナーオーブは「${label}」でした✨ #Orba`;
+    const oneLiner = summary || `私のパートナーオーブは「${label}」`;
+    const text = `“${oneLiner}”\n— Orbaが視た私 🔮 あなたも30秒で →`;
 
-    const openX = () => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener');
-    const openLine = () => window.open(`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}`, '_blank', 'noopener');
-    const copy = () => { copyToClipboard(url); setCopied(true); setTimeout(() => setCopied(false), 2000); };
+    const earn = async () => {
+        if (isPremium) return;
+        try {
+            const r = await fetch('/api/tickets/share', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId }) });
+            const d = await r.json();
+            if (d.granted) { setReward('シェアありがとう！鑑定チケット +1 🎟'); onTicket?.(d.tickets); }
+            else setReward('チケットは1日1回までです');
+            setTimeout(() => setReward(''), 4000);
+        } catch { /* noop */ }
+    };
+
+    const openX = () => { window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener'); earn(); };
+    const openLine = () => { window.open(`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}`, '_blank', 'noopener'); earn(); };
+    const copy = () => { copyToClipboard(url); setCopied(true); setTimeout(() => setCopied(false), 2000); earn(); };
 
     return (
         <div className="mt-2">
-            <p className="text-[9px] text-white/25 uppercase tracking-widest mb-1.5 flex items-center gap-1"><Share2 className="w-2.5 h-2.5" /> 結果をシェア</p>
+            <p className="text-[9px] text-white/25 uppercase tracking-widest mb-1.5 flex items-center gap-1"><Share2 className="w-2.5 h-2.5" /> 結果をシェア{!isPremium && <span className="text-amber-300/70 normal-case tracking-normal">・1日1回シェアで鑑定チケット+1🎟</span>}</p>
             <div className="flex gap-2">
                 <button onClick={openX} className="flex-1 py-2 text-[11px] font-bold rounded-lg bg-white/10 hover:bg-white/15 transition-colors">X</button>
                 <button onClick={openLine} className="flex-1 py-2 text-[11px] font-bold rounded-lg text-[#06C755] bg-[#06C755]/12 hover:bg-[#06C755]/20 transition-colors">LINE</button>
@@ -285,6 +301,7 @@ function ShareRow({ diagnosisId, characterType }: { diagnosisId: string; charact
                     {copied ? <><Check className="w-3 h-3 text-green-400" />コピー済</> : <><Copy className="w-3 h-3" />リンク</>}
                 </button>
             </div>
+            {reward && <p className="text-[11px] text-amber-300/90 mt-1.5 text-center">{reward}</p>}
         </div>
     );
 }
@@ -351,7 +368,7 @@ function ProfileWidget({ userData }: { userData: UserData }) {
                 </div>
             )}
 
-            {latestDiagnosis && <ShareRow diagnosisId={latestDiagnosis.id} characterType={userData.characterType} />}
+            {latestDiagnosis && <ShareRow diagnosisId={latestDiagnosis.id} characterType={userData.characterType} summary={result?.summary} userId={userData.id} isPremium={userData.isPremium} />}
 
             {isFriend && <TransferCodePanel userId={userData.id} />}
         </div>
@@ -449,6 +466,8 @@ export default function MyPage() {
     const [genCodeCopied, setGenCodeCopied] = useState(false);
     const [showAuth, setShowAuth] = useState(false);
     const [showWelcome, setShowWelcome] = useState(false);
+    const [tickets, setTickets] = useState(0);
+    const [bonusMsg, setBonusMsg] = useState('');
 
     // Stripe決済から ?upgraded=1 で戻ってきたらお礼を表示し、URLを綺麗にする
     useEffect(() => {
@@ -500,6 +519,12 @@ export default function MyPage() {
 
             setUserData(data);
             setActiveId(id);
+            setTickets(data.tickets ?? 0);
+            // ログインボーナス（1日1回 +1チケット）
+            fetch('/api/tickets/login-bonus', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: id }) })
+                .then(r => r.json())
+                .then(d => { if (d.granted) { setTickets(d.tickets); setBonusMsg('ログインボーナス：鑑定チケット +1 🎟'); setTimeout(() => setBonusMsg(''), 6000); } })
+                .catch(() => {});
             if (data.widgetOrder) {
                 try { setOrder(JSON.parse(data.widgetOrder)); } catch {}
             }
@@ -709,6 +734,12 @@ export default function MyPage() {
             {/* ── ウィジェットエリア ─────────────────────── */}
             <main className="flex-1 px-4 py-6 overflow-y-auto pb-28 relative z-10 w-full max-w-2xl mx-auto">
                 <AnimatePresence>
+                    {bonusMsg && (
+                        <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
+                            className="mb-4 card p-3 flex items-center gap-2 border border-amber-300/30 text-sm font-serif-jp text-amber-100">
+                            🎟 {bonusMsg}
+                        </motion.div>
+                    )}
                     {showWelcome && (
                         <motion.div
                             initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
@@ -770,7 +801,10 @@ export default function MyPage() {
                 ) : (
                     <div className="flex items-center gap-3">
                         <div className="flex-1">
-                            <p className="text-xs font-bold text-white">プレミアムにアップグレード</p>
+                            <p className="text-xs font-bold text-white flex items-center gap-2">
+                                プレミアムにアップグレード
+                                <span className="text-[10px] font-normal text-amber-300/90">🎟 鑑定チケット ×{tickets}</span>
+                            </p>
                             <p className="text-[10px] text-white/40">チャット無制限・複数プロファイル・年間レポート</p>
                         </div>
                         <button
