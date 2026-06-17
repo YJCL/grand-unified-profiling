@@ -265,6 +265,30 @@ function TransferCodePanel({ userId }: { userId: string }) {
     );
 }
 
+function ShareRow({ diagnosisId, characterType }: { diagnosisId: string; characterType: string | null }) {
+    const [copied, setCopied] = useState(false);
+    const label = (characterType && CHARACTER_META[characterType as CharacterType]?.label) || 'パートナーオーブ';
+    const url = typeof window !== 'undefined' ? `${window.location.origin}/s/${diagnosisId}` : `/s/${diagnosisId}`;
+    const text = `私のパートナーオーブは「${label}」でした✨ #Orba`;
+
+    const openX = () => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener');
+    const openLine = () => window.open(`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}`, '_blank', 'noopener');
+    const copy = () => { copyToClipboard(url); setCopied(true); setTimeout(() => setCopied(false), 2000); };
+
+    return (
+        <div className="mt-2">
+            <p className="text-[9px] text-white/25 uppercase tracking-widest mb-1.5 flex items-center gap-1"><Share2 className="w-2.5 h-2.5" /> 結果をシェア</p>
+            <div className="flex gap-2">
+                <button onClick={openX} className="flex-1 py-2 text-[11px] font-bold rounded-lg bg-white/10 hover:bg-white/15 transition-colors">X</button>
+                <button onClick={openLine} className="flex-1 py-2 text-[11px] font-bold rounded-lg text-[#06C755] bg-[#06C755]/12 hover:bg-[#06C755]/20 transition-colors">LINE</button>
+                <button onClick={copy} className="flex-1 py-2 text-[11px] rounded-lg bg-white/5 hover:bg-white/10 text-white/70 transition-colors flex items-center justify-center gap-1">
+                    {copied ? <><Check className="w-3 h-3 text-green-400" />コピー済</> : <><Copy className="w-3 h-3" />リンク</>}
+                </button>
+            </div>
+        </div>
+    );
+}
+
 function ProfileWidget({ userData }: { userData: UserData }) {
     const latestDiagnosis = userData.diagnoses[0];
     const result: AnalysisResult | null = latestDiagnosis ? JSON.parse(latestDiagnosis.data) : null;
@@ -326,6 +350,8 @@ function ProfileWidget({ userData }: { userData: UserData }) {
                     </p>
                 </div>
             )}
+
+            {latestDiagnosis && <ShareRow diagnosisId={latestDiagnosis.id} characterType={userData.characterType} />}
 
             {isFriend && <TransferCodePanel userId={userData.id} />}
         </div>
