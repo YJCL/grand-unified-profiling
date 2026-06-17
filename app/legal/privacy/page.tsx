@@ -57,7 +57,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-base text-amber-200/80 mb-2">7. お問い合わせ</h2>
-            <p>本ポリシーに関するお問い合わせは、運営者（連絡先：アプリ内のお知らせに記載）までお願いします。</p>
+            <p>本ポリシーに関するお問い合わせは、運営者（岩切 秀樹／orba.support@gmail.com）までお願いします。</p>
           </section>
         </div>
 
