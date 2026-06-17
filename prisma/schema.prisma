@@ -27,6 +27,8 @@ model User {
   chatDate      String?  // 無料枠カウントの対象日 YYYY-MM-DD
   chatUsed      Int      @default(0) // その日の使用回数（無料は1日3回）
   stripeCustomerId String? // Stripeの顧客ID（解約Webhookでの突き合わせ用）
+  failedLogins  Int       @default(0) // 連続ログイン失敗回数
+  lockedUntil   DateTime? // アカウントロック解除時刻
   expiresAt     DateTime?
   chatLogs      ChatLog[]
   dailyLogs     DailyLog[]

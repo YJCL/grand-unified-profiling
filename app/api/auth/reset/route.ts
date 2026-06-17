@@ -18,7 +18,7 @@ export async function POST(request: Request) {
 
         const user = await prisma.user.update({
             where: { id: reset.userId },
-            data: { passwordHash: hashPassword(password) },
+            data: { passwordHash: hashPassword(password), failedLogins: 0, lockedUntil: null },
         });
         // 使用済みトークンと、このユーザーの他のリセットトークンを破棄
         await prisma.passwordReset.deleteMany({ where: { userId: reset.userId } });
