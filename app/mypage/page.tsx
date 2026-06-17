@@ -422,6 +422,16 @@ export default function MyPage() {
     const [genCodeLoading, setGenCodeLoading] = useState(false);
     const [genCodeCopied, setGenCodeCopied] = useState(false);
     const [showAuth, setShowAuth] = useState(false);
+    const [showWelcome, setShowWelcome] = useState(false);
+
+    // Stripe決済から ?upgraded=1 で戻ってきたらお礼を表示し、URLを綺麗にする
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (new URLSearchParams(window.location.search).get('upgraded') === '1') {
+            setShowWelcome(true); // 閉じるまで表示（自動消去しない）
+            window.history.replaceState({}, '', '/mypage');
+        }
+    }, []);
 
     const handleLogout = async () => {
         await fetch('/api/auth/logout', { method: 'POST' });
@@ -672,6 +682,21 @@ export default function MyPage() {
 
             {/* ── ウィジェットエリア ─────────────────────── */}
             <main className="flex-1 px-4 py-6 overflow-y-auto pb-28 relative z-10 w-full max-w-2xl mx-auto">
+                <AnimatePresence>
+                    {showWelcome && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
+                            className="mb-4 card p-4 flex items-center gap-3 border border-amber-300/30"
+                        >
+                            <Crown className="w-5 h-5 text-amber-300 flex-none" />
+                            <div className="flex-1">
+                                <p className="text-sm font-serif-jp text-white">プレミアムへようこそ ✨</p>
+                                <p className="text-[11px] text-white/50">ご登録ありがとうございます。すべての機能をお使いいただけます。</p>
+                            </div>
+                            <button onClick={() => setShowWelcome(false)} className="text-white/30 hover:text-white/70"><X className="w-4 h-4" /></button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
                 {editMode && (
                     <div className="mb-3 px-1 flex items-center justify-between">
                         <p className="text-[10px] text-white/30 uppercase tracking-widest">ウィジェットを並び替え・プロフィールタブを削除</p>
