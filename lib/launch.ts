@@ -12,7 +12,7 @@
 const FREE_UNTIL_RAW = process.env.NEXT_PUBLIC_LAUNCH_FREE_UNTIL || '';
 
 // 正式版でのプレミアム想定価格（計測後に調整可・公開明記用）
-export const PREMIUM_PRICE_LABEL = '¥480 / 月（税込）';
+export const PREMIUM_PRICE_LABEL = '¥550 / 月（税込）';
 
 export function launchFreeUntil(): Date | null {
   if (!FREE_UNTIL_RAW) return null;
