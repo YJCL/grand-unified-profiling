@@ -8,6 +8,7 @@ import { type UserProfile, type AnalysisResult } from '@/types';
 import { CharacterAvatar, CHARACTER_META, type CharacterType } from '@/app/components/CharacterAvatar';
 import { OrbField } from '@/app/components/OrbField';
 import { AuthModal } from '@/app/components/AuthModal';
+import { track } from '@/lib/analytics';
 
 type Phase = 'select' | 'chat' | 'analyzing' | 'result';
 type ProfileType = 'self' | 'family' | 'friend';
@@ -259,6 +260,7 @@ function Conversation({ char, profileType, userId }: { char: CharacterType; prof
       }
       const r: AnalysisResult = await res.json();
       setResult(r);
+      track('reading_complete', { characterType: char });
       setMessages((m) => [...m, { from: 'orb', text: s.reveal }]);
       setPhase('result');
     } catch (e) {
@@ -443,6 +445,7 @@ function HomeInner() {
   const [profileType] = useState<ProfileType>('self');
 
   useEffect(() => {
+    track('landing_view');
     const init = async () => {
       let id = localStorage.getItem('guf_user_id');
       if (isNewProfile) {
@@ -470,7 +473,7 @@ function HomeInner() {
       <AnimatePresence mode="wait">
         {phase === 'select' && (
           <OrbSelect key="select" isNewProfile={isNewProfile}
-            onSelect={(t) => { setChar(t); setPhase('chat'); }} />
+            onSelect={(t) => { track('onboarding_start', { characterType: t }); setChar(t); setPhase('chat'); }} />
         )}
         {phase !== 'select' && char && (
           <Conversation key="conv" char={char} profileType={profileType} userId={userId} />

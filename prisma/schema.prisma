@@ -39,6 +39,21 @@ model User {
   pushSubs      PushSubscription[]
 }
 
+// ファネル計測イベント（収益化ロードマップ P0）。
+// 第一者・自前。外部アナリティクス不要。anonId は signup 前の匿名識別子。
+model Event {
+  id        String   @id @default(uuid())
+  name      String   // 'landing_view' | 'onboarding_start' | 'reading_complete' | 'app_open' | 'paywall_view' | 'paywall_click' | ...
+  anonId    String?  // localStorage の匿名ID（未ログインでも追える）
+  userId    String?  // 分かればユーザーID（インスタント/本登録どちらも）
+  props     String?  // 任意の付随情報（JSON文字列）
+  createdAt DateTime @default(now())
+
+  @@index([name, createdAt])
+  @@index([anonId])
+  @@index([createdAt])
+}
+
 // Web Push（VAPID）の購読情報。1ユーザーが複数端末を持てる。
 model PushSubscription {
   id        String   @id @default(uuid())

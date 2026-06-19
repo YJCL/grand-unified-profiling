@@ -15,6 +15,7 @@ import { CharacterAvatar, CHARACTER_META, type CharacterType } from '@/app/compo
 import { OrbField } from '@/app/components/OrbField';
 import { AuthModal } from '@/app/components/AuthModal';
 import { NotificationToggle } from '@/app/components/NotificationToggle';
+import { track } from '@/lib/analytics';
 
 function copyToClipboard(text: string): Promise<void> {
     if (navigator.clipboard?.writeText) {
@@ -521,6 +522,8 @@ export default function MyPage() {
             setUserData(data);
             setActiveId(id);
             setTickets(data.tickets ?? 0);
+            track('app_open');
+            if (!data.isPremium) track('paywall_view'); // 無料ユーザーは下部アップグレードバーを必ず見る
             // ログインボーナス（1日1回 +1チケット）
             fetch('/api/tickets/login-bonus', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: id }) })
                 .then(r => r.json())
@@ -810,7 +813,7 @@ export default function MyPage() {
                             <p className="text-[10px] text-white/40">チャット無制限・複数プロファイル・年間レポート</p>
                         </div>
                         <button
-                            onClick={() => alert('決済システムを準備中です。もうしばらくお待ちください🙏')}
+                            onClick={() => { track('paywall_click'); alert('決済システムを準備中です。もうしばらくお待ちください🙏'); }}
                             className="flex-none px-4 py-2 bg-white/10 text-white/70 text-xs font-bold rounded-full whitespace-nowrap cursor-default"
                         >
                             準備中
