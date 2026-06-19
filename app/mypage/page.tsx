@@ -473,6 +473,8 @@ export default function MyPage() {
     const [tickets, setTickets] = useState(0);
     const [bonusMsg, setBonusMsg] = useState('');
     const [showFounding, setShowFounding] = useState(false);
+    const [showAccount, setShowAccount] = useState(false);
+    const [orbSaving, setOrbSaving] = useState(false);
 
     // Stripe決済から ?upgraded=1 で戻ってきたらお礼を表示し、URLを綺麗にする
     useEffect(() => {
@@ -489,6 +491,21 @@ export default function MyPage() {
         localStorage.removeItem('guf_profiles');
         localStorage.removeItem('guf_premium');
         router.push('/');
+    };
+
+    // 相棒のオーブ（キャラ口調）をあとから変更する
+    const changeOrb = async (t: CharacterType) => {
+        if (!userData || userData.characterType === t || orbSaving) return;
+        setOrbSaving(true);
+        try {
+            await fetch('/api/user', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: userData.id, characterType: t }),
+            });
+            setUserData({ ...userData, characterType: t });
+        } finally {
+            setOrbSaving(false);
+        }
     };
 
     const loadProfile = useCallback(async (id: string) => {
@@ -653,9 +670,10 @@ export default function MyPage() {
             {/* ── 上部タブバー ───────────────────────────── */}
             <header className="flex-none border-b border-white/5 bg-black/20 backdrop-blur-xl sticky top-0 z-30">
               <div className="px-3 pt-4 pb-3 flex items-center justify-between max-w-2xl mx-auto w-full">
-                <div className="flex-none mr-2">
+                <button onClick={() => setShowAccount(true)} title="アカウント・設定"
+                    className="flex-none mr-2 rounded-full transition-transform hover:scale-105 active:scale-95">
                     <CharacterAvatar type={(userData.characterType as CharacterType) in CHARACTER_META ? (userData.characterType as CharacterType) : 'sage'} size={36} />
-                </div>
+                </button>
                 <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-x-auto scrollbar-none">
                     <div className="flex items-center gap-1 bg-white/5 rounded-full p-1 min-w-0">
                         {profiles.map(p => (
@@ -846,6 +864,70 @@ export default function MyPage() {
             <AnimatePresence>
                 {showFounding && (
                     <FoundingMemberModal userEmail={userData.email} onClose={() => setShowFounding(false)} />
+                )}
+                {showAccount && (
+                    <motion.div
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+                        onClick={() => setShowAccount(false)}
+                    >
+                        <motion.div
+                            initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 60, opacity: 0 }}
+                            onClick={e => e.stopPropagation()}
+                            className="w-full max-w-sm glass p-6 rounded-2xl"
+                        >
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-base font-bold text-white">アカウント・設定</h3>
+                                <button onClick={() => setShowAccount(false)} className="text-white/30 hover:text-white transition-colors"><X className="w-4 h-4" /></button>
+                            </div>
+
+                            {/* アカウント情報 */}
+                            <div className="mb-5">
+                                <p className="text-[10px] text-white/30 uppercase tracking-widest mb-1.5">アカウント</p>
+                                {userData.email ? (
+                                    <div className="flex items-center justify-between gap-2">
+                                        <div className="min-w-0">
+                                            <p className="text-sm text-white truncate">{userData.email}</p>
+                                            <p className="text-[10px] text-white/35">ログイン中{isDevicePremium ? '・Premium' : ''}</p>
+                                        </div>
+                                        <button onClick={handleLogout}
+                                            className="flex-none flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] text-white/50 hover:text-white/80 border border-white/10 hover:border-white/25 transition-all">
+                                            <LogOut className="w-3 h-3" /> ログアウト
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center justify-between gap-2">
+                                        <p className="text-sm text-white/50">未登録（この端末のみ）</p>
+                                        <button onClick={() => { setShowAccount(false); setShowAuth(true); }}
+                                            className="flex-none flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-bold text-amber-200/90 border border-amber-300/30 bg-amber-400/10 hover:bg-amber-400/20 transition-all">
+                                            <UserPlus className="w-3 h-3" /> 本登録
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* 相棒のオーブを変える */}
+                            <div>
+                                <p className="text-[10px] text-white/30 uppercase tracking-widest mb-2">相棒のオーブ（話し方）を変える</p>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {(Object.keys(CHARACTER_META) as CharacterType[]).map(t => {
+                                        const active = userData.characterType === t;
+                                        return (
+                                            <button key={t} onClick={() => changeOrb(t)} disabled={orbSaving}
+                                                className={cn('flex flex-col items-center gap-1 py-2.5 rounded-xl border transition-all disabled:opacity-50',
+                                                    active ? 'border-amber-300/50 bg-amber-400/10' : 'border-white/8 hover:border-white/20')}>
+                                                <CharacterAvatar type={t} size={40} />
+                                                <span className={cn('text-[11px]', active ? 'text-amber-200' : 'text-white/60')}>
+                                                    {CHARACTER_META[t].label.replace('オーブ', '')}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <p className="mt-2 text-[10px] text-white/30">変えても鑑定結果（占いの中身）は同じ。話し方（口調）だけ変わります。</p>
+                            </div>
+                        </motion.div>
+                    </motion.div>
                 )}
                 {showAuth && (
                     <AuthModal initialMode="register" userId={userData.id}
