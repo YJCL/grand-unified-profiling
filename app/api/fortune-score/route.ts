@@ -3,6 +3,7 @@ import { buildProfileFromUser, buildGrandProfile } from '@/lib/engine/profile';
 import { computeScoreRange } from '@/lib/engine/daily';
 import type { GrandProfile } from '@/lib/engine/types';
 import { checkUserAccess } from '@/lib/auth';
+import { isLaunchFreeActive } from '@/lib/launch';
 
 // 無料プランで見られる日数（プレミアムはフルカレンダー）
 const FREE_RANGE_DAYS = 7;
@@ -41,7 +42,8 @@ export async function GET(request: Request) {
         }
 
         // 無料プランは閲覧範囲を制限（サーバー側で強制）
-        if (!isPremium) range = Math.min(range, FREE_RANGE_DAYS);
+        // ローンチ記念の無料開放期間中は全員フルカレンダー。
+        if (!isPremium && !isLaunchFreeActive()) range = Math.min(range, FREE_RANGE_DAYS);
 
         // 過去1/4・未来3/4の範囲
         const scores = computeScoreRange(profile, -Math.floor(range / 4), range);

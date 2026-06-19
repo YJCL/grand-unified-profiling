@@ -17,6 +17,7 @@ import { AuthModal } from '@/app/components/AuthModal';
 import { NotificationToggle } from '@/app/components/NotificationToggle';
 import { track } from '@/lib/analytics';
 import { FoundingMemberModal } from '@/app/components/FoundingMemberModal';
+import { isLaunchFreeActive, launchFreeUntilLabel, PREMIUM_PRICE_LABEL } from '@/lib/launch';
 
 function copyToClipboard(text: string): Promise<void> {
     if (navigator.clipboard?.writeText) {
@@ -803,6 +804,23 @@ export default function MyPage() {
                             }}
                             className="text-[10px] text-white/30 hover:text-white/70 transition-colors uppercase tracking-widest">
                             管理・解約
+                        </button>
+                    </div>
+                ) : isLaunchFreeActive() ? (
+                    <div className="flex items-center gap-3">
+                        <div className="flex-1 min-w-0">
+                            <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                                🎁 ローンチ記念・全機能を無料開放中
+                            </p>
+                            <p className="text-[10px] text-white/40">
+                                {launchFreeUntilLabel() ? `${launchFreeUntilLabel()}まで無料。` : ''}正式版は{PREMIUM_PRICE_LABEL}予定
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => { track('paywall_click'); setShowFounding(true); }}
+                            className="flex-none px-3 py-2 bg-white/10 text-white/80 text-xs font-bold rounded-full whitespace-nowrap hover:bg-white/15 transition-all"
+                        >
+                            詳しく
                         </button>
                     </div>
                 ) : (

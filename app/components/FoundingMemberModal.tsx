@@ -2,23 +2,21 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, Crown, Check, MessageSquare, CalendarDays } from 'lucide-react';
+import { X, Gift, Check, MessageSquare, CalendarDays } from 'lucide-react';
 import { track } from '@/lib/analytics';
+import { PREMIUM_PRICE_LABEL, launchFreeUntilLabel } from '@/lib/launch';
 
-// 月額の表示価格（working assumption。計測後に調整可）
-export const PREMIUM_PRICE_LABEL = '¥480 / 月';
-
-// ※ 実装済みの本物のゲートだけを載せる（誇大広告を避ける）。
+// ローンチ記念の無料開放を「期間限定・将来は有料・終了日」とともに明記するモーダル。
+// 買えない価格を煽るのではなく、いま無料で使えること＋開始時の通知登録(任意)を案内する。
 const PERKS = [
-  { icon: MessageSquare, text: 'いつでも無制限に相談できる', sub: '無料は1日3回まで' },
-  { icon: CalendarDays, text: '運気カレンダーを60日分ひと目で', sub: '無料は7日分まで' },
+  { icon: MessageSquare, text: 'いつでも無制限に相談できる', sub: '通常プランは1日3回まで' },
+  { icon: CalendarDays, text: '運気カレンダーを60日分ひと目で', sub: '通常プランは7日分まで' },
 ];
 
-// 先行登録（Founding Member）モーダル。
-// 決済レールが整う前に「払う意思」を集める validate-first の中核。
 export function FoundingMemberModal({ userEmail, onClose }: { userEmail?: string | null; onClose: () => void }) {
   const [email, setEmail] = useState(userEmail || '');
   const [submitted, setSubmitted] = useState(false);
+  const untilLabel = launchFreeUntilLabel();
 
   const submit = () => {
     const e = email.trim();
@@ -39,8 +37,8 @@ export function FoundingMemberModal({ userEmail, onClose }: { userEmail?: string
       >
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-2">
-            <Crown className="w-5 h-5 text-amber-300" />
-            <h3 className="text-base font-bold text-white">Orba Premium</h3>
+            <Gift className="w-5 h-5 text-amber-300" />
+            <h3 className="text-base font-bold text-white">ローンチ記念・無料開放中</h3>
           </div>
           <button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
             <X className="w-4 h-4" />
@@ -52,9 +50,9 @@ export function FoundingMemberModal({ userEmail, onClose }: { userEmail?: string
             <div className="mx-auto mb-3 w-12 h-12 rounded-full bg-amber-400/15 flex items-center justify-center">
               <Check className="w-6 h-6 text-amber-300" />
             </div>
-            <p className="text-sm font-serif-jp text-white mb-1">先行登録ありがとう ✨</p>
+            <p className="text-sm font-serif-jp text-white mb-1">ありがとう ✨</p>
             <p className="text-[12px] text-white/50 leading-relaxed">
-              正式公開のときに、先行メンバー価格でいちばんに お知らせします。<br />それまで無料機能を楽しんでね。
+              プレミアムの正式開始がきまったら、いちばんにお知らせします。<br />それまで全機能をたっぷり楽しんでね。
             </p>
             <button onClick={onClose} className="mt-5 w-full py-2.5 rounded-full bg-white/10 text-white/80 text-sm font-bold hover:bg-white/15 transition-colors">
               閉じる
@@ -62,9 +60,11 @@ export function FoundingMemberModal({ userEmail, onClose }: { userEmail?: string
           </div>
         ) : (
           <>
-            <p className="text-[12px] text-white/50 mb-4">あなただけのパートナーを、もっと深く。</p>
+            <p className="text-[12px] text-white/55 mb-4 leading-relaxed">
+              いまなら、通常はプレミアムの機能も<strong className="text-amber-200">すべて無料</strong>でお使いいただけます。
+            </p>
 
-            <ul className="space-y-2.5 mb-5">
+            <ul className="space-y-2.5 mb-4">
               {PERKS.map((p) => (
                 <li key={p.text} className="flex items-start gap-2.5">
                   <span className="flex-none mt-0.5 w-7 h-7 rounded-full bg-amber-400/10 text-amber-300 flex items-center justify-center">
@@ -78,23 +78,26 @@ export function FoundingMemberModal({ userEmail, onClose }: { userEmail?: string
               ))}
             </ul>
 
-            <div className="mb-4 rounded-xl bg-amber-400/[0.07] border border-amber-300/15 p-3 text-center">
-              <span className="text-lg font-bold text-amber-200">{PREMIUM_PRICE_LABEL}</span>
-              <span className="block text-[11px] text-amber-200/50 mt-0.5">近日公開・先行メンバー募集中</span>
+            {/* ★期間限定・将来有料・終了日を明記（誠実さの最低ライン） */}
+            <div className="mb-4 rounded-xl bg-white/[0.04] border border-white/10 p-3 text-[11px] text-white/55 leading-relaxed space-y-1">
+              <p>・これは<strong className="text-white/80">ローンチ記念の無料開放</strong>です。</p>
+              <p>・正式版ではプレミアム機能は<strong className="text-amber-200">{PREMIUM_PRICE_LABEL}</strong>の予定です。</p>
+              <p>・無料開放期間：{untilLabel ? <strong className="text-white/80">{untilLabel}まで</strong> : '正式リリースまで'}（延長する場合があります）。</p>
+              <p className="text-white/35">期間終了後は無料プラン（チャット1日3回 ほか）に戻ります。</p>
             </div>
 
             <input
               type="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)}
-              placeholder="メールアドレス（任意・公開時にお知らせ）"
+              placeholder="メールアドレス（任意・正式開始時にお知らせ）"
               className="w-full mb-3 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-amber-300/40"
             />
             <button
               onClick={submit}
               className="w-full py-3 rounded-full bg-gradient-to-r from-amber-300 to-amber-400 text-black text-sm font-bold hover:brightness-105 transition-all"
             >
-              先行登録する（無料）
+              開始のお知らせを受け取る
             </button>
-            <p className="mt-2 text-center text-[10px] text-white/25">いま課金は発生しません。意思表明のみ。</p>
+            <p className="mt-2 text-center text-[10px] text-white/25">いま課金は発生しません。登録は任意です。</p>
           </>
         )}
       </motion.div>

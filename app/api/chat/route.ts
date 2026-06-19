@@ -5,6 +5,7 @@ import { buildProfileFromUser } from '@/lib/engine/profile';
 import { computeDailyState } from '@/lib/engine/daily';
 import { summarizeProfile, summarizeDaily } from '@/lib/engine/summarize';
 import { checkUserAccess } from '@/lib/auth';
+import { isLaunchFreeActive } from '@/lib/launch';
 
 const FREE_DAILY_LIMIT = 3;
 
@@ -71,8 +72,9 @@ export async function POST(request: Request) {
         if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
         // 無料ユーザーは1日3回まで。超過時はチケットを1消費して+1回（サーバー側で強制）
+        // ローンチ記念の無料開放期間中は全員プレミアム相当＝上限なし。
         const todayKey = new Date().toISOString().split('T')[0];
-        if (!user.isPremium) {
+        if (!user.isPremium && !isLaunchFreeActive()) {
             const usedToday = user.chatDate === todayKey ? user.chatUsed : 0;
             if (usedToday >= FREE_DAILY_LIMIT) {
                 if (user.tickets > 0) {
