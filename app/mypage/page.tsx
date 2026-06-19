@@ -808,22 +808,10 @@ export default function MyPage() {
                             <p className="text-[10px] text-white/40">チャット無制限・複数プロファイル・年間レポート</p>
                         </div>
                         <button
-                            onClick={async () => {
-                                // 本登録していない場合は先にアカウント登録へ
-                                if (!userData.email) { setShowAuth(true); return; }
-                                const res = await fetch('/api/billing/upgrade', { method: 'POST' });
-                                const data = await res.json().catch(() => ({}));
-                                if (res.ok && data.url) {
-                                    window.location.href = data.url; // Stripe決済ページへ
-                                } else if (data.needsRegistration) {
-                                    setShowAuth(true);
-                                } else {
-                                    alert(data.error || 'エラーが発生しました。ログインし直してください。');
-                                }
-                            }}
-                            className="flex-none px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-black text-xs font-bold rounded-full hover:opacity-90 transition-opacity whitespace-nowrap"
+                            onClick={() => alert('決済システムを準備中です。もうしばらくお待ちください🙏')}
+                            className="flex-none px-4 py-2 bg-white/10 text-white/70 text-xs font-bold rounded-full whitespace-nowrap cursor-default"
                         >
-                            月額 ¥500 →
+                            準備中
                         </button>
                     </div>
                 )}
