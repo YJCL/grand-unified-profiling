@@ -8,7 +8,7 @@ type Stats = {
   users: { total: number; registered: number; premium: number; withReading: number; signups7d: number; pushSubs: number };
   active: { dau: number; wau: number; mau: number };
   funnel30d: { landing: number; onboardingStart: number; readingComplete: number; startRate: number; completeRate: number };
-  monetization30d: { paywallView: number; paywallClick: number; purchase: number; clickRate: number };
+  monetization30d: { paywallView: number; paywallClick: number; foundingInterest: number; purchase: number; clickRate: number; intentRate: number };
 };
 
 function Stat({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
@@ -77,7 +77,8 @@ function Dashboard() {
 
       <Section title="課金（30日）">
         <Stat label="paywall表示" value={s.monetization30d.paywallView} />
-        <Stat label="paywallクリック" value={s.monetization30d.paywallClick} sub={`課金欲 ${s.monetization30d.clickRate}%`} />
+        <Stat label="paywall開封" value={s.monetization30d.paywallClick} sub={`表示→開封 ${s.monetization30d.clickRate}%`} />
+        <Stat label="先行登録" value={s.monetization30d.foundingInterest} sub={`課金欲 ${s.monetization30d.intentRate}%`} />
         <Stat label="実課金" value={s.monetization30d.purchase} />
       </Section>
     </div>

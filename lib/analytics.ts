@@ -24,6 +24,7 @@ export type EventName =
   | 'app_open'
   | 'paywall_view'
   | 'paywall_click'
+  | 'founding_interest'
   | 'purchase';
 
 export function track(name: EventName, props?: Record<string, unknown>): void {

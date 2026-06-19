@@ -16,6 +16,7 @@ import { OrbField } from '@/app/components/OrbField';
 import { AuthModal } from '@/app/components/AuthModal';
 import { NotificationToggle } from '@/app/components/NotificationToggle';
 import { track } from '@/lib/analytics';
+import { FoundingMemberModal } from '@/app/components/FoundingMemberModal';
 
 function copyToClipboard(text: string): Promise<void> {
     if (navigator.clipboard?.writeText) {
@@ -470,6 +471,7 @@ export default function MyPage() {
     const [showWelcome, setShowWelcome] = useState(false);
     const [tickets, setTickets] = useState(0);
     const [bonusMsg, setBonusMsg] = useState('');
+    const [showFounding, setShowFounding] = useState(false);
 
     // Stripe決済から ?upgraded=1 で戻ってきたらお礼を表示し、URLを綺麗にする
     useEffect(() => {
@@ -810,13 +812,13 @@ export default function MyPage() {
                                 プレミアムにアップグレード
                                 <span className="text-[10px] font-normal text-amber-300/90">🎟 鑑定チケット ×{tickets}</span>
                             </p>
-                            <p className="text-[10px] text-white/40">チャット無制限・複数プロファイル・年間レポート</p>
+                            <p className="text-[10px] text-white/40">チャット無制限・運気カレンダー60日分</p>
                         </div>
                         <button
-                            onClick={() => { track('paywall_click'); alert('決済システムを準備中です。もうしばらくお待ちください🙏'); }}
-                            className="flex-none px-4 py-2 bg-white/10 text-white/70 text-xs font-bold rounded-full whitespace-nowrap cursor-default"
+                            onClick={() => { track('paywall_click'); setShowFounding(true); }}
+                            className="flex-none px-4 py-2 bg-gradient-to-r from-amber-300 to-amber-400 text-black text-xs font-bold rounded-full whitespace-nowrap hover:brightness-105 transition-all"
                         >
-                            準備中
+                            先行登録
                         </button>
                     </div>
                 )}
@@ -824,6 +826,9 @@ export default function MyPage() {
 
             {/* ── Modals ────────────────────────────────── */}
             <AnimatePresence>
+                {showFounding && (
+                    <FoundingMemberModal userEmail={userData.email} onClose={() => setShowFounding(false)} />
+                )}
                 {showAuth && (
                     <AuthModal initialMode="register" userId={userData.id}
                         onClose={() => setShowAuth(false)}

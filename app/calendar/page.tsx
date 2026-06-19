@@ -49,7 +49,7 @@ export default function CalendarPage() {
 
     useEffect(() => {
         if (!userId) return;
-        fetch(`/api/fortune-score?userId=${userId}&range=42`)
+        fetch(`/api/fortune-score?userId=${userId}&range=60`)
             .then(r => r.json())
             .then(setScores);
     }, [userId]);

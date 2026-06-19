@@ -8,7 +8,8 @@ const ALLOWED = new Set([
   'reading_complete', // 初回鑑定が生成された（オンボ完了）
   'app_open',         // マイページ表示＝アクティブ
   'paywall_view',     // プレミアム訴求が見えた
-  'paywall_click',    // プレミアムに申し込もうとした（課金欲の実数）
+  'paywall_click',    // プレミアム訴求を開いた
+  'founding_interest',// 先行登録＝「払う意思」の最強signal（validate-first）
   'purchase',         // 実課金（P2以降）
 ]);
 

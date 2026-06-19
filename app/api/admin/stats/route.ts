@@ -11,20 +11,6 @@ function authorized(request: Request): boolean {
   return q === key || bearer === `Bearer ${key}`;
 }
 
-async function countEvent(name: string, since: Date): Promise<number> {
-  return prisma.event.count({ where: { name, createdAt: { gte: since } } });
-}
-
-// 指定期間のアクティブな識別子数（userId 優先・無ければ anonId で distinct）
-async function activeIdentities(since: Date): Promise<number> {
-  const rows = await prisma.$queryRaw<{ c: bigint }[]>`
-    SELECT COUNT(DISTINCT COALESCE("userId", "anonId")) AS c
-    FROM "Event"
-    WHERE "createdAt" >= ${since}
-  `;
-  return Number(rows[0]?.c ?? 0);
-}
-
 export async function GET(request: Request) {
   if (!authorized(request)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 
@@ -33,12 +19,12 @@ export async function GET(request: Request) {
   const d7 = new Date(now - 7 * 864e5);
   const d30 = new Date(now - 30 * 864e5);
 
+  // Supabase セッションプーラーは最大15接続。並列クエリを抑えるため、
+  // イベント集計は1回の groupBy、アクティブ数は1回の raw にまとめる。
   const [
-    totalUsers, registeredUsers, premiumUsers, usersWithBirth, pushSubs,
-    signups7d,
-    landing30, onbStart30, reading30,
-    paywallView30, paywallClick30, purchase30,
-    dau, wau, mau,
+    totalUsers, registeredUsers, premiumUsers, usersWithBirth, pushSubs, signups7d,
+    grouped,
+    activeRows,
   ] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({ where: { passwordHash: { not: null } } }),
@@ -46,16 +32,28 @@ export async function GET(request: Request) {
     prisma.user.count({ where: { birthDate: { not: null } } }),
     prisma.pushSubscription.count(),
     prisma.user.count({ where: { createdAt: { gte: d7 } } }),
-    countEvent('landing_view', d30),
-    countEvent('onboarding_start', d30),
-    countEvent('reading_complete', d30),
-    countEvent('paywall_view', d30),
-    countEvent('paywall_click', d30),
-    countEvent('purchase', d30),
-    activeIdentities(d1),
-    activeIdentities(d7),
-    activeIdentities(d30),
+    prisma.event.groupBy({ by: ['name'], where: { createdAt: { gte: d30 } }, _count: { _all: true } }),
+    prisma.$queryRaw<{ dau: bigint; wau: bigint; mau: bigint }[]>`
+      SELECT
+        COUNT(DISTINCT CASE WHEN "createdAt" >= ${d1} THEN COALESCE("userId", "anonId") END) AS dau,
+        COUNT(DISTINCT CASE WHEN "createdAt" >= ${d7} THEN COALESCE("userId", "anonId") END) AS wau,
+        COUNT(DISTINCT COALESCE("userId", "anonId")) AS mau
+      FROM "Event"
+      WHERE "createdAt" >= ${d30}
+    `,
   ]);
+
+  const ev = (name: string) => grouped.find((g) => g.name === name)?._count._all ?? 0;
+  const landing30 = ev('landing_view');
+  const onbStart30 = ev('onboarding_start');
+  const reading30 = ev('reading_complete');
+  const paywallView30 = ev('paywall_view');
+  const paywallClick30 = ev('paywall_click');
+  const founding30 = ev('founding_interest');
+  const purchase30 = ev('purchase');
+  const dau = Number(activeRows[0]?.dau ?? 0);
+  const wau = Number(activeRows[0]?.wau ?? 0);
+  const mau = Number(activeRows[0]?.mau ?? 0);
 
   const pct = (num: number, den: number) => (den > 0 ? Math.round((num / den) * 1000) / 10 : 0);
 
@@ -81,8 +79,10 @@ export async function GET(request: Request) {
     monetization30d: {
       paywallView: paywallView30,
       paywallClick: paywallClick30,
+      foundingInterest: founding30,
       purchase: purchase30,
-      clickRate: pct(paywallClick30, paywallView30), // 課金欲（paywall表示→クリック）
+      clickRate: pct(paywallClick30, paywallView30),      // paywall表示→開いた
+      intentRate: pct(founding30, paywallView30),          // 課金欲＝paywall表示→先行登録
     },
   });
 }
