@@ -2,11 +2,13 @@
 
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Send, ChevronLeft, PenSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CharacterAvatar, CHARACTER_META, type CharacterType } from '@/app/components/CharacterAvatar';
 import { OrbField } from '@/app/components/OrbField';
+import { FoundingMemberModal } from '@/app/components/FoundingMemberModal';
+import { track } from '@/lib/analytics';
 
 type Message = { id: string; role: 'user' | 'assistant'; content: string };
 
@@ -18,6 +20,8 @@ function ChatPageInner() {
     const [isLoading, setIsLoading] = useState(false);
     const [userId, setUserId] = useState<string | null>(null);
     const [char, setChar] = useState<CharacterType>('sage');
+    const [userEmail, setUserEmail] = useState<string | null>(null);
+    const [showFounding, setShowFounding] = useState(false);
     const endRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, isLoading]);
@@ -34,6 +38,7 @@ function ChatPageInner() {
                     const data = await res.json();
                     if (data.characterType && CHARACTER_META[data.characterType as CharacterType]) setChar(data.characterType);
                     name = data.name ? `${data.name}` : 'あなた';
+                    setUserEmail(data.email ?? null);
                 }
                 // 過去の会話履歴を読み込んで表示
                 const hist = await fetch(`/api/chat?userId=${id}`).then(r => r.ok ? r.json() : { messages: [] }).catch(() => ({ messages: [] }));
@@ -66,6 +71,11 @@ function ChatPageInner() {
             const res = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, message: userMsg.content }) });
             const data = await res.json().catch(() => ({}));
             setMessages((p) => [...p, { id: Date.now() + 'ai', role: 'assistant', content: res.ok ? data.response : (data.message || 'ごめん、うまく繋がらなかった…もう一度試してみて。') }]);
+            // 無料相談の上限に当たった瞬間＝最良のアップセル機会。先行登録へ誘導する。
+            if (!res.ok && data.limitReached) {
+                track('paywall_view', { source: 'chat_limit' });
+                setTimeout(() => setShowFounding(true), 500);
+            }
         } catch { setMessages((p) => [...p, { id: Date.now() + 'ai', role: 'assistant', content: 'ごめん、エラーが起きたみたい。' }]); }
         finally { setIsLoading(false); }
     };
@@ -134,6 +144,10 @@ function ChatPageInner() {
                     </button>
                 </form>
             </div>
+
+            <AnimatePresence>
+                {showFounding && <FoundingMemberModal userEmail={userEmail} onClose={() => setShowFounding(false)} />}
+            </AnimatePresence>
         </main>
     );
 }
