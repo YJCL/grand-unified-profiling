@@ -14,6 +14,7 @@ import { type AnalysisResult, type DailyContent } from '@/types';
 import { CharacterAvatar, CHARACTER_META, type CharacterType } from '@/app/components/CharacterAvatar';
 import { OrbField } from '@/app/components/OrbField';
 import { AuthModal } from '@/app/components/AuthModal';
+import { NotificationToggle } from '@/app/components/NotificationToggle';
 
 function copyToClipboard(text: string): Promise<void> {
     if (navigator.clipboard?.writeText) {
@@ -754,6 +755,7 @@ export default function MyPage() {
                         </motion.div>
                     )}
                 </AnimatePresence>
+                {!editMode && <div className="mb-3"><NotificationToggle userId={userData.id} /></div>}
                 {editMode && (
                     <div className="mb-3 px-1 flex items-center justify-between">
                         <p className="text-[10px] text-white/30 uppercase tracking-widest">ウィジェットを並び替え・プロフィールタブを削除</p>

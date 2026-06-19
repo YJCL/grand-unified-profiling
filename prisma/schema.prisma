@@ -36,6 +36,20 @@ model User {
   chatLogs      ChatLog[]
   dailyLogs     DailyLog[]
   diagnoses     Diagnosis[]
+  pushSubs      PushSubscription[]
+}
+
+// Web Push（VAPID）の購読情報。1ユーザーが複数端末を持てる。
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  endpoint  String   @unique // ブラウザ毎に一意。再購読時の突き合わせキー
+  p256dh    String   // 公開鍵（暗号化用）
+  auth      String   // 認証シークレット
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Diagnosis {

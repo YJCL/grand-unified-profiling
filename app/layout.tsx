@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Noto_Sans_JP, Shippori_Mincho, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "./components/ThemeProvider";
+import { ServiceWorkerRegister } from "./components/ServiceWorkerRegister";
 
 const notoSansJP = Noto_Sans_JP({
   variable: "--font-noto",
@@ -82,6 +83,7 @@ export default function RootLayout({
         <ThemeProvider>
           {children}
         </ThemeProvider>
+        <ServiceWorkerRegister />
       </body>
     </html>
   );
