@@ -8,6 +8,11 @@ import { checkUserAccess } from '@/lib/auth';
 import { isLaunchFreeActive } from '@/lib/launch';
 
 const FREE_DAILY_LIMIT = 3;
+// 全プラン共通のフェアユース上限（プレミアム/無料開放でも適用）。
+// 濫用・暴走・API費用の青天井を防ぐ安全弁。通常利用ではまず当たらない。
+const ABUSE_DAILY_CAP = 50;
+// 1通あたりの入力文字数の上限（巨大入力によるトークン濫用を防ぐ）。
+const MAX_MESSAGE_CHARS = 2000;
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -57,6 +62,12 @@ export async function POST(request: Request) {
         if (!userId || !message) {
             return NextResponse.json({ error: 'userId and message required' }, { status: 400 });
         }
+        if (typeof message !== 'string' || message.length > MAX_MESSAGE_CHARS) {
+            return NextResponse.json({
+                error: 'message too long',
+                message: 'メッセージが少し長すぎるみたい。もう少し短く分けて送ってくれる？',
+            }, { status: 400 });
+        }
 
         const access = await checkUserAccess(userId);
         if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
@@ -71,29 +82,37 @@ export async function POST(request: Request) {
 
         if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
-        // 無料ユーザーは1日3回まで。超過時はチケットを1消費して+1回（サーバー側で強制）
-        // ローンチ記念の無料開放期間中は全員プレミアム相当＝上限なし。
         const todayKey = new Date().toISOString().split('T')[0];
-        if (!user.isPremium && !isLaunchFreeActive()) {
-            const usedToday = user.chatDate === todayKey ? user.chatUsed : 0;
-            if (usedToday >= FREE_DAILY_LIMIT) {
-                if (user.tickets > 0) {
-                    // チケットを1消費して許可（無料枠は据え置き）
-                    await prisma.user.update({ where: { id: userId }, data: { tickets: { decrement: 1 } } });
-                } else {
-                    return NextResponse.json({
-                        error: 'Daily limit reached',
-                        limitReached: true,
-                        message: `本日の無料相談回数（${FREE_DAILY_LIMIT}回）に達しました。シェアやログインボーナスでチケットを集めると追加で相談できます。プレミアムなら無制限です。`
-                    }, { status: 429 });
-                }
+        const usedToday = user.chatDate === todayKey ? user.chatUsed : 0;
+        // プレミアム or ローンチ無料開放中は「通常の無料上限(3回)」が無い
+        const unlimited = user.isPremium || isLaunchFreeActive();
+
+        // 1) フェアユース上限（全プラン共通・コスト暴走/濫用の安全弁）
+        if (usedToday >= ABUSE_DAILY_CAP) {
+            return NextResponse.json({
+                error: 'fair use limit',
+                message: '今日はたくさん話せたね。少し休憩して、また明日ゆっくり続きを話そう🌙',
+            }, { status: 429 });
+        }
+
+        // 2) 無料ユーザーの通常上限（プレミアム/無料開放は対象外）。超過時はチケット1消費。
+        if (!unlimited && usedToday >= FREE_DAILY_LIMIT) {
+            if (user.tickets > 0) {
+                await prisma.user.update({ where: { id: userId }, data: { tickets: { decrement: 1 } } });
             } else {
-                await prisma.user.update({
-                    where: { id: userId },
-                    data: { chatDate: todayKey, chatUsed: usedToday + 1 },
-                });
+                return NextResponse.json({
+                    error: 'Daily limit reached',
+                    limitReached: true,
+                    message: `本日の無料相談回数（${FREE_DAILY_LIMIT}回）に達しました。シェアやログインボーナスでチケットを集めると追加で相談できます。プレミアムなら無制限です。`
+                }, { status: 429 });
             }
         }
+
+        // 利用回数をカウント（全員。フェアユース上限の計測に使う）
+        await prisma.user.update({
+            where: { id: userId },
+            data: { chatDate: todayKey, chatUsed: usedToday + 1 },
+        });
 
         const latestDiagnosis = user.diagnoses[0];
 
@@ -172,7 +191,8 @@ ${dailySheet}` : ''}
 - 出生時間が不明な場合: 正直に伝え、正午生まれと仮定して分析
 - ネガティブな予言禁止: 必ず「回避策」や「捉え方」をセットで提示
 - 医療・法律・金融の具体的なアドバイスは専門家への相談を促す
-- 口調: 標準的な敬語（です・ます調）。過剰なキャラ付け禁止。`;
+- 口調: 標準的な敬語（です・ます調）。過剰なキャラ付け禁止。
+- あなたはユーザー自身の人生に寄り添うパートナー。プログラミング・翻訳・要約・宿題・一般的な調べ物の代行など、ユーザー本人と無関係な「汎用アシスタント」的な依頼には深入りしない。短く受け流し、「それより、あなた自身のことを聞かせて」と本来の役割（その人の心・運気・選択の相談）へ優しく引き戻す。`;
 
         // 会話履歴を復元
         const chatLog = user.chatLogs[0];
@@ -180,8 +200,8 @@ ${dailySheet}` : ''}
 
         if (chatLog) {
             const saved = JSON.parse(chatLog.messages) as { role: string, content: string }[];
-            // 直近20件に制限（コスト管理）
-            history = saved.slice(-20).map(m => ({
+            // 直近12件に制限（コスト管理）
+            history = saved.slice(-12).map(m => ({
                 role: m.role === 'assistant' ? 'assistant' : 'user',
                 content: m.content
             }));
@@ -194,8 +214,8 @@ ${dailySheet}` : ''}
         ];
 
         const response = await anthropic.messages.create({
-            model: 'claude-sonnet-4-6',
-            max_tokens: 2048,
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 1600,
             system: systemPrompt,
             messages
         });
