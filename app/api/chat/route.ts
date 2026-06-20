@@ -223,9 +223,15 @@ ${dailySheet}` : ''}
             { role: 'user', content: message }
         ];
 
+        // モデルの質は「実際のプレミアム(isPremium)」だけで決める。
+        //  - isPremium=true（adminや将来の課金者）→ Sonnet（高品質・世界観への追従も良い）
+        //  - それ以外（ローンチ無料開放中の新規ユーザー含む）→ Haiku（安価）
+        // ※ 無料開放は「機能の解放」であって「Sonnetの提供」ではない。
+        //   有料開始後、課金で isPremium=true になれば自動的に admin と同じ Sonnet 扱いになる。
+        const isPaid = user.isPremium;
         const response = await anthropic.messages.create({
-            model: 'claude-haiku-4-5-20251001',
-            max_tokens: 1600,
+            model: isPaid ? 'claude-sonnet-4-6' : 'claude-haiku-4-5-20251001',
+            max_tokens: isPaid ? 2048 : 1600,
             system: systemPrompt,
             messages
         });
