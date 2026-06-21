@@ -926,6 +926,21 @@ export default function MyPage() {
                                 </div>
                                 <p className="mt-2 text-[10px] text-white/30">変えても鑑定結果（占いの中身）は同じ。話し方（口調）だけ変わります。</p>
                             </div>
+
+                            {!userData.isPremium && isLaunchFreeActive() && (
+                                <div className="mt-5 pt-5 border-t border-white/8">
+                                    <p className="text-[10px] text-white/30 uppercase tracking-widest mb-2">正式版のお知らせ</p>
+                                    <button
+                                        onClick={() => { setShowAccount(false); track('paywall_view', { source: 'settings' }); setShowFounding(true); }}
+                                        className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-amber-300/20 bg-amber-400/[0.06] hover:bg-amber-400/10 transition-all text-left">
+                                        <span className="min-w-0">
+                                            <span className="block text-[12px] text-white">正式版（{PREMIUM_PRICE_LABEL}予定）の開始をお知らせ</span>
+                                            <span className="block text-[10px] text-white/40">{launchFreeUntilLabel() ? `${launchFreeUntilLabel()}まで無料開放中` : '無料開放中'}</span>
+                                        </span>
+                                        <span className="flex-none text-amber-200/80 text-[11px] font-bold">受け取る ›</span>
+                                    </button>
+                                </div>
+                            )}
                         </motion.div>
                     </motion.div>
                 )}

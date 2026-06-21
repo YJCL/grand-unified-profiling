@@ -81,6 +81,27 @@ function Dashboard() {
         <Stat label="先行登録" value={s.monetization30d.foundingInterest} sub={`課金欲 ${s.monetization30d.intentRate}%`} />
         <Stat label="実課金" value={s.monetization30d.purchase} />
       </Section>
+
+      {/* ROADMAP 採用判断ゲート: 鑑定完了の5%以上が Founding 登録なら拡散投資にコミット */}
+      <section className="mb-8 rounded-2xl border border-amber-300/20 bg-amber-400/[0.04] p-5">
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-widest text-amber-200">採用判断ゲート（30日）</h2>
+        <p className="mb-4 text-[11px] text-white/40">鑑定完了者のうち何%がFoundingに登録したか。<strong className="text-amber-200">5%以上</strong>で拡散投資にフルコミット判断。母数は100以上が望ましい。</p>
+        {(() => {
+          const reads = s.funnel30d.readingComplete;
+          const founding = s.monetization30d.foundingInterest;
+          const conv = reads > 0 ? Math.round((founding / reads) * 1000) / 10 : 0;
+          const ready = reads >= 100;
+          const ok = ready && conv >= 5;
+          const verdict = !ready ? `判定保留（鑑定完了 ${reads}/100）` : ok ? `✅ ${conv}% — 拡散投資GO` : conv >= 3 ? `⚠ ${conv}% — 微妙、製品見直し検討` : `❌ ${conv}% — 製品の何かが弱い`;
+          const color = !ready ? 'text-white/70' : ok ? 'text-amber-200' : conv >= 3 ? 'text-yellow-300' : 'text-rose-300';
+          return (
+            <div>
+              <div className={`text-2xl font-bold ${color}`}>{verdict}</div>
+              <div className="mt-2 text-[11px] text-white/40">鑑定完了 {reads}人 → Founding {founding}人 ／ 閾値 5%</div>
+            </div>
+          );
+        })()}
+      </section>
     </div>
   );
 }

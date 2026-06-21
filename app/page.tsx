@@ -8,7 +8,9 @@ import { type UserProfile, type AnalysisResult } from '@/types';
 import { CharacterAvatar, CHARACTER_META, type CharacterType } from '@/app/components/CharacterAvatar';
 import { OrbField } from '@/app/components/OrbField';
 import { AuthModal } from '@/app/components/AuthModal';
+import { FoundingMemberModal } from '@/app/components/FoundingMemberModal';
 import { track } from '@/lib/analytics';
+import { isLaunchFreeActive, launchFreeUntilLabel, PREMIUM_PRICE_LABEL } from '@/lib/launch';
 
 type Phase = 'select' | 'chat' | 'analyzing' | 'result';
 type ProfileType = 'self' | 'family' | 'friend';
@@ -218,6 +220,7 @@ function Conversation({ char, profileType, userId }: { char: CharacterType; prof
   const [data, setData] = useState({ name: '', gender: '', birthDate: '', birthTime: '', birthPlace: '', currentWorry: '' });
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [showFounding, setShowFounding] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { scrollRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, phase, isTyping]);
@@ -350,6 +353,22 @@ function Conversation({ char, profileType, userId }: { char: CharacterType; prof
               <div className="card p-4"><p className="text-[10px] text-white/35 mb-1">今日のテーマ</p><p className="text-base font-serif-jp text-white/90">{result.dailyTheme}</p></div>
               <div className="card p-4"><p className="text-[10px] text-white/35 mb-1">ラッキーアクション</p><p className="text-base font-serif-jp text-amber-200/90">{result.luckyAction}</p></div>
             </div>
+            {isLaunchFreeActive() && (
+              <div className="card p-4 flex items-center gap-3 border border-amber-300/15">
+                <span className="flex-none text-xl">🎁</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] font-serif-jp text-white/85 leading-relaxed">
+                    いまは全機能を無料で開放中{launchFreeUntilLabel() ? `（${launchFreeUntilLabel()}まで）` : ''}。正式版（{PREMIUM_PRICE_LABEL}予定）の開始をお知らせします。
+                  </p>
+                </div>
+                <button
+                  onClick={() => { track('paywall_view', { source: 'post_reading' }); setShowFounding(true); }}
+                  className="flex-none px-3 py-2 rounded-full bg-white/10 text-white/85 text-[11px] font-bold hover:bg-white/15 transition-all whitespace-nowrap"
+                >
+                  受け取る
+                </button>
+              </div>
+            )}
             <div className="pt-3 flex flex-col items-center gap-3">
               <button onClick={handleSave} disabled={isSaving} className="btn-gold px-10 py-4 font-bold disabled:opacity-50">
                 {isSaving ? '保存中…' : 'この子と歩きはじめる'}
@@ -368,6 +387,10 @@ function Conversation({ char, profileType, userId }: { char: CharacterType; prof
           <Composer turn={currentTurn} draft={draft} setDraft={setDraft} onAnswer={advance} />
         </div>
       )}
+
+      <AnimatePresence>
+        {showFounding && <FoundingMemberModal onClose={() => setShowFounding(false)} />}
+      </AnimatePresence>
     </div>
   );
 }
