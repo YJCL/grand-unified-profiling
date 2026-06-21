@@ -1,10 +1,13 @@
 // ─────────────────────────────────────────────────────────────
 //  宿曜（27宿）
-//  出生時の「月の位置」が属する宿を、恒星黄経（サイデリアル）で算出。
-//  ナクシャトラ体系で月の位置 → 宿曜は昴宿(=Krittika)始まりに並べ替え。
+//  出生時の「月のトロピカル黄経」が属する宿を算出。
+//  昴宿(=Krittika)始まりに並べ替えて27宿を割り当てる。
 //
-//  ※ 巷の宿曜アプリは旧暦の表引き近似が多く結果がずれることがある。
-//    本実装は月の実位置に基づく天文学的に正しい方法。
+//  ※ 重要: 日本の宿曜道は歳差補正をしない伝統＝月のトロピカル黄経を
+//    そのまま宿に割り当てる方式。ヴェーダ占星術のラヒリ恒星黄経（約24°差）
+//    を使うと約2宿ずれ、日本の宿曜サイト/書籍の本命宿と一致しない。
+//    （実証: 1993-10-23生は各種サイトで「危宿」。
+//      トロピカル計算=危宿 / ラヒリ計算=女宿。よってトロピカルを採用。）
 // ─────────────────────────────────────────────────────────────
 
 import type { Sukuyo } from './types';
@@ -18,13 +21,6 @@ const MANSIONS = [
 ];
 const MANSION_SPAN = 360 / 27; // 13.333°
 
-// ラヒリ・アヤナムシャ（恒星基準への補正角）の近似
-function lahiriAyanamsa(date: Date): number {
-  const year = date.getUTCFullYear();
-  // J2000で約23.85°、毎年約50.29″(=0.01397°)増加
-  return 23.85 + (year - 2000) * 0.013972;
-}
-
 // ナクシャトラの起点(Ashwini)から数えた index → 宿曜(昴宿始まり)へ
 // Ashwini=0, Bharani=1, Krittika=2。昴宿=Krittika なので -2 シフト。
 function nakshatraToSukuyoIndex(nak: number): number {
@@ -32,14 +28,14 @@ function nakshatraToSukuyoIndex(nak: number): number {
 }
 
 export function computeSukuyo(birthUTC: Date): Sukuyo {
-  const tropical = moonLongitude(birthUTC);
-  const sidereal = ((tropical - lahiriAyanamsa(birthUTC)) % 360 + 360) % 360;
-  const nak = Math.floor(sidereal / MANSION_SPAN); // 0=Ashwini
+  // 月のトロピカル黄経をそのまま27宿に割り当てる（日本の宿曜方式）。
+  const longitude = ((moonLongitude(birthUTC)) % 360 + 360) % 360;
+  const nak = Math.floor(longitude / MANSION_SPAN);
   const idx = nakshatraToSukuyoIndex(nak);
   return {
     mansion: MANSIONS[idx],
     index: idx,
     group: '', // 三九の秘法など相性ロジックはPhase 4で
-    method: '月の恒星黄経（ラヒリ）による',
+    method: '月のトロピカル黄経による（日本の宿曜方式）',
   };
 }
