@@ -6,6 +6,14 @@ import { computeDailyState } from '@/lib/engine/daily';
 import { summarizeProfile, summarizeDaily } from '@/lib/engine/summarize';
 import { checkUserAccess } from '@/lib/auth';
 import { isLaunchFreeActive } from '@/lib/launch';
+import { distillMemory } from '@/lib/memory';
+
+// 文脈としてモデルに渡す直近メッセージ数（コスト管理）。それより前は memory に蒸留済み。
+const CONTEXT_WINDOW = 12;
+// 保存する会話履歴の最大数（暴走防止。これを超える古い分は memory が保持）。
+const STORED_MAX = 100;
+// 何ターンごとに memory を更新するか（CONTEXT_WINDOWの半分=6ターン未満なので取りこぼし無し）。
+const MEMORY_EVERY_TURNS = 3;
 
 const FREE_DAILY_LIMIT = 3;
 // 全プラン共通のフェアユース上限（プレミアム/無料開放でも適用）。
@@ -40,12 +48,24 @@ export async function GET(request: Request) {
 }
 
 // 会話履歴をリセット（新しい会話を始める）
+// ※ 会話の「記憶(memory)」は消さない。むしろ消す前に最後の蒸留を行い、
+//   次の会話でも Orba が相手を覚えているようにする。
 export async function DELETE(request: Request) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
     const access = await checkUserAccess(userId);
     if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
     try {
+        const log = await prisma.chatLog.findFirst({ where: { userId: userId! }, orderBy: { createdAt: 'desc' } });
+        if (log) {
+            try {
+                const msgs = JSON.parse(log.messages) as { role: string; content: string }[];
+                if (msgs.length > 0) {
+                    const mem = await distillMemory({ currentMemory: access.user.memory || '', recent: msgs.slice(-16), userName: access.user.name });
+                    if (mem) await prisma.user.update({ where: { id: userId! }, data: { memory: mem } });
+                }
+            } catch { /* 蒸留失敗は無視して削除は続行 */ }
+        }
         await prisma.chatLog.deleteMany({ where: { userId: userId! } });
         return NextResponse.json({ success: true });
     } catch (error) {
@@ -167,6 +187,9 @@ ${latestDiagnosis ? (() => {
 行動戦略: ${r.strategy}
 現在の運気: ${r.timing}`;
 })() : ''}
+${user.memory ? `
+## ${user.name || 'この人'}について覚えていること（過去の会話の記憶。さりげなく踏まえて会話に織り込む。一字一句なぞらず、自然に。押し付けがましくしない）
+${user.memory}` : ''}
 ${factSheet ? `
 ## 占術データ（天体暦から読み解いた確かなもの。これらの数値・配置を根拠に語り、数値を自分で出し直さない。ユーザーには「計算」とは言わず「読み解く」と表現する）
 ${factSheet}
@@ -204,18 +227,14 @@ ${dailySheet}` : ''}
 - 口調: 標準的な敬語（です・ます調）。過剰なキャラ付け禁止。
 - あなたはユーザー自身の人生に寄り添うパートナー。プログラミング・翻訳・要約・宿題・一般的な調べ物の代行など、ユーザー本人と無関係な「汎用アシスタント」的な依頼には深入りしない。短く受け流し、「それより、あなた自身のことを聞かせて」と本来の役割（その人の心・運気・選択の相談）へ優しく引き戻す。`;
 
-        // 会話履歴を復元
+        // 会話履歴を復元（保存はフル・モデルへ渡すのは直近のみ）
         const chatLog = user.chatLogs[0];
-        let history: { role: 'user' | 'assistant', content: string }[] = [];
-
-        if (chatLog) {
-            const saved = JSON.parse(chatLog.messages) as { role: string, content: string }[];
-            // 直近12件に制限（コスト管理）
-            history = saved.slice(-12).map(m => ({
-                role: m.role === 'assistant' ? 'assistant' : 'user',
-                content: m.content
-            }));
-        }
+        const stored: { role: string, content: string }[] = chatLog ? JSON.parse(chatLog.messages) : [];
+        // モデルに渡す文脈は直近 CONTEXT_WINDOW 件だけ（それより前は memory が補う）
+        const history = stored.slice(-CONTEXT_WINDOW).map(m => ({
+            role: (m.role === 'assistant' ? 'assistant' : 'user') as 'user' | 'assistant',
+            content: m.content
+        }));
 
         // Claude Messages API で会話
         const messages: Anthropic.MessageParam[] = [
@@ -238,22 +257,35 @@ ${dailySheet}` : ''}
 
         const generatedText = response.content[0].type === 'text' ? response.content[0].text : '';
 
-        // 会話履歴をDBに保存
-        const newHistory = [
-            ...history,
+        // 会話履歴をDBに保存（フル履歴を維持。STORED_MAX で頭打ち＝古い分は memory が保持）
+        const fullHistory = [
+            ...stored,
             { role: 'user', content: message },
-            { role: 'assistant', content: generatedText }
-        ];
+            { role: 'assistant', content: generatedText },
+        ].slice(-STORED_MAX);
 
         if (chatLog) {
             await prisma.chatLog.update({
                 where: { id: chatLog.id },
-                data: { messages: JSON.stringify(newHistory) }
+                data: { messages: JSON.stringify(fullHistory) }
             });
         } else {
             await prisma.chatLog.create({
-                data: { userId, messages: JSON.stringify(newHistory) }
+                data: { userId, messages: JSON.stringify(fullHistory) }
             });
+        }
+
+        // 数ターンごとに「覚えておくこと」を蒸留して永続化（安価なHaiku・取りこぼし無し）
+        const turns = Math.floor(fullHistory.length / 2);
+        if (turns >= MEMORY_EVERY_TURNS && turns % MEMORY_EVERY_TURNS === 0) {
+            const mem = await distillMemory({
+                currentMemory: user.memory || '',
+                recent: fullHistory.slice(-16),
+                userName: user.name,
+            });
+            if (mem) {
+                await prisma.user.update({ where: { id: userId }, data: { memory: mem } });
+            }
         }
 
         return NextResponse.json({ response: generatedText });

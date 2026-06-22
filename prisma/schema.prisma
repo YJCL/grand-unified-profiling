@@ -32,6 +32,7 @@ model User {
   tickets       Int       @default(0) // 鑑定チケット（無料枠を超えて1回使える）
   lastShareTicketDate String? // シェア報酬を最後に付与した日 YYYY-MM-DD（1日1回）
   lastLoginBonusDate  String? // ログインボーナスを最後に付与した日 YYYY-MM-DD（1日1回）
+  memory        String?  // 「Orbaが覚えていること」。会話を安価LLMで蒸留した永続メモリ（毎回の文脈に注入）
   expiresAt     DateTime?
   chatLogs      ChatLog[]
   dailyLogs     DailyLog[]
