@@ -5,6 +5,7 @@ import { QUESTIONS } from '@/data/questions';
 import { buildGrandProfile } from '@/lib/engine/profile';
 import { summarizeProfile } from '@/lib/engine/summarize';
 import { characterToneBlock } from '@/lib/character';
+import { prisma } from '@/lib/prisma';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -15,9 +16,24 @@ export async function POST(request: Request) {
     try {
         const body = await request.json();
         const userProfile: UserProfile = body.userProfile;
+        // 既存ユーザーの再鑑定で signature/compass がブレないように、
+        // userIdが渡され、かつ frozen が既存ならそちらを優先する。
+        const userId: string | undefined = body.userId;
 
         if (!process.env.ANTHROPIC_API_KEY) {
             return NextResponse.json({ error: 'ANTHROPIC_API_KEY is not set' }, { status: 500 });
+        }
+
+        // フリーズ済みの象徴データを先読み（あれば後で上書きする）
+        let frozenSignature: unknown = null;
+        let frozenCompass: unknown = null;
+        if (userId) {
+            const u = await prisma.user.findUnique({
+                where: { id: userId },
+                select: { frozenSignature: true, frozenCompass: true },
+            });
+            if (u?.frozenSignature) { try { frozenSignature = JSON.parse(u.frozenSignature); } catch {} }
+            if (u?.frozenCompass)   { try { frozenCompass   = JSON.parse(u.frozenCompass);   } catch {} }
         }
 
         const language = userProfile.language || 'ja';
@@ -192,7 +208,12 @@ ${answersText ? '## 心理テスト傾向（補助）\n' + answersText : ''}
         }
 
         if (!toolUse) throw lastErr ?? new Error('No structured output');
-        return NextResponse.json(toolUse.input);
+
+        // signature/compass は「人生に1度きり」。既にあれば、毎回生成しても返す前にfrozenで上書き。
+        const out = toolUse.input as Record<string, unknown>;
+        if (frozenSignature) out.signature = frozenSignature;
+        if (frozenCompass)   out.compass   = frozenCompass;
+        return NextResponse.json(out);
 
     } catch (error) {
         console.error('Error generating fortune:', error);

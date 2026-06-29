@@ -255,7 +255,9 @@ function Conversation({ char, profileType, userId }: { char: CharacterType; prof
     try {
       const res = await fetch('/api/divine', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userProfile: { ...d, language: 'ja', characterType: char, mbti: '', enneagram: '', answers: [] } as UserProfile }),
+        // userId を渡すと、サーバー側でこのユーザーの frozenSignature/frozenCompass を
+        // 上書き優先で返す（再鑑定でも同じ色・同じ羅針盤になる）
+        body: JSON.stringify({ userId: userId ?? undefined, userProfile: { ...d, language: 'ja', characterType: char, mbti: '', enneagram: '', answers: [] } as UserProfile }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
