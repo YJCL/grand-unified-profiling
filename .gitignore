@@ -50,3 +50,6 @@ API.txt
 next-env.d.ts
 
 /lib/generated/prisma
+
+# 個人ファイル（オーブ画像・鑑定PDFなど・公開しない）
+assets-for-user/
