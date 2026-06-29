@@ -372,6 +372,61 @@ function ProfileWidget({ userData }: { userData: UserData }) {
                 </div>
             )}
 
+            {/* 直感パート：色と数字 */}
+            {result?.signature && (
+                <div className="p-3 bg-white/3 rounded-xl border border-white/5">
+                    <p className="text-[9px] text-white/25 uppercase tracking-widest mb-2">Your Colors & Numbers</p>
+                    <div className="flex items-stretch gap-2 mb-3">
+                        {result.signature.colors.map((c) => (
+                            <div key={c.role} className="flex-1 min-w-0">
+                                <div className="w-full h-10 rounded-md border border-white/15 shadow-inner mb-1" style={{ background: c.hex }} />
+                                <p className="text-[9px] text-white/35 uppercase tracking-widest">{c.role}</p>
+                                <p className="text-[10px] text-white/75 truncate" title={c.name}>{c.name}</p>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="flex items-baseline gap-2 mb-1">
+                        <span className="font-display text-2xl text-amber-300 leading-none">{result.signature.number.main}</span>
+                        <span className="font-display text-base text-amber-300/60 leading-none">/ {result.signature.number.sub}</span>
+                        <span className="text-[9px] text-white/30 uppercase tracking-widest ml-auto">Your Numbers</span>
+                    </div>
+                    <p className="text-[10px] text-white/45 leading-relaxed line-clamp-2">{result.signature.number.why}</p>
+                    {result.signature.items?.length > 0 && (
+                        <div className="mt-2 pt-2 border-t border-white/8 flex flex-wrap gap-1.5">
+                            {result.signature.items.map((it, i) => (
+                                <span key={i} className="text-[10px] text-white/55 bg-white/5 border border-white/8 rounded-full px-2 py-0.5">{it}</span>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* 羅針盤：3シーンの行動アドバイス */}
+            {result?.compass && (
+                <div className="p-3 bg-white/3 rounded-xl border border-white/5">
+                    <p className="text-[9px] text-white/25 uppercase tracking-widest mb-2">Your Compass</p>
+                    <div className="space-y-2">
+                        {[result.compass.lost, result.compass.anxious, result.compass.stepping].map((c, i) => (
+                            <details key={i} className="group">
+                                <summary className="flex items-center gap-2 cursor-pointer list-none">
+                                    <span className="text-amber-300/60 group-open:text-amber-300 text-[10px] font-display">▸</span>
+                                    <span className="text-xs text-white/75 font-serif-jp">{c.title}</span>
+                                    <span className="text-[10px] text-white/35 italic truncate flex-1">— {c.word}</span>
+                                </summary>
+                                <ul className="mt-1.5 ml-4 space-y-1">
+                                    {c.steps.map((s, j) => (
+                                        <li key={j} className="text-[11px] text-white/65 leading-relaxed flex gap-1.5">
+                                            <span className="text-amber-300/50">·</span><span>{s}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <p className="mt-1.5 ml-4 text-[10px] text-amber-200/50 leading-relaxed">{c.anchor}</p>
+                            </details>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {latestDiagnosis && <ShareRow diagnosisId={latestDiagnosis.id} characterType={userData.characterType} summary={result?.summary} userId={userData.id} isPremium={userData.isPremium} />}
 
             {isFriend && <TransferCodePanel userId={userData.id} />}

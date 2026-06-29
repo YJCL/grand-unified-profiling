@@ -181,11 +181,21 @@ ${charStyle ? `\n## キャラクター設定（厳守）\n${charStyle}\nどの�
 今日の日付: ${today}
 ${latestDiagnosis ? (() => {
     const r = JSON.parse(latestDiagnosis.data);
+    const sig = r.signature ? `
+## あなたの色と数（さりげなく会話に織り込めるもの）
+キーカラー: ${r.signature.colors?.find((c: { role: string }) => c.role === 'KEY')?.name}（${r.signature.colors?.find((c: { role: string }) => c.role === 'KEY')?.hex}）
+あなたを支える数: ${r.signature.number?.main} / ${r.signature.number?.sub}
+象徴アイテム: ${(r.signature.items || []).join('、')}` : '';
+    const cmp = r.compass ? `
+## 羅針盤（相談のシーン別の道しるべ。相手が「迷っている」「不安」「踏み出したい」と感じている時は、これを踏まえて応える）
+迷ったとき: ${r.compass.lost?.word} ／ ${(r.compass.lost?.steps || []).join(' / ')}
+不安なとき: ${r.compass.anxious?.word} ／ ${(r.compass.anxious?.steps || []).join(' / ')}
+踏み出したいとき: ${r.compass.stepping?.word} ／ ${(r.compass.stepping?.steps || []).join(' / ')}` : '';
     return `
 ## 魂のプロファイリング（深く理解した上で会話すること）
 本質: ${r.coreNature}
 行動戦略: ${r.strategy}
-現在の運気: ${r.timing}`;
+現在の運気: ${r.timing}${sig}${cmp}`;
 })() : ''}
 ${user.memory ? `
 ## ${user.name || 'この人'}について覚えていること（過去の会話の記憶。さりげなく踏まえて会話に織り込む。一字一句なぞらず、自然に。押し付けがましくしない）
