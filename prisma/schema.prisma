@@ -41,6 +41,29 @@ model User {
   dailyLogs     DailyLog[]
   diagnoses     Diagnosis[]
   pushSubs      PushSubscription[]
+  ichingReadings IchingReading[]
+}
+
+// 易占い結果。生成時点の6爻と解釈をスナップショット保存し、再表示時は再抽選しない。
+model IchingReading {
+  id                String   @id @default(uuid())
+  userId            String
+  question          String   // 質問原文
+  questionNormalized String  // 正規化済み（空白統一・NFKC）
+  questionHash      String   // 同一質問判定用（24h以内なら前回返す）
+  lineValues        String   // 6本の爻値 [6,7,8,9] のJSON配列文字列。下→上
+  primaryNum        Int      // 本卦番号
+  transformedNum    Int?     // 之卦番号（変爻ありの場合のみ）
+  changingLines     String   // 変爻の位置のJSON配列文字列（1〜6, 下から）
+  interpretation    String   // LLM解釈の構造化JSON文字列
+  dataVersion       String   // 卦データのバージョン
+  profileVersion    String?  // 解釈時に参照したプロフィールのバージョン/ID
+  seed              String?  // 乱数seed（指定時のみ）
+  createdAt         DateTime @default(now())
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, questionHash, createdAt])
 }
 
 // ファネル計測イベント（収益化ロードマップ P0）。

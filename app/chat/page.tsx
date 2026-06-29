@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, ChevronLeft, PenSquare } from 'lucide-react';
+import { Send, ChevronLeft, PenSquare, Sparkles } from 'lucide-react';
+import { IchingSheet } from '@/app/components/IchingSheet';
 import { cn } from '@/lib/utils';
 import { CharacterAvatar, CHARACTER_META, type CharacterType } from '@/app/components/CharacterAvatar';
 import { OrbField } from '@/app/components/OrbField';
@@ -22,6 +23,7 @@ function ChatPageInner() {
     const [char, setChar] = useState<CharacterType>('sage');
     const [userEmail, setUserEmail] = useState<string | null>(null);
     const [showFounding, setShowFounding] = useState(false);
+    const [showIching, setShowIching] = useState(false);
     const endRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, isLoading]);
@@ -133,20 +135,39 @@ function ChatPageInner() {
                 <div ref={endRef} />
             </div>
 
-            {/* Input */}
+            {/* Input + 易を立てる導線 */}
             <div className="flex-none p-4 relative z-10 bg-gradient-to-t from-[#0a0820] to-transparent">
-                <form onSubmit={handleSubmit} className="max-w-2xl mx-auto relative">
-                    <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder="メッセージを送る…" disabled={isLoading}
-                        className="w-full bg-white/6 border border-white/12 rounded-full py-3.5 pl-5 pr-14 text-white placeholder:text-white/25 focus:outline-none focus:border-amber-200/40 transition-colors" />
-                    <button type="submit" disabled={!input.trim() || isLoading}
-                        className="absolute right-2 top-1.5 w-9 h-9 btn-gold rounded-full flex items-center justify-center disabled:opacity-40">
-                        <Send className="w-4 h-4" />
-                    </button>
-                </form>
+                <div className="max-w-2xl mx-auto">
+                    <div className="mb-2 flex justify-end">
+                        <button
+                            type="button"
+                            onClick={() => setShowIching(true)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold text-amber-200/90 border border-amber-300/30 bg-amber-400/[0.08] hover:bg-amber-400/15 transition-all whitespace-nowrap"
+                            title="易を立てる（具体的な問いに対して卦を立てる）"
+                        >
+                            <Sparkles className="w-3 h-3" /> 易を立てる
+                        </button>
+                    </div>
+                    <form onSubmit={handleSubmit} className="relative">
+                        <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder="メッセージを送る…" disabled={isLoading}
+                            className="w-full bg-white/6 border border-white/12 rounded-full py-3.5 pl-5 pr-14 text-white placeholder:text-white/25 focus:outline-none focus:border-amber-200/40 transition-colors" />
+                        <button type="submit" disabled={!input.trim() || isLoading}
+                            className="absolute right-2 top-1.5 w-9 h-9 btn-gold rounded-full flex items-center justify-center disabled:opacity-40">
+                            <Send className="w-4 h-4" />
+                        </button>
+                    </form>
+                </div>
             </div>
 
             <AnimatePresence>
                 {showFounding && <FoundingMemberModal userEmail={userEmail} onClose={() => setShowFounding(false)} />}
+                {showIching && userId && (
+                    <IchingSheet
+                        userId={userId}
+                        initialQuestion={input.trim()}
+                        onClose={() => setShowIching(false)}
+                    />
+                )}
             </AnimatePresence>
         </main>
     );
