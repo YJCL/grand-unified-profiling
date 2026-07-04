@@ -53,3 +53,4 @@ next-env.d.ts
 
 # 個人ファイル（オーブ画像・鑑定PDFなど・公開しない）
 assets-for-user/
+scripts/tmp-rebuilt-memory.txt

@@ -9,10 +9,14 @@ import { isLaunchFreeActive } from '@/lib/launch';
 import { distillMemory } from '@/lib/memory';
 
 // 文脈としてモデルに渡す直近メッセージ数（コスト管理）。それより前は memory に蒸留済み。
-const CONTEXT_WINDOW = 12;
+// 旧12（=6往復）は「数分前の話を忘れる」体験を生んだため拡大。
+// システムプロンプトにprompt cachingを効かせるので、実コスト増は限定的。
+const CONTEXT_WINDOW_PAID = 40;  // Sonnet: 20往復
+const CONTEXT_WINDOW_FREE = 16;  // Haiku: 8往復
 // 保存する会話履歴の最大数（暴走防止。これを超える古い分は memory が保持）。
-const STORED_MAX = 100;
-// 何ターンごとに memory を更新するか（CONTEXT_WINDOWの半分=6ターン未満なので取りこぼし無し）。
+const STORED_MAX = 240;
+// 何メッセージごとに memory を更新するか（その日の利用回数ベース。
+// 旧実装の「保存件数÷2 % 3」はcap到達後に永久に蒸留が止まるバグがあった）。
 const MEMORY_EVERY_TURNS = 3;
 
 const FREE_DAILY_LIMIT = 3;
@@ -200,6 +204,9 @@ ${latestDiagnosis ? (() => {
 ${user.memory ? `
 ## ${user.name || 'この人'}について覚えていること（過去の会話の記憶。さりげなく踏まえて会話に織り込む。一字一句なぞらず、自然に。押し付けがましくしない）
 ${user.memory}` : ''}
+
+## 記憶の欠落への振る舞い（重要）
+相手が「前に話したこと」に触れたのに、上の記憶や直近の会話に見当たらない場合——「え？」「初めて聞きました」「そんな話ありましたっけ」という反応は絶対にしない（相手の記憶を否定することになり、信頼が壊れる）。代わりに、知っている前提の相槌で自然に受けて詳細を引き出す（例:「その後どうなった？」「あの件、いま改めて聞かせて」）。あなたは長い付き合いのパートナーであり、初対面のような反応をしない。
 ${factSheet ? `
 ## 占術データ（天体暦から読み解いた確かなもの。これらの数値・配置を根拠に語り、数値を自分で出し直さない。ユーザーには「計算」とは言わず「読み解く」と表現する）
 ${factSheet}
@@ -237,11 +244,19 @@ ${dailySheet}` : ''}
 - 口調: 標準的な敬語（です・ます調）。過剰なキャラ付け禁止。
 - あなたはユーザー自身の人生に寄り添うパートナー。プログラミング・翻訳・要約・宿題・一般的な調べ物の代行など、ユーザー本人と無関係な「汎用アシスタント」的な依頼には深入りしない。短く受け流し、「それより、あなた自身のことを聞かせて」と本来の役割（その人の心・運気・選択の相談）へ優しく引き戻す。`;
 
+        // モデルの質は「実際のプレミアム(isPremium)」だけで決める。
+        //  - isPremium=true（adminや将来の課金者）→ Sonnet（高品質・世界観への追従も良い）
+        //  - それ以外（ローンチ無料開放中の新規ユーザー含む）→ Haiku（安価）
+        // ※ 無料開放は「機能の解放」であって「Sonnetの提供」ではない。
+        //   有料開始後、課金で isPremium=true になれば自動的に admin と同じ Sonnet 扱いになる。
+        const isPaid = user.isPremium;
+
         // 会話履歴を復元（保存はフル・モデルへ渡すのは直近のみ）
         const chatLog = user.chatLogs[0];
         const stored: { role: string, content: string }[] = chatLog ? JSON.parse(chatLog.messages) : [];
-        // モデルに渡す文脈は直近 CONTEXT_WINDOW 件だけ（それより前は memory が補う）
-        const history = stored.slice(-CONTEXT_WINDOW).map(m => ({
+        // モデルに渡す文脈は直近ウィンドウ分だけ（それより前は memory が補う）
+        const contextWindow = isPaid ? CONTEXT_WINDOW_PAID : CONTEXT_WINDOW_FREE;
+        const history = stored.slice(-contextWindow).map(m => ({
             role: (m.role === 'assistant' ? 'assistant' : 'user') as 'user' | 'assistant',
             content: m.content
         }));
@@ -252,16 +267,13 @@ ${dailySheet}` : ''}
             { role: 'user', content: message }
         ];
 
-        // モデルの質は「実際のプレミアム(isPremium)」だけで決める。
-        //  - isPremium=true（adminや将来の課金者）→ Sonnet（高品質・世界観への追従も良い）
-        //  - それ以外（ローンチ無料開放中の新規ユーザー含む）→ Haiku（安価）
-        // ※ 無料開放は「機能の解放」であって「Sonnetの提供」ではない。
-        //   有料開始後、課金で isPremium=true になれば自動的に admin と同じ Sonnet 扱いになる。
-        const isPaid = user.isPremium;
         const response = await anthropic.messages.create({
             model: isPaid ? 'claude-sonnet-4-6' : 'claude-haiku-4-5-20251001',
             max_tokens: isPaid ? 2048 : 1600,
-            system: systemPrompt,
+            // システムプロンプトは大きい（プロフィール＋鑑定＋記憶＋占術データ）ので
+            // prompt caching を効かせる。連続した会話では入力コストが大幅に下がる。
+            // memory更新時（3メッセージごと）にキャッシュは無効化されるが、それで良い。
+            system: [{ type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } }],
             messages
         });
 
@@ -285,9 +297,15 @@ ${dailySheet}` : ''}
             });
         }
 
-        // 数ターンごとに「覚えておくこと」を蒸留して永続化（安価なHaiku・取りこぼし無し）
-        const turns = Math.floor(fullHistory.length / 2);
-        if (turns >= MEMORY_EVERY_TURNS && turns % MEMORY_EVERY_TURNS === 0) {
+        // 「覚えておくこと」を蒸留して永続化（安価なHaiku）
+        // トリガー条件（旧実装は保存件数ベースで、capに達すると永久に走らなくなるバグがあった）:
+        //  a) その日の3メッセージごと（usedTodayは今回分を加算済みの値ではないため+1）
+        //  b) 保存がcap間際＝古いメッセージがこれから毎回捨てられる状態（捨てる前に必ず蒸留）
+        //  c) まだ記憶が空で、会話が3往復以上ある（初回の取りこぼし防止）
+        const everyThird = ((usedToday + 1) % MEMORY_EVERY_TURNS) === 0;
+        const nearCap = fullHistory.length >= STORED_MAX - 4;
+        const memoryEmpty = !user.memory && fullHistory.length >= 6;
+        if (everyThird || nearCap || memoryEmpty) {
             const mem = await distillMemory({
                 currentMemory: user.memory || '',
                 recent: fullHistory.slice(-16),
