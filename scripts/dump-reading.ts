@@ -35,11 +35,12 @@ const birthDate = arg('birth');
 const birthTime = arg('time');
 const birthPlace = arg('place');
 const gender = arg('gender');
+const theme = arg('theme');
 const sample = flag('sample');
 
 if (!name || !birthDate) {
   console.error('必須: --name <表示名> --birth <YYYY-MM-DD>');
-  console.error('任意: --time HH:MM --place 出生地 --gender male|female|other --out 出力先.json --sample');
+  console.error('任意: --time HH:MM --place 出生地 --gender male|female|other --theme 知りたいテーマ --out 出力先.json --sample');
   process.exit(1);
 }
 if (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) {
@@ -67,7 +68,7 @@ const daily = computeDailyState(profile);
 
 const out = {
   generatedAt: new Date().toISOString(),
-  meta: { name, birthDate, birthTime: birthTime ?? null, birthPlace: birthPlace ?? null, gender: gender ?? null, sample },
+  meta: { name, birthDate, birthTime: birthTime ?? null, birthPlace: birthPlace ?? null, gender: gender ?? null, theme: theme ?? null, sample },
   profile,
   daily,
   factSheet: summarizeProfile(profile),
