@@ -7,6 +7,7 @@ import { summarizeProfile, summarizeDaily } from '@/lib/engine/summarize';
 import { checkUserAccess } from '@/lib/auth';
 import { isLaunchFreeActive } from '@/lib/launch';
 import { distillMemory } from '@/lib/memory';
+import { jstDateKey, jstStamp } from '@/lib/jst';
 
 // 文脈としてモデルに渡す直近メッセージ数（コスト管理）。それより前は memory に蒸留済み。
 // 旧12（=6往復）は「数分前の話を忘れる」体験を生んだため拡大。
@@ -63,7 +64,7 @@ export async function DELETE(request: Request) {
         const log = await prisma.chatLog.findFirst({ where: { userId: userId! }, orderBy: { createdAt: 'desc' } });
         if (log) {
             try {
-                const msgs = JSON.parse(log.messages) as { role: string; content: string }[];
+                const msgs = JSON.parse(log.messages) as { role: string; content: string; ts?: string }[];
                 if (msgs.length > 0) {
                     const mem = await distillMemory({ currentMemory: access.user.memory || '', recent: msgs.slice(-16), userName: access.user.name });
                     if (mem) await prisma.user.update({ where: { id: userId! }, data: { memory: mem } });
@@ -106,7 +107,8 @@ export async function POST(request: Request) {
 
         if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
-        const todayKey = new Date().toISOString().split('T')[0];
+        // 日次カウンタはJST基準（UTCだとJSTの朝9時にリセットされてしまう）
+        const todayKey = jstDateKey();
         const usedToday = user.chatDate === todayKey ? user.chatUsed : 0;
         // プレミアム or ローンチ無料開放中は「通常の無料上限(3回)」が無い
         const unlimited = user.isPremium || isLaunchFreeActive();
@@ -150,10 +152,6 @@ export async function POST(request: Request) {
         };
         const charStyle = user.characterType ? (characterGuide[user.characterType] || '') : '';
 
-        const today = new Date().toLocaleDateString('ja-JP', {
-            year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
-        });
-
         // ★ 出生図と今日の運気を実計算（LLMはこれを解釈するだけ）
         const grand = buildProfileFromUser(user);
         const factSheet = grand ? summarizeProfile(grand) : '';
@@ -182,7 +180,6 @@ ${charStyle ? `\n## キャラクター設定（厳守）\n${charStyle}\nどの�
 生年月日: ${user.birthDate || '未設定'}${user.birthTime ? ' ' + user.birthTime : ''}
 出生地: ${user.birthPlace || '未設定'}
 性別: ${user.gender || '未設定'}
-今日の日付: ${today}
 ${latestDiagnosis ? (() => {
     const r = JSON.parse(latestDiagnosis.data);
     const sig = r.signature ? `
@@ -202,11 +199,15 @@ ${latestDiagnosis ? (() => {
 現在の運気: ${r.timing}${sig}${cmp}`;
 })() : ''}
 ${user.memory ? `
-## ${user.name || 'この人'}について覚えていること（過去の会話の記憶。さりげなく踏まえて会話に織り込む。一字一句なぞらず、自然に。押し付けがましくしない）
+## ${user.name || 'この人'}について覚えていること（背景知識。使い方のルール厳守）
+これは過去の会話の記憶。「毎回使うべき情報」ではなく「知っている前提」として静かに持っておくもの。
+- 活かすのは、ユーザー自身がその話題に触れたとき、または今の相談内容に直接関係するときだけ。
+- ★ユーザーが触れていない過去の話題を、こちらから持ち出さない。「そういえば〇〇はどうなった？」「前に言っていた〜だね」のような自発的な蒸し返しは禁止。聞かれてもいない近況確認は、気遣いではなく監視に感じられる。
+- 記憶にある予定・宣言（「〜しに行く」「〜するつもり」）は発言された時点のもの。日付が過ぎていれば既に済んだ・状況が変わった可能性が高い。現在も予定が続いている前提で語らない。
 ${user.memory}` : ''}
 
 ## 記憶の欠落への振る舞い（重要）
-相手が「前に話したこと」に触れたのに、上の記憶や直近の会話に見当たらない場合——「え？」「初めて聞きました」「そんな話ありましたっけ」という反応は絶対にしない（相手の記憶を否定することになり、信頼が壊れる）。代わりに、知っている前提の相槌で自然に受けて詳細を引き出す（例:「その後どうなった？」「あの件、いま改めて聞かせて」）。あなたは長い付き合いのパートナーであり、初対面のような反応をしない。
+相手のほうから「前に話したこと」に触れたのに、上の記憶や直近の会話に見当たらない場合——「え？」「初めて聞きました」「そんな話ありましたっけ」という反応は絶対にしない（相手の記憶を否定することになり、信頼が壊れる）。知っている前提の自然な相槌で受けて、会話の流れの中で詳細を引き出す。あなたは長い付き合いのパートナーであり、初対面のような反応をしない。※これは相手が持ち出したときの受け方であり、こちらから過去の話題を確認しに行く理由にはしない。
 ${factSheet ? `
 ## 占術データ（天体暦から読み解いた確かなもの。これらの数値・配置を根拠に語り、数値を自分で出し直さない。ユーザーには「計算」とは言わず「読み解く」と表現する）
 ${factSheet}
@@ -236,6 +237,8 @@ ${dailySheet}` : ''}
 3. 【現在の運気とタイミング】攻め時か守り時かを明確に断言
 4. 【具体的ソリューション】実行可能なアドバイス
 
+鑑定の対象: ユーザーが対象を指定したらそれを視る。「鑑定して」とだけ言われたら、「今この時点」の運気とプロファイルを視る——過去の会話で出た話題（仕事の件・人間関係の件など）を勝手に鑑定の題材に選ばない。直近のやり取りで明らかに相談が続いているときだけ、その流れを汲む。
+
 ## 制約
 - 生年月日が既にわかっているので「生年月日を教えてください」は絶対に言わない
 - 出生時間が不明な場合: 正直に伝え、正午生まれと仮定して分析
@@ -253,18 +256,32 @@ ${dailySheet}` : ''}
 
         // 会話履歴を復元（保存はフル・モデルへ渡すのは直近のみ）
         const chatLog = user.chatLogs[0];
-        const stored: { role: string, content: string }[] = chatLog ? JSON.parse(chatLog.messages) : [];
+        const stored: { role: string, content: string, ts?: string }[] = chatLog ? JSON.parse(chatLog.messages) : [];
         // モデルに渡す文脈は直近ウィンドウ分だけ（それより前は memory が補う）
+        // ユーザー発言には発言時刻を前置し、モデルが「経過時間」を認識できるようにする。
+        // （履歴が数日にまたがっても連続した会話に見えてしまう＝日付を引きずる原因だった）
         const contextWindow = isPaid ? CONTEXT_WINDOW_PAID : CONTEXT_WINDOW_FREE;
         const history = stored.slice(-contextWindow).map(m => ({
             role: (m.role === 'assistant' ? 'assistant' : 'user') as 'user' | 'assistant',
-            content: m.content
+            content: m.role !== 'assistant' && m.ts
+                ? `[${jstStamp(new Date(m.ts))}] ${m.content}`
+                : m.content
         }));
+
+        const now = new Date();
+
+        // 現在日時はキャッシュ対象の外に置く（本体に混ぜると毎分キャッシュが無効化されるため、
+        // 大きな本体プロンプト＝キャッシュ済みブロック／現在日時＝小さな非キャッシュブロックに分離）
+        const nowBlock = `## 現在日時（最優先の基準・絶対厳守）
+現在の日時: ${jstStamp(now)}（日本時間）
+- これは会話開始時ではなく、このメッセージに応えている「今」の日時。「今日」「明日」「今週」の判断は必ずこれを基準にする。会話履歴や記憶の中に出てくる日付・時期の言及は、その発言がされた時点のものであり、現在日時の判断には使わない。
+- ユーザーの過去の発言の先頭に付いている [日付 時刻] は、その発言がされた時刻を示す自動付与のメタデータ。発言内容の一部として扱わず、自分の返答でこの形式を真似て書かない。
+- 前回のやり取りから日数が空いていたら、その間に相手の状況が動いている前提で受け止める。履歴や記憶にある「これからの予定」（例:「髪を切りに行く」）は、発言時点から日付が過ぎていれば既に済んだものとして扱い、これからの話のように言及しない。`;
 
         // Claude Messages API で会話
         const messages: Anthropic.MessageParam[] = [
             ...history,
-            { role: 'user', content: message }
+            { role: 'user', content: `[${jstStamp(now)}] ${message}` }
         ];
 
         const response = await anthropic.messages.create({
@@ -273,7 +290,11 @@ ${dailySheet}` : ''}
             // システムプロンプトは大きい（プロフィール＋鑑定＋記憶＋占術データ）ので
             // prompt caching を効かせる。連続した会話では入力コストが大幅に下がる。
             // memory更新時（3メッセージごと）にキャッシュは無効化されるが、それで良い。
-            system: [{ type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } }],
+            // ※現在日時ブロックはキャッシュ境界の後ろに置く（前に置くと毎分無効化される）。
+            system: [
+                { type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } },
+                { type: 'text', text: nowBlock },
+            ],
             messages
         });
 
@@ -282,8 +303,8 @@ ${dailySheet}` : ''}
         // 会話履歴をDBに保存（フル履歴を維持。STORED_MAX で頭打ち＝古い分は memory が保持）
         const fullHistory = [
             ...stored,
-            { role: 'user', content: message },
-            { role: 'assistant', content: generatedText },
+            { role: 'user', content: message, ts: now.toISOString() },
+            { role: 'assistant', content: generatedText, ts: now.toISOString() },
         ].slice(-STORED_MAX);
 
         if (chatLog) {
