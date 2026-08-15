@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-16T00:00:00+09:00",
+  "title": "Design System: Orba",
+  "extensions": {
+    "colorMeta": {
+      "luminous-gold": { "role": "primary", "displayName": "Luminous Gold", "canonical": "#F4C060", "tonalRamp": ["#2A1C08", "#51330C", "#775016", "#A77C24", "#D7A748", "#F4C060", "#F8D98F", "#FFF3D5"] },
+      "night-950": { "role": "neutral", "displayName": "Observation Night", "canonical": "#070713", "tonalRamp": ["#070713", "#090919", "#111126", "#19182D", "#343248", "#66637A", "#A3A0B1", "#F0EEFF"] },
+      "paper": { "role": "neutral", "displayName": "Warm Observation Paper", "canonical": "#FBF8F0", "tonalRamp": ["#27231B", "#514A3F", "#756D5F", "#9B9283", "#C2B8A8", "#E1D8C9", "#F2ECE2", "#FBF8F0"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Editorial Statement", "purpose": "One dominant Japanese Mincho statement per viewport." },
+      "body": { "displayName": "Reflective Reading", "purpose": "Calm explanatory copy and product guidance." },
+      "label": { "displayName": "Instrument Label", "purpose": "Short coordinates, states, and section identifiers only." }
+    },
+    "shadows": [
+      { "name": "paper-ambient", "value": "0 12px 30px rgba(31,23,45,0.10)", "purpose": "Diffuse lift for readable paper surfaces." },
+      { "name": "orb-depth", "value": "0 25px 48px rgba(0,0,0,0.72)", "purpose": "Depth reserved for the volumetric focal orb." }
+    ],
+    "motion": [
+      { "name": "orb-surface", "value": "continuous, time-scaled WebGL shader", "purpose": "Slow living surface detail; disabled for reduced motion." },
+      { "name": "control-standard", "value": "180ms cubic-bezier(0.23,1,0.32,1)", "purpose": "Short hover and press feedback." }
+    ],
+    "breakpoints": [
+      { "name": "stack", "value": "900px" },
+      { "name": "mobile", "value": "650px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single decisive action in a section.",
+      "html": "<button class=\"ds-btn-primary\">ORBAをはじめる →</button>",
+      "css": ".ds-btn-primary{padding:13px 18px;border:0;background:#F4C060;color:#262331;font:700 12px 'Noto Sans JP',sans-serif;cursor:pointer;transition:transform .18s cubic-bezier(.23,1,.32,1),background .18s}.ds-btn-primary:hover{transform:translateY(-2px);background:#F8D486}.ds-btn-primary:focus-visible{outline:2px solid #F4C060;outline-offset:4px}.ds-btn-primary:active{transform:translateY(0)}"
+    },
+    {
+      "name": "Paper Reading Card",
+      "kind": "card",
+      "refersTo": "surface-paper",
+      "description": "Warm, readable content inside the night shell.",
+      "html": "<article class=\"ds-paper-card\"><small>YOUR PROFILE</small><h3>静けさの中で、本音を見つける人。</h3><p>要約から受け取り、気になる場所だけを深く読めます。</p></article>",
+      "css": ".ds-paper-card{max-width:420px;padding:28px;background:#FFFDF8;color:#262331;border-radius:16px;box-shadow:0 12px 30px rgba(31,23,45,.10)}.ds-paper-card small{color:#A77C24;font:700 9px 'Noto Sans JP',sans-serif;letter-spacing:.12em}.ds-paper-card h3{margin:14px 0;font:500 30px/1.5 'Shippori Mincho',serif}.ds-paper-card p{margin:0;color:#736E7A;font:400 13px/1.9 'Noto Sans JP',sans-serif}"
+    },
+    {
+      "name": "Orba Wordmark",
+      "kind": "custom",
+      "description": "Primary identity lockup; the orb symbol remains provisional.",
+      "html": "<span class=\"ds-wordmark\"><i></i><span>Orba</span></span>",
+      "css": ".ds-wordmark{display:inline-flex;align-items:center;gap:9px;color:#FFF0BD}.ds-wordmark i{width:30px;height:30px;border-radius:9px;background:radial-gradient(circle,#FFF 0 5%,#F4C060 16%,#44304D 38%,#090919 70%);box-shadow:0 0 14px rgba(244,192,96,.35)}.ds-wordmark span{font:italic 500 31px/1 'Cormorant Garamond',Georgia,serif}"
+    },
+    {
+      "name": "Application Navigation",
+      "kind": "nav",
+      "description": "Night shell navigation with visible text labels.",
+      "html": "<nav class=\"ds-nav\"><b>Orba</b><a class=\"active\">今日</a><a>対話</a><a>暦</a><a>プロファイル</a></nav>",
+      "css": ".ds-nav{height:68px;padding:0 24px;display:flex;align-items:center;gap:22px;color:#FBF8F0;background:#070713;border-bottom:1px solid rgba(255,255,255,.1)}.ds-nav b{margin-right:auto;color:#FFF0BD;font:italic 500 29px 'Cormorant Garamond',serif}.ds-nav a{height:100%;padding:0 10px;display:grid;place-items:center;position:relative;color:rgba(251,248,240,.55);font:500 11px 'Noto Sans JP',sans-serif}.ds-nav a.active{color:#FBF8F0}.ds-nav a.active:after{content:'';position:absolute;left:8px;right:8px;bottom:0;height:1px;background:#F4C060}"
+    },
+    {
+      "name": "Volumetric Orb Fallback",
+      "kind": "custom",
+      "description": "Static fallback for the WebGL signature object.",
+      "html": "<div class=\"ds-orb\"><i></i><b></b></div>",
+      "css": ".ds-orb{width:210px;height:210px;position:relative;border-radius:50%;background:radial-gradient(circle at 37% 31%,#FFF 0 3%,#F0B766 14%,#685080 38%,#171329 64%);box-shadow:0 25px 48px rgba(0,0,0,.72)}.ds-orb i,.ds-orb b{position:absolute;left:-24%;right:-24%;top:35%;height:30%;border:1px solid rgba(244,192,96,.5);border-radius:50%;transform:rotate(-18deg)}.ds-orb b{left:-8%;right:-8%;top:9%;height:82%;border-color:rgba(255,255,255,.18);transform:rotate(58deg)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Celestial Instrument",
+    "overview": "Orba feels like a precise observation instrument housed in a quiet night room. The primary contrast is night versus paper: computation and mystery in the shell, human-readable reflection on warm paper. The personality is precise, warm, and still.",
+    "keyCharacteristics": ["Deep near-black violet night paired with warm ivory paper.", "Large Japanese Mincho statements with restrained sans-serif support text.", "Luminous gold used as a signal, not as decoration everywhere.", "Real WebGL surface light and orbit geometry for signature moments."],
+    "rules": [
+      { "name": "The Rare Light Rule", "body": "Gold should remain under roughly ten percent of a screen. Its rarity is what makes it feel luminous.", "section": "colors" },
+      { "name": "The One Editorial Voice Rule", "body": "A viewport gets one dominant Mincho statement.", "section": "typography" },
+      { "name": "The One Deep Object Rule", "body": "Only the signature orb or one focus card should feel substantially lifted in a viewport.", "section": "elevation" }
+    ],
+    "dos": ["Do distinguish confirmed identity assets from provisional symbols and expressive CG.", "Do use warm paper when the user needs to read, compare, or write.", "Do retain explicit text labels in core navigation."],
+    "donts": ["Don't use the old incomplete ring mark as Orba's logo.", "Don't rotate a flat star, badge, or PNG and call it the hero expression.", "Don't scatter generic glass cards, rainbow gradients, or equal-weight feature tiles across the page."]
+  }
+}

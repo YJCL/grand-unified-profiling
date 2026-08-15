@@ -1,0 +1,846 @@
+:root {
+  --orba-night-950: #070713;
+  --orba-night-900: #090919;
+  --orba-night-800: #111126;
+  --orba-paper: #fbf8f0;
+  --orba-paper-raised: #fffdf8;
+  --orba-ink: #262331;
+  --orba-quiet: #736e7a;
+  --orba-gold: #f4c060;
+  --orba-paper-gold: #a77c24;
+}
+.orba-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+.orba-lockup img {
+  border-radius: 9px;
+}
+.orba-lockup > span {
+  color: #fff0bd;
+  font-family: var(--font-display), "Cormorant Garamond", serif;
+  font-size: 31px;
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1;
+}
+.brand-orb {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  opacity: 0.92;
+  transition: opacity 0.8s ease;
+}
+.brand-orb.is-ready {
+  opacity: 1;
+}
+.brand-orb canvas,
+.brand-orb__fallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.brand-orb canvas {
+  z-index: 2;
+}
+.brand-orb__fallback {
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 37% 31%,
+    #fff 0 3%,
+    #f0b766 14%,
+    #685080 38%,
+    #171329 64%,
+    transparent 66%
+  );
+  filter: blur(0.2px);
+}
+.orba-lp {
+  min-height: 100vh;
+  color: var(--orba-paper);
+  background: var(--orba-night-950);
+}
+.orba-lp * {
+  box-sizing: border-box;
+}
+.orba-lp a:focus-visible,
+.orba-app-nav a:focus-visible,
+.orba-brand-page a:focus-visible {
+  outline: 2px solid var(--orba-gold);
+  outline-offset: 4px;
+}
+.orba-lp__header {
+  position: fixed;
+  z-index: 50;
+  inset: 0 0 auto;
+  height: 72px;
+  padding: 0 clamp(20px, 5vw, 72px);
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  background: rgba(7, 7, 19, 0.78);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(18px);
+}
+.orba-lp__header > a:first-child {
+  display: flex;
+}
+.orba-lp__header nav {
+  display: flex;
+  gap: 27px;
+  margin-left: auto;
+}
+.orba-lp__header nav a {
+  color: rgba(251, 248, 240, 0.58);
+  font-size: 11px;
+}
+.orba-lp__header nav a:hover {
+  color: var(--orba-paper);
+}
+.orba-lp__header-cta {
+  min-height: 38px;
+  padding: 0 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #211708;
+  background: var(--orba-gold);
+  font-size: 11px;
+  font-weight: 700;
+}
+.orba-lp__hero {
+  min-height: 100svh;
+  padding: clamp(118px, 12vw, 164px) clamp(22px, 8vw, 124px)
+    clamp(72px, 9vw, 130px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.02fr) minmax(420px, 0.98fr);
+  align-items: center;
+  gap: clamp(40px, 6vw, 92px);
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at 75% 38%,
+      rgba(99, 71, 171, 0.15),
+      transparent 29rem
+    ),
+    var(--orba-night-950);
+}
+.orba-lp__hero:after {
+  content: "";
+  position: absolute;
+  left: clamp(22px, 8vw, 124px);
+  right: clamp(22px, 8vw, 124px);
+  bottom: 29px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(244, 192, 96, 0.62),
+    rgba(255, 255, 255, 0.07) 42%,
+    transparent
+  );
+}
+.orba-lp__hero h1 {
+  margin: 24px 0 0;
+  color: var(--orba-paper);
+  font-family: var(--font-serif), serif;
+  font-size: clamp(48px, 5.35vw, 78px);
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  line-height: 1.42;
+  white-space: nowrap;
+}
+.orba-lp__hero-copy > p {
+  max-width: 49ch;
+  margin: 29px 0 0;
+  color: rgba(251, 248, 240, 0.63);
+  font-size: 14px;
+  line-height: 2;
+}
+.orba-lp__actions {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin-top: 36px;
+}
+.orba-lp__actions a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 0;
+  color: var(--orba-paper);
+  border-bottom: 1px solid var(--orba-gold);
+  font-size: 12px;
+  font-weight: 600;
+}
+.orba-lp__actions a:first-child {
+  padding: 13px 17px;
+  color: #211708;
+  background: var(--orba-gold);
+  border: 0;
+}
+.orba-lp__instrument {
+  position: relative;
+  aspect-ratio: 1;
+}
+.orba-lp__instrument .brand-orb {
+  position: absolute;
+  inset: 24%;
+  width: auto;
+  height: auto;
+  z-index: 3;
+  filter: drop-shadow(0 25px 48px rgba(0, 0, 0, 0.72));
+}
+.orba-lp__instrument .orbit {
+  position: absolute;
+  z-index: 4;
+  left: 7%;
+  right: 7%;
+  top: 34%;
+  height: 32%;
+  border: 1px solid rgba(244, 192, 96, 0.45);
+  border-radius: 50%;
+  transform: rotate(-17deg);
+}
+.orba-lp__instrument .orbit-b {
+  left: 18%;
+  right: 18%;
+  top: 17%;
+  height: 66%;
+  border-color: rgba(240, 238, 255, 0.19);
+  transform: rotate(63deg);
+}
+.orba-lp__instrument .orbit-c {
+  left: 13%;
+  right: 13%;
+  top: 23%;
+  height: 54%;
+  border-color: rgba(119, 104, 175, 0.22);
+  transform: rotate(11deg);
+}
+.orba-lp__instrument > span {
+  position: absolute;
+  right: 4%;
+  bottom: 11%;
+  color: rgba(251, 248, 240, 0.4);
+  font-size: 7px;
+  letter-spacing: 0.18em;
+  line-height: 1.7;
+  text-align: right;
+}
+.orba-lp__statement {
+  padding: clamp(110px, 14vw, 205px) clamp(22px, 13vw, 205px);
+  color: var(--orba-ink);
+  background: var(--orba-paper);
+}
+.orba-lp__statement h2,
+.orba-lp__method h2,
+.orba-lp__final h2,
+.orba-brand-page h1,
+.orba-brand-page h2 {
+  margin: 24px 0 0;
+  font-family: var(--font-serif), serif;
+  font-size: clamp(40px, 5vw, 68px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.48;
+}
+.orba-lp__statement > p:last-child {
+  max-width: 58ch;
+  margin: 34px 0 0;
+  color: var(--orba-quiet);
+  font-size: 14px;
+  line-height: 2.1;
+}
+.orba-lp__experiences {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: var(--orba-night-800);
+}
+.orba-lp__experiences article {
+  min-height: 440px;
+  padding: clamp(38px, 5vw, 72px);
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255, 255, 255, 0.09);
+}
+.orba-lp__experiences article:last-child {
+  border: 0;
+}
+.orba-lp__experiences svg {
+  color: var(--orba-gold);
+}
+.orba-lp__experiences small {
+  margin-top: auto;
+  color: var(--orba-gold);
+  font-size: 8px;
+  letter-spacing: 0.14em;
+}
+.orba-lp__experiences h3 {
+  margin: 17px 0 13px;
+  color: var(--orba-paper);
+  font-family: var(--font-serif), serif;
+  font-size: clamp(25px, 2.7vw, 38px);
+  font-weight: 500;
+  line-height: 1.55;
+}
+.orba-lp__experiences p {
+  max-width: 36ch;
+  margin: 0;
+  color: rgba(251, 248, 240, 0.5);
+  font-size: 12px;
+  line-height: 1.9;
+}
+.orba-lp__method {
+  padding: clamp(100px, 13vw, 190px) clamp(22px, 9vw, 142px);
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: clamp(60px, 10vw, 150px);
+  color: var(--orba-ink);
+  background: var(--orba-paper-raised);
+}
+.orba-lp__method > div > p:last-child {
+  max-width: 49ch;
+  margin: 29px 0 0;
+  color: var(--orba-quiet);
+  font-size: 13px;
+  line-height: 2;
+}
+.orba-lp__method ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid #d8d0c2;
+}
+.orba-lp__method li {
+  min-height: 70px;
+  display: grid;
+  grid-template-columns: 42px 1fr 20px;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid #d8d0c2;
+}
+.orba-lp__method li span {
+  color: var(--orba-paper-gold);
+  font-size: 9px;
+}
+.orba-lp__method li strong {
+  font-family: var(--font-serif), serif;
+  font-size: 19px;
+  font-weight: 500;
+}
+.orba-lp__method li svg {
+  color: #a99e8d;
+}
+.orba-lp__final {
+  min-height: 720px;
+  padding: 110px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  background:
+    radial-gradient(
+      circle at 50% 45%,
+      rgba(85, 62, 143, 0.17),
+      transparent 27rem
+    ),
+    var(--orba-night-950);
+}
+.orba-lp__final .brand-orb {
+  width: 210px;
+  height: 210px;
+  margin-bottom: 35px;
+  filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.7));
+}
+.orba-lp__final h2 {
+  font-size: clamp(34px, 4.4vw, 60px);
+}
+.orba-lp__final > a {
+  margin-top: 32px;
+  padding: 13px 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #211708;
+  background: var(--orba-gold);
+  font-size: 12px;
+  font-weight: 700;
+}
+.orba-lp__footer {
+  min-height: 120px;
+  padding: 25px clamp(22px, 5vw, 72px);
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  background: #05050d;
+}
+.orba-lp__footer > p {
+  margin: auto;
+  color: rgba(251, 248, 240, 0.36);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+.orba-lp__footer > div {
+  display: flex;
+  gap: 20px;
+}
+.orba-lp__footer > div a {
+  color: rgba(251, 248, 240, 0.44);
+  font-size: 9px;
+}
+.orba-app-nav {
+  position: sticky;
+  top: 0;
+  z-index: 45;
+  height: 68px;
+  padding: 0 clamp(16px, 4vw, 52px);
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  color: var(--orba-paper);
+  background: rgba(7, 7, 19, 0.91);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(18px);
+}
+.orba-app-nav__brand {
+  display: flex;
+}
+.orba-app-nav__links {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  margin-left: auto;
+  height: 100%;
+}
+.orba-app-nav__links a {
+  min-width: 88px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  position: relative;
+  color: rgba(251, 248, 240, 0.52);
+  font-size: 11px;
+}
+.orba-app-nav__links a:hover,
+.orba-app-nav__links a.is-active {
+  color: var(--orba-paper);
+}
+.orba-app-nav__links a.is-active:after {
+  content: "";
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 0;
+  height: 1px;
+  background: var(--orba-gold);
+}
+.orba-app-nav__links a.is-active svg {
+  color: var(--orba-gold);
+}
+.orba-service-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      circle at 84% 3%,
+      rgba(244, 192, 96, 0.07),
+      transparent 24rem
+    ),
+    var(--orba-night-900);
+}
+.orba-chat-main {
+  height: calc(100dvh - 68px);
+  min-height: calc(100dvh - 68px);
+}
+.orba-brand-page {
+  min-height: 100vh;
+  color: var(--orba-paper);
+  background: var(--orba-night-950);
+}
+.orba-brand-page > header {
+  height: 72px;
+  padding: 0 clamp(20px, 5vw, 72px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+}
+.orba-brand-page > header > a {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(251, 248, 240, 0.58);
+  font-size: 10px;
+}
+.orba-brand-page__hero {
+  min-height: calc(100svh - 72px);
+  padding: clamp(82px, 10vw, 140px) clamp(22px, 8vw, 124px);
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  align-items: center;
+  gap: 70px;
+  background: radial-gradient(
+    circle at 76% 38%,
+    rgba(99, 71, 171, 0.15),
+    transparent 29rem
+  );
+}
+.orba-brand-page__hero > div:first-child > p,
+.orba-brand-page__identity > p:first-child,
+.orba-brand-page__colors > div:first-child > p,
+.orba-brand-page__foundation > div > p {
+  color: var(--orba-gold);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+}
+.orba-brand-page__hero h1 {
+  white-space: nowrap;
+}
+.orba-brand-page__hero > div:first-child > span {
+  display: block;
+  max-width: 52ch;
+  margin-top: 28px;
+  color: rgba(251, 248, 240, 0.58);
+  font-size: 13px;
+  line-height: 2;
+}
+.orba-brand-page__orb {
+  position: relative;
+  aspect-ratio: 1;
+}
+.orba-brand-page__orb .brand-orb {
+  position: absolute;
+  inset: 24%;
+  width: auto;
+  height: auto;
+  z-index: 2;
+}
+.orba-brand-page__orb i,
+.orba-brand-page__orb b {
+  position: absolute;
+  inset: 22% 7%;
+  border: 1px solid rgba(244, 192, 96, 0.42);
+  border-radius: 50%;
+  transform: rotate(-18deg);
+}
+.orba-brand-page__orb b {
+  inset: 8% 22%;
+  border-color: rgba(255, 255, 255, 0.16);
+  transform: rotate(58deg);
+}
+.orba-brand-page__status {
+  padding: 0 clamp(22px, 8vw, 124px);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: var(--orba-night-800);
+  border-block: 1px solid rgba(255, 255, 255, 0.08);
+}
+.orba-brand-page__status > div {
+  min-height: 88px;
+  padding: 18px 24px;
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  align-content: center;
+  gap: 3px 8px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+.orba-brand-page__status > div:last-child {
+  border: 0;
+}
+.orba-brand-page__status svg {
+  grid-row: 1/3;
+  color: var(--orba-gold);
+}
+.orba-brand-page__status strong {
+  font-size: 11px;
+}
+.orba-brand-page__status span {
+  color: rgba(251, 248, 240, 0.48);
+  font-size: 9px;
+}
+.orba-brand-page__foundation {
+  padding: clamp(100px, 13vw, 190px) clamp(22px, 9vw, 142px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(55px, 10vw, 160px);
+  color: var(--orba-ink);
+  background: var(--orba-paper);
+}
+.orba-brand-page__foundation dl {
+  margin: 0;
+}
+.orba-brand-page__foundation dl > div {
+  padding: 22px 0;
+  display: grid;
+  grid-template-columns: 105px 1fr;
+  gap: 20px;
+  border-top: 1px solid #d9d1c3;
+}
+.orba-brand-page__foundation dt {
+  color: var(--orba-paper-gold);
+  font-family: var(--font-serif), serif;
+  font-size: 19px;
+}
+.orba-brand-page__foundation dd {
+  margin: 0;
+  color: var(--orba-quiet);
+  font-size: 12px;
+}
+.orba-brand-page__identity {
+  padding: clamp(100px, 12vw, 176px) clamp(22px, 8vw, 124px);
+  background: var(--orba-night-900);
+}
+.orba-brand-page__lockups {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  min-height: 320px;
+  margin-top: 58px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.orba-brand-page__lockups > div {
+  display: grid;
+  place-items: center;
+  background: var(--orba-night-800);
+}
+.orba-brand-page__lockups .paper {
+  background: var(--orba-paper);
+}
+.orba-brand-page__lockups .paper .orba-lockup > span {
+  color: var(--orba-ink);
+}
+.orba-brand-page__identity > p:last-child {
+  max-width: 70ch;
+  margin: 34px 0 0;
+  color: rgba(251, 248, 240, 0.5);
+  font-size: 12px;
+  line-height: 2;
+}
+.orba-brand-page__colors {
+  padding: clamp(100px, 12vw, 176px) clamp(22px, 8vw, 124px);
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 80px;
+  background: #0e0e22;
+}
+.orba-brand-page__colors > div:last-child {
+  display: grid;
+  gap: 7px;
+}
+.orba-brand-page__colors > div:last-child > div {
+  min-height: 61px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+}
+.orba-brand-page__colors span {
+  opacity: 0.6;
+}
+.orba-brand-page > footer {
+  min-height: 110px;
+  padding: 20px clamp(22px, 5vw, 72px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+}
+.orba-brand-page > footer > span {
+  color: rgba(251, 248, 240, 0.38);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+}
+@media (max-width: 900px) {
+  .orba-lp__header nav {
+    display: none;
+  }
+  .orba-lp__hero,
+  .orba-brand-page__hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+  .orba-lp__instrument,
+  .orba-brand-page__orb {
+    width: min(620px, 100%);
+    margin: -25px auto 0;
+  }
+  .orba-lp__experiences {
+    grid-template-columns: 1fr;
+  }
+  .orba-lp__experiences article {
+    min-height: 330px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  }
+  .orba-lp__method,
+  .orba-brand-page__foundation,
+  .orba-brand-page__colors {
+    grid-template-columns: 1fr;
+  }
+  .orba-lp__method {
+    gap: 60px;
+  }
+  .orba-brand-page__lockups {
+    grid-template-columns: 1fr;
+  }
+  .orba-brand-page__lockups > div {
+    min-height: 250px;
+  }
+}
+@media (max-width: 650px) {
+  .orba-lp__header {
+    height: 62px;
+    padding: 0 15px;
+  }
+  .orba-lp__header .orba-lockup > span {
+    font-size: 27px;
+  }
+  .orba-lp__header-cta {
+    padding: 0 11px;
+    font-size: 10px;
+  }
+  .orba-lp__hero {
+    padding: 104px 20px 69px;
+  }
+  .orba-lp__hero h1 {
+    font-size: 42px;
+    white-space: normal;
+  }
+  .orba-lp__hero-copy > p {
+    font-size: 13px;
+  }
+  .orba-lp__actions {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 9px;
+  }
+  .orba-lp__instrument {
+    margin-top: 0;
+  }
+  .orba-lp__statement,
+  .orba-lp__method {
+    padding: 90px 20px;
+  }
+  .orba-lp__statement h2,
+  .orba-lp__method h2,
+  .orba-lp__final h2,
+  .orba-brand-page h2 {
+    font-size: 35px;
+  }
+  .orba-lp__experiences article {
+    padding: 48px 24px;
+  }
+  .orba-lp__method li {
+    grid-template-columns: 35px 1fr 16px;
+  }
+  .orba-lp__final {
+    min-height: 620px;
+    padding: 90px 20px;
+  }
+  .orba-lp__final .brand-orb {
+    width: 170px;
+    height: 170px;
+  }
+  .orba-lp__footer {
+    padding: 30px 20px;
+    display: grid;
+  }
+  .orba-lp__footer > p {
+    margin: 0;
+  }
+  .orba-lp__footer > div {
+    flex-wrap: wrap;
+  }
+  .orba-app-nav {
+    height: 60px;
+    padding: 0 14px;
+  }
+  .orba-app-nav .orba-lockup img {
+    width: 30px;
+    height: 30px;
+  }
+  .orba-app-nav .orba-lockup > span {
+    font-size: 27px;
+  }
+  .orba-app-nav__links {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 60;
+    height: 66px;
+    padding: 5px 6px max(5px, env(safe-area-inset-bottom));
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: rgba(7, 7, 19, 0.95);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(18px);
+  }
+  .orba-app-nav__links a {
+    min-width: 0;
+    padding: 0;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 9px;
+  }
+  .orba-app-nav__links a.is-active:after {
+    left: 30%;
+    right: 30%;
+  }
+  .orba-service-page {
+    padding-bottom: 66px;
+  }
+  .orba-chat-main {
+    height: calc(100dvh - 126px);
+    min-height: calc(100dvh - 126px);
+  }
+  .orba-brand-page > header {
+    height: 62px;
+    padding: 0 16px;
+  }
+  .orba-brand-page__hero {
+    padding: 85px 20px 70px;
+    gap: 30px;
+  }
+  .orba-brand-page__hero h1 {
+    font-size: 42px;
+    white-space: normal;
+  }
+  .orba-brand-page__status {
+    padding: 0;
+    grid-template-columns: 1fr;
+  }
+  .orba-brand-page__status > div {
+    min-height: 66px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .orba-brand-page__foundation,
+  .orba-brand-page__identity,
+  .orba-brand-page__colors {
+    padding: 88px 20px;
+  }
+  .orba-brand-page__lockups {
+    margin-top: 40px;
+  }
+  .orba-brand-page__colors {
+    gap: 45px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .orba-lp *,
+  .orba-brand-page * {
+    scroll-behavior: auto !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

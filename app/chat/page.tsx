@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { CharacterAvatar, CHARACTER_META, type CharacterType } from '@/app/components/CharacterAvatar';
 import { OrbField } from '@/app/components/OrbField';
 import { FoundingMemberModal } from '@/app/components/FoundingMemberModal';
+import { OrbaAppNav } from '@/app/components/OrbaAppNav';
 import { track } from '@/lib/analytics';
 
 type Message = { id: string; role: 'user' | 'assistant'; content: string };
@@ -31,7 +32,7 @@ function ChatPageInner() {
     useEffect(() => {
         const init = async () => {
             const id = localStorage.getItem('guf_user_id');
-            if (!id) { router.push('/'); return; }
+            if (!id) { router.push('/start'); return; }
             setUserId(id);
             try {
                 const res = await fetch(`/api/user?id=${id}`);
@@ -85,7 +86,9 @@ function ChatPageInner() {
     if (!userId) return null;
 
     return (
-        <main className="flex flex-col h-dvh w-full bg-mesh text-white relative" style={{ minHeight: '100dvh' }}>
+        <div className="orba-service-page">
+        <OrbaAppNav />
+        <main className="orba-chat-main flex flex-col w-full bg-mesh text-white relative">
             <OrbField count={16} />
 
             {/* Header */}
@@ -170,6 +173,7 @@ function ChatPageInner() {
                 )}
             </AnimatePresence>
         </main>
+        </div>
     );
 }
 

@@ -17,6 +17,7 @@ import { AuthModal } from '@/app/components/AuthModal';
 import { NotificationToggle } from '@/app/components/NotificationToggle';
 import { track } from '@/lib/analytics';
 import { FoundingMemberModal } from '@/app/components/FoundingMemberModal';
+import { OrbaAppNav } from '@/app/components/OrbaAppNav';
 import { isLaunchFreeActive, launchFreeUntilLabel, PREMIUM_PRICE_LABEL } from '@/lib/launch';
 
 function copyToClipboard(text: string): Promise<void> {
@@ -572,10 +573,10 @@ export default function MyPage() {
     useEffect(() => {
         const init = async () => {
             const id = localStorage.getItem('guf_user_id');
-            if (!id) { router.push('/'); return; }
+            if (!id) { router.push('/start'); return; }
 
             const data = await loadProfile(id);
-            if (!data) { router.push('/'); return; }
+            if (!data) { router.push('/start'); return; }
 
             // Check/enforce friend expiry
             if (data.profileType === 'friend' && data.expiresAt && new Date(data.expiresAt) < new Date()) {
@@ -589,7 +590,7 @@ export default function MyPage() {
                     window.location.reload();
                 } else {
                     localStorage.removeItem('guf_user_id');
-                    router.push('/');
+                    router.push('/start');
                 }
                 return;
             }
@@ -667,7 +668,7 @@ export default function MyPage() {
                 window.location.reload();
             } else {
                 localStorage.removeItem('guf_user_id');
-                router.push('/');
+                router.push('/start');
             }
         } else {
             setProfiles(updated);
@@ -714,16 +715,17 @@ export default function MyPage() {
             case 'chat':
                 return <ChatWidget />;
             case 'profile':
-                return <ProfileWidget userData={userData} />;
+                return <div id="profile"><ProfileWidget userData={userData} /></div>;
         }
     };
 
     return (
-        <div className="min-h-screen bg-mesh text-white flex flex-col relative">
+        <div className="orba-service-page text-white flex flex-col relative">
+            <OrbaAppNav />
             <OrbField count={14} />
 
             {/* ── 上部タブバー ───────────────────────────── */}
-            <header className="flex-none border-b border-white/5 bg-black/20 backdrop-blur-xl sticky top-0 z-30">
+            <header className="flex-none border-b border-white/5 bg-black/20 backdrop-blur-xl sticky top-[60px] md:top-[68px] z-30">
               <div className="px-3 pt-4 pb-3 flex items-center justify-between max-w-2xl mx-auto w-full">
                 <button onClick={() => setShowAccount(true)} title="アカウント・設定"
                     className="flex-none mr-2 rounded-full transition-transform hover:scale-105 active:scale-95">
@@ -756,7 +758,7 @@ export default function MyPage() {
                         ))}
                         {/* + 新規プロファイル */}
                         <button
-                            onClick={() => router.push('/?newProfile=1')}
+                            onClick={() => router.push('/start?newProfile=1')}
                             className="flex items-center gap-0.5 px-2 py-1 rounded-full text-white/25 hover:text-white/60 transition-colors"
                         >
                             <Plus className="w-3.5 h-3.5" />

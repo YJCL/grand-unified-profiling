@@ -1,13 +1,13 @@
 {
-  "name": "Orba — あなただけのパートナーオーブ",
+  "name": "Orba — 8つの知恵から、あなたを読み解く",
   "short_name": "Orba",
-  "description": "あなただけのパートナーオーブ。Orbaはあなたを深く知り、迷ったとき道を照らすパーソナルパートナーです。",
-  "start_url": "/",
+  "description": "複数の知恵と、あなた自身の言葉をひとつに。Orbaは、迷いの中に静かな輪郭をつくるパーソナルパートナーです。",
+  "start_url": "/mypage",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#080818",
-  "theme_color": "#0a0820",
+  "background_color": "#070713",
+  "theme_color": "#070713",
   "lang": "ja",
   "icons": [
     { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },

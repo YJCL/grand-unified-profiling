@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Zap, Shield, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { type DayScore } from '@/app/api/fortune-score/route';
+import { OrbaAppNav } from '@/app/components/OrbaAppNav';
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
 
@@ -36,9 +37,9 @@ export default function CalendarPage() {
     useEffect(() => {
         const init = async () => {
             const id = localStorage.getItem('guf_user_id');
-            if (!id) { router.push('/'); return; }
+            if (!id) { router.push('/start'); return; }
             const res = await fetch(`/api/user?id=${id}`);
-            if (!res.ok) { router.push('/'); return; }
+            if (!res.ok) { router.push('/start'); return; }
             const user = await res.json();
             if (!user.birthDate) { router.push('/mypage'); return; }
             setUserId(id);
@@ -92,6 +93,8 @@ export default function CalendarPage() {
     );
 
     return (
+        <div className="orba-service-page">
+        <OrbaAppNav />
         <main className="min-h-screen w-full bg-mesh text-white">
             <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
 
@@ -287,5 +290,6 @@ export default function CalendarPage() {
                 </AnimatePresence>
             </div>
         </main>
+        </div>
     );
 }
