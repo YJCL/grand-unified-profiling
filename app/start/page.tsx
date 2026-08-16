@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, LockKeyhole } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { type UserProfile, type AnalysisResult } from '@/types';
 import { CharacterAvatar, CHARACTER_META, type CharacterType } from '@/app/components/CharacterAvatar';
@@ -19,6 +19,14 @@ type Phase = 'select' | 'chat' | 'analyzing' | 'result';
 type ProfileType = 'self' | 'family' | 'friend';
 type Turn = 'name' | 'gender' | 'birth' | 'time' | 'place' | 'concern';
 const TURNS: Turn[] = ['name', 'gender', 'birth', 'time', 'place', 'concern'];
+const REGISTRATION_STEPS: Array<{ turn: Turn; label: string; note: string }> = [
+  { turn: 'name', label: '呼び名', note: 'あなたをどう呼ぶか' },
+  { turn: 'gender', label: '基本情報', note: '任意で答えられます' },
+  { turn: 'birth', label: '生まれた日', note: '星の配置を確かめる' },
+  { turn: 'time', label: '生まれた時刻', note: '不明でも進めます' },
+  { turn: 'place', label: '生まれた場所', note: '都市名だけで大丈夫' },
+  { turn: 'concern', label: 'いまのテーマ', note: '最初の対話の手がかり' },
+];
 // ターン名 → 収集データのキー（'birth'→'birthDate' 等のズレを吸収）
 const TURN_KEY: Record<Turn, 'name' | 'gender' | 'birthDate' | 'birthTime' | 'birthPlace' | 'currentWorry'> = {
   name: 'name', gender: 'gender', birth: 'birthDate', time: 'birthTime', place: 'birthPlace', concern: 'currentWorry',
@@ -283,7 +291,7 @@ function OrbSelect({ onSelect, isNewProfile }: { onSelect: (t: CharacterType) =>
 }
 
 // ── 会話 + 鑑定結果 ───────────────────────────────────────
-function Conversation({ char, profileType, userId }: { char: CharacterType; profileType: ProfileType; userId: string | null }) {
+function Conversation({ char, profileType, userId, onReselect }: { char: CharacterType; profileType: ProfileType; userId: string | null; onReselect: () => void }) {
   const router = useRouter();
   const s = SCRIPT[char];
   const [phase, setPhase] = useState<Phase>('chat');
@@ -379,95 +387,137 @@ function Conversation({ char, profileType, userId }: { char: CharacterType; prof
     } catch { setIsSaving(false); }
   };
 
+  const currentStepNumber = phase === 'chat' ? turnIndex + 1 : TURNS.length;
+  const progress = `${Math.round((currentStepNumber / TURNS.length) * 100)}%`;
+
   return (
-    <div className="service-start-journey relative z-10 max-w-2xl mx-auto px-4 min-h-screen flex flex-col">
-      {/* ヘッダー：相棒の存在 */}
-      <div className="service-start-partner flex items-center gap-3 py-5 sticky top-0 z-20 bg-gradient-to-b from-[#0a0820] via-[#0a0820]/90 to-transparent">
-        <CharacterAvatar type={char} size={48} speaking={phase === 'analyzing'} />
+    <section className="orba-registration relative z-10">
+      <header className="orba-registration__topbar">
+        <OrbaMark size={34} />
         <div>
-          <p className="text-sm font-serif-jp text-white/90">{CHARACTER_META[char].label}</p>
-          <p className="text-[10px] text-white/35">あなたのパートナー</p>
+          <p><span>2</span> / 2　あなたを知る</p>
+          <button type="button" onClick={onReselect}><ArrowLeft aria-hidden="true" />相棒を選び直す</button>
         </div>
-      </div>
+      </header>
 
-      {/* 会話 */}
-      <div className="flex-1 space-y-4 pb-4">
-        <AnimatePresence initial={false}>
-          {messages.map((m, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-              className={cn('flex', m.from === 'user' ? 'justify-end' : 'justify-start')}>
-              <div className={cn('service-chat-bubble max-w-[80%] px-4 py-3 rounded-2xl text-[15px] leading-relaxed font-serif-jp',
-                m.from === 'user' ? 'service-chat-bubble--user bg-white/10 text-white/90 rounded-br-sm' : 'service-chat-bubble--assistant card text-white/85 rounded-bl-sm')}>
-                {m.text}
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+      <div className="orba-registration__layout">
+        <aside className="orba-registration__observer">
+          <div className="orba-registration__orb-stage">
+            <span className="orbit orbit-a" />
+            <span className="orbit orbit-b" />
+            <CharacterAvatar type={char} size={174} speaking={phase === 'analyzing' || isTyping} />
+          </div>
+          <div className="orba-registration__observer-copy">
+            <p>{CHARACTER_META[char].label}</p>
+            <h1>言葉を重ねて、<br />最初の輪郭へ。</h1>
+            <span>6つの質問を通して、最初の読み解きに必要な情報を一緒に整えます。約2分です。</span>
+          </div>
 
-        {(phase === 'analyzing' || isTyping) && (
-          <div className="flex justify-start"><div className="service-chat-bubble service-chat-bubble--assistant card px-4 py-3 rounded-2xl rounded-bl-sm flex gap-1.5">
-            {[0, 1, 2].map((i) => <motion.span key={i} animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 1.1, repeat: Infinity, delay: i * 0.18 }} className="w-1.5 h-1.5 rounded-full bg-amber-200/70" />)}
-          </div></div>
-        )}
+          <ol className="orba-registration__steps" aria-label="登録の進み具合">
+            {REGISTRATION_STEPS.map((step, index) => {
+              const complete = phase !== 'chat' || index < turnIndex;
+              const current = phase === 'chat' && index === turnIndex;
+              return (
+                <li key={step.turn} className={cn(complete && 'is-complete', current && 'is-current')} aria-current={current ? 'step' : undefined}>
+                  <i>{complete ? <Check aria-hidden="true" /> : index + 1}</i>
+                  <span><strong>{step.label}</strong><small>{step.note}</small></span>
+                </li>
+              );
+            })}
+          </ol>
 
-        {/* 鑑定結果 */}
-        {phase === 'result' && result && (
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="space-y-3 pt-2">
-            <div className="card p-6">
-              <p className="text-amber-200/70 text-xs tracking-widest mb-3 font-serif-jp">魂のプロファイリング</p>
-              <p className="text-lg leading-relaxed text-white/90 font-serif-jp whitespace-pre-line">{result.coreNature}</p>
+          <p className="orba-registration__privacy"><LockKeyhole aria-hidden="true" />入力内容は、あなたの読み解きと対話のために使われます。</p>
+        </aside>
+
+        <div className="orba-registration__dialogue">
+          <header className="orba-registration__dialogue-header">
+            <div>
+              <CharacterAvatar type={char} size={52} speaking={phase === 'analyzing' || isTyping} />
+              <span><strong>{CHARACTER_META[char].label}</strong><small>あなたのパートナー</small></span>
             </div>
-            <div className="grid md:grid-cols-2 gap-3">
-              <ResultCard label="最強の戦略" body={result.strategy} />
-              <ResultCard label="今の運気" body={result.timing} />
+            <div className="orba-registration__progress">
+              <p>{phase === 'chat' ? `${currentStepNumber} / ${TURNS.length}` : '読み解き中'}</p>
+              <div><i style={{ width: progress }} /></div>
             </div>
-            <div className="card p-6 text-center">
-              <p className="text-amber-200/70 text-xs tracking-widest mb-2 font-serif-jp">核心メッセージ</p>
-              <p className="text-xl font-serif-jp italic text-white leading-relaxed">&ldquo;{result.advice}&rdquo;</p>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="card p-4"><p className="text-[10px] text-white/35 mb-1">今日のテーマ</p><p className="text-base font-serif-jp text-white/90">{result.dailyTheme}</p></div>
-              <div className="card p-4"><p className="text-[10px] text-white/35 mb-1">ラッキーアクション</p><p className="text-base font-serif-jp text-amber-200/90">{result.luckyAction}</p></div>
-            </div>
-            {isLaunchFreeActive() && (
-              <div className="card p-4 flex items-center gap-3 border border-amber-300/15">
-                <span className="flex-none text-xl">🎁</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[12px] font-serif-jp text-white/85 leading-relaxed">
-                    いまは全機能を無料で開放中{launchFreeUntilLabel() ? `（${launchFreeUntilLabel()}まで）` : ''}。正式版（{PREMIUM_PRICE_LABEL}予定）の開始をお知らせします。
-                  </p>
-                </div>
-                <button
-                  onClick={() => { track('paywall_view', { source: 'post_reading' }); setShowFounding(true); }}
-                  className="flex-none px-3 py-2 rounded-full bg-white/10 text-white/85 text-[11px] font-bold hover:bg-white/15 transition-all whitespace-nowrap"
+          </header>
+
+          <div className="orba-registration__transcript">
+            <AnimatePresence initial={false}>
+              {messages.map((m, i) => (
+                <motion.article
+                  key={i}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={cn('orba-registration-turn', m.from === 'user' ? 'is-user' : 'is-orb')}
                 >
-                  受け取る
-                </button>
+                  {m.from === 'orb' && <CharacterAvatar type={char} size={38} />}
+                  <div>
+                    <span>{m.from === 'orb' ? CHARACTER_META[char].label : 'あなた'}</span>
+                    <p>{m.text}</p>
+                  </div>
+                </motion.article>
+              ))}
+            </AnimatePresence>
+
+            {(phase === 'analyzing' || isTyping) && (
+              <div className="orba-registration__typing" role="status">
+                <CharacterAvatar type={char} size={38} speaking />
+                <div><span>{CHARACTER_META[char].label}</span><p>言葉を整えています<i /><i /><i /></p></div>
               </div>
             )}
-            <div className="pt-3 flex flex-col items-center gap-3">
-              <button onClick={handleSave} disabled={isSaving} className="btn-gold px-10 py-4 font-bold disabled:opacity-50">
-                {isSaving ? '保存中…' : 'この子と歩きはじめる'}
-              </button>
-              <button onClick={() => window.location.reload()} className="text-[11px] text-white/30 hover:text-white/60">最初からやり直す</button>
-            </div>
-          </motion.div>
-        )}
 
-        <div ref={scrollRef} />
-      </div>
+            {phase === 'result' && result && (
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="orba-registration__result space-y-3 pt-2">
+                <div className="card p-6">
+                  <p className="text-amber-200/70 text-xs tracking-widest mb-3 font-serif-jp">魂のプロファイリング</p>
+                  <p className="text-lg leading-relaxed text-white/90 font-serif-jp whitespace-pre-line">{result.coreNature}</p>
+                </div>
+                <div className="grid md:grid-cols-2 gap-3">
+                  <ResultCard label="最強の戦略" body={result.strategy} />
+                  <ResultCard label="今の運気" body={result.timing} />
+                </div>
+                <div className="card p-6 text-center">
+                  <p className="text-amber-200/70 text-xs tracking-widest mb-2 font-serif-jp">核心メッセージ</p>
+                  <p className="text-xl font-serif-jp italic text-white leading-relaxed">&ldquo;{result.advice}&rdquo;</p>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="card p-4"><p className="text-[10px] text-white/35 mb-1">今日のテーマ</p><p className="text-base font-serif-jp text-white/90">{result.dailyTheme}</p></div>
+                  <div className="card p-4"><p className="text-[10px] text-white/35 mb-1">ラッキーアクション</p><p className="text-base font-serif-jp text-amber-200/90">{result.luckyAction}</p></div>
+                </div>
+                {isLaunchFreeActive() && (
+                  <div className="card p-4 flex items-center gap-3 border border-amber-300/15">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[12px] font-serif-jp text-white/85 leading-relaxed">
+                        いまは全機能を無料で開放中{launchFreeUntilLabel() ? `（${launchFreeUntilLabel()}まで）` : ''}。正式版（{PREMIUM_PRICE_LABEL}予定）の開始をお知らせします。
+                      </p>
+                    </div>
+                    <button onClick={() => { track('paywall_view', { source: 'post_reading' }); setShowFounding(true); }} className="btn-ghost px-3 py-2 text-[11px] font-bold whitespace-nowrap">受け取る</button>
+                  </div>
+                )}
+                <div className="pt-3 flex flex-col items-center gap-3">
+                  <button onClick={handleSave} disabled={isSaving} className="btn-gold px-10 py-4 font-bold disabled:opacity-50">
+                    {isSaving ? '保存中…' : 'この子と歩きはじめる'}
+                  </button>
+                  <button onClick={() => window.location.reload()} className="text-[11px] text-white/30 hover:text-white/60">最初からやり直す</button>
+                </div>
+              </motion.div>
+            )}
+            <div ref={scrollRef} />
+          </div>
 
-      {/* 入力エリア */}
-      {phase === 'chat' && !isTyping && (
-        <div className="sticky bottom-0 bg-gradient-to-t from-[#0a0820] via-[#0a0820]/95 to-transparent pt-3 pb-5">
-          <Composer turn={currentTurn} draft={draft} setDraft={setDraft} onAnswer={advance} />
+          {phase === 'chat' && !isTyping && (
+            <footer className="orba-registration__composer">
+              <p>{REGISTRATION_STEPS[turnIndex]?.note}</p>
+              <Composer turn={currentTurn} draft={draft} setDraft={setDraft} onAnswer={advance} />
+            </footer>
+          )}
         </div>
-      )}
+      </div>
 
       <AnimatePresence>
         {showFounding && <FoundingMemberModal onClose={() => setShowFounding(false)} />}
       </AnimatePresence>
-    </div>
+    </section>
   );
 }
 
@@ -482,22 +532,22 @@ function ResultCard({ label, body }: { label: string; body: string }) {
 
 // ── 入力コンポーザー（ターンごとに変化） ─────────────────
 function Composer({ turn, draft, setDraft, onAnswer }: { turn: Turn; draft: string; setDraft: (v: string) => void; onAnswer: (value: string, display: string) => void }) {
-  const inputBase = 'flex-1 bg-white/6 border border-white/12 rounded-full px-5 py-3 text-white placeholder:text-white/25 focus:outline-none focus:border-amber-200/40 transition-colors';
-  const sendBtn = 'btn-gold px-6 py-3 font-bold text-sm disabled:opacity-40';
+  const inputBase = 'orba-registration-input';
+  const sendBtn = 'orba-registration-submit btn-gold disabled:opacity-40';
 
   if (turn === 'gender') {
     const opts: [string, string][] = [['male', '男性'], ['female', '女性'], ['other', 'その他'], ['', '答えない']];
     return (
-      <div className="flex flex-wrap gap-2 justify-center">
+      <div className="orba-registration-choices">
         {opts.map(([v, l]) => (
-          <button key={l} onClick={() => onAnswer(v, l)} className="btn-ghost px-5 py-2.5 text-sm text-white/80">{l}</button>
+          <button key={l} onClick={() => onAnswer(v, l)} className="btn-ghost">{l}</button>
         ))}
       </div>
     );
   }
   if (turn === 'birth') {
     return (
-      <div className="flex gap-2">
+      <div className="orba-registration-composer-row">
         <input type="date" value={draft} onChange={(e) => setDraft(e.target.value)} className={inputBase} />
         <button disabled={!draft} onClick={() => onAnswer(draft, draft)} className={sendBtn}>決定</button>
       </div>
@@ -505,21 +555,21 @@ function Composer({ turn, draft, setDraft, onAnswer }: { turn: Turn; draft: stri
   }
   if (turn === 'time') {
     return (
-      <div className="flex gap-2 items-center">
+      <div className="orba-registration-composer-row is-time">
         <input type="time" value={draft} onChange={(e) => setDraft(e.target.value)} className={inputBase} />
         <button disabled={!draft} onClick={() => onAnswer(draft, draft)} className={sendBtn}>決定</button>
-        <button onClick={() => onAnswer('', 'わからない')} className="btn-ghost px-4 py-3 text-xs text-white/60 whitespace-nowrap">わからない</button>
+        <button onClick={() => onAnswer('', 'わからない')} className="orba-registration-skip btn-ghost">わからない</button>
       </div>
     );
   }
   if (turn === 'concern') {
     return (
-      <div className="flex gap-2 items-end">
+      <div className="orba-registration-composer-row is-concern">
         <textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={2} placeholder="気になっていること…"
-          className="flex-1 bg-white/6 border border-white/12 rounded-2xl px-5 py-3 text-white placeholder:text-white/25 focus:outline-none focus:border-amber-200/40 resize-none" />
-        <div className="flex flex-col gap-1.5">
+          className="orba-registration-input orba-registration-textarea" />
+        <div className="orba-registration-composer-actions">
           <button disabled={!draft.trim()} onClick={() => onAnswer(draft, draft)} className={sendBtn}>送る</button>
-          <button onClick={() => onAnswer('', '特にない')} className="btn-ghost px-4 py-2 text-[11px] text-white/55 whitespace-nowrap">特にない</button>
+          <button onClick={() => onAnswer('', '特にない')} className="orba-registration-skip btn-ghost">特にない</button>
         </div>
       </div>
     );
@@ -527,8 +577,8 @@ function Composer({ turn, draft, setDraft, onAnswer }: { turn: Turn; draft: stri
   // name / place （テキスト）
   const ph = turn === 'name' ? 'お名前 / ニックネーム' : '生まれた街（例：東京）';
   return (
-    <form onSubmit={(e) => { e.preventDefault(); if (draft.trim()) onAnswer(draft.trim(), draft.trim()); }} className="flex gap-2">
-      <input autoFocus value={draft} onChange={(e) => setDraft(e.target.value)} placeholder={ph} className={inputBase} />
+    <form onSubmit={(e) => { e.preventDefault(); if (draft.trim()) onAnswer(draft.trim(), draft.trim()); }} className="orba-registration-composer-row">
+      <input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder={ph} className={inputBase} />
       <button type="submit" disabled={!draft.trim()} className={sendBtn}>送る</button>
     </form>
   );
@@ -542,6 +592,12 @@ function HomeInner() {
   const [char, setChar] = useState<CharacterType | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [profileType] = useState<ProfileType>('self');
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    const resetTimer = window.setTimeout(() => window.scrollTo(0, 0), 520);
+    return () => window.clearTimeout(resetTimer);
+  }, [phase]);
 
   useEffect(() => {
     track('landing_view');
@@ -575,7 +631,13 @@ function HomeInner() {
             onSelect={(t) => { track('onboarding_start', { characterType: t }); setChar(t); setPhase('chat'); }} />
         )}
         {phase !== 'select' && char && (
-          <Conversation key="conv" char={char} profileType={profileType} userId={userId} />
+          <Conversation
+            key="conv"
+            char={char}
+            profileType={profileType}
+            userId={userId}
+            onReselect={() => { setChar(null); setPhase('select'); }}
+          />
         )}
       </AnimatePresence>
     </main>

@@ -1633,6 +1633,508 @@ body:has(.service-start-shell) {
   height: 17px;
 }
 
+/* Conversational profile setup */
+.orba-registration {
+  position: relative;
+  z-index: 2;
+  width: min(1480px, 100%);
+  min-height: 100svh;
+  margin: 0 auto;
+  padding: 0 clamp(18px, 3vw, 48px) clamp(20px, 3vw, 44px);
+  color: var(--service-text);
+  overflow-anchor: none;
+}
+
+.orba-registration__topbar {
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--service-line);
+}
+
+.orba-registration__topbar > div {
+  display: flex;
+  align-items: center;
+  gap: clamp(18px, 3vw, 40px);
+}
+
+.orba-registration__topbar p {
+  color: var(--service-subtle);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.orba-registration__topbar p span {
+  color: var(--service-gold);
+}
+
+.orba-registration__topbar button {
+  min-height: 44px;
+  padding: 0 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--service-muted);
+  background: transparent;
+  border: 0;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.orba-registration__topbar button:hover {
+  color: var(--service-text);
+}
+
+.orba-registration__topbar button svg {
+  width: 15px;
+  height: 15px;
+}
+
+.orba-registration__layout {
+  min-height: calc(100svh - 104px);
+  padding-top: clamp(24px, 4vh, 46px);
+  display: grid;
+  grid-template-columns: minmax(300px, 0.78fr) minmax(520px, 1.22fr);
+  gap: clamp(38px, 6vw, 96px);
+  align-items: stretch;
+}
+
+.orba-registration__observer {
+  min-height: 0;
+  padding: clamp(8px, 1.2vw, 18px) 0 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.orba-registration__orb-stage {
+  position: relative;
+  width: min(310px, 82%);
+  aspect-ratio: 1;
+  margin: 0 auto clamp(22px, 3vh, 34px);
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+
+.orba-registration__orb-stage::before,
+.orba-registration__orb-stage::after,
+.orba-registration__orb-stage .orbit {
+  position: absolute;
+  inset: 8%;
+  content: "";
+  border: 1px solid var(--service-line);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.orba-registration__orb-stage::before {
+  inset: 1%;
+  border-style: dashed;
+  opacity: 0.72;
+  animation: orba-registration-orbit 44s linear infinite reverse;
+}
+
+.orba-registration__orb-stage::after {
+  inset: 19%;
+  border-color: color-mix(in srgb, var(--service-gold), transparent 76%);
+}
+
+.orba-registration__orb-stage .orbit-a {
+  inset: 12% 1%;
+  transform: rotate(28deg);
+  border-color: color-mix(in srgb, var(--service-gold), transparent 78%);
+}
+
+.orba-registration__orb-stage .orbit-b {
+  inset: 1% 15%;
+  transform: rotate(-35deg);
+}
+
+.orba-registration__orb-stage .orba-character-orb {
+  position: relative;
+  z-index: 2;
+  filter: drop-shadow(0 24px 42px rgba(0, 0, 0, 0.34));
+}
+
+@keyframes orba-registration-orbit {
+  to { transform: rotate(1turn); }
+}
+
+.orba-registration__observer-copy > p {
+  margin-bottom: 12px;
+  color: var(--service-gold);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.orba-registration__observer-copy h1 {
+  margin: 0;
+  color: var(--service-text);
+  font-family: var(--font-serif-jp), "Shippori Mincho", serif;
+  font-size: clamp(29px, 2.6vw, 42px);
+  font-weight: 500;
+  line-height: 1.42;
+  letter-spacing: 0.02em;
+}
+
+.orba-registration__observer-copy > span {
+  max-width: 36em;
+  margin-top: 13px;
+  display: block;
+  color: var(--service-muted);
+  font-size: 11px;
+  line-height: 1.9;
+}
+
+.orba-registration__steps {
+  margin: clamp(22px, 3vh, 34px) 0 22px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: clamp(16px, 2vw, 30px);
+}
+
+.orba-registration__steps li {
+  min-height: 56px;
+  display: grid;
+  grid-template-columns: 27px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  color: var(--service-subtle);
+  border-top: 1px solid var(--service-line);
+}
+
+.orba-registration__steps i {
+  width: 21px;
+  height: 21px;
+  display: grid;
+  place-items: center;
+  color: inherit;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 9px;
+  font-style: normal;
+}
+
+.orba-registration__steps i svg {
+  width: 11px;
+  height: 11px;
+}
+
+.orba-registration__steps span {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.orba-registration__steps strong {
+  color: inherit;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.orba-registration__steps small {
+  overflow: hidden;
+  color: var(--service-subtle);
+  font-size: 8px;
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.orba-registration__steps li.is-current {
+  color: var(--service-gold);
+}
+
+.orba-registration__steps li.is-current strong {
+  color: var(--service-text);
+}
+
+.orba-registration__steps li.is-complete {
+  color: color-mix(in srgb, var(--service-gold), transparent 28%);
+}
+
+.orba-registration__privacy {
+  margin-top: auto;
+  padding-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--service-subtle);
+  font-size: 9px;
+  line-height: 1.7;
+}
+
+.orba-registration__privacy svg {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+}
+
+.orba-registration__dialogue {
+  min-height: min(780px, calc(100svh - 126px));
+  max-height: calc(100svh - 110px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--service-surface), transparent 4%);
+  border: 1px solid var(--service-line);
+  border-radius: 18px;
+  box-shadow: var(--service-shadow);
+}
+
+.orba-registration__dialogue-header {
+  min-height: 80px;
+  padding: 10px clamp(18px, 2.4vw, 30px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  background: var(--service-surface-raised);
+  border-bottom: 1px solid var(--service-line);
+}
+
+.orba-registration__dialogue-header > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.orba-registration__dialogue-header span {
+  display: grid;
+  gap: 4px;
+}
+
+.orba-registration__dialogue-header strong {
+  color: var(--service-text);
+  font-family: var(--font-serif-jp), "Shippori Mincho", serif;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.orba-registration__dialogue-header small {
+  color: var(--service-subtle);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+
+.orba-registration__progress {
+  width: min(168px, 32%);
+}
+
+.orba-registration__progress p {
+  margin-bottom: 7px;
+  color: var(--service-muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-align: right;
+}
+
+.orba-registration__progress > div {
+  height: 2px;
+  overflow: hidden;
+  background: var(--service-line);
+}
+
+.orba-registration__progress i {
+  height: 100%;
+  display: block;
+  background: var(--service-gold);
+  transition: width 500ms cubic-bezier(.22, 1, .36, 1);
+}
+
+.orba-registration__transcript {
+  min-height: 0;
+  padding: clamp(28px, 4vh, 48px) clamp(20px, 4vw, 58px);
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--service-line) transparent;
+}
+
+.orba-registration-turn,
+.orba-registration__typing {
+  width: min(620px, 100%);
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: start;
+  gap: 13px;
+}
+
+.orba-registration-turn + .orba-registration-turn,
+.orba-registration-turn + .orba-registration__typing {
+  margin-top: 28px;
+}
+
+.orba-registration-turn > div,
+.orba-registration__typing > div {
+  min-width: 0;
+}
+
+.orba-registration-turn span,
+.orba-registration__typing span {
+  margin-bottom: 7px;
+  display: block;
+  color: var(--service-subtle);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.orba-registration-turn p,
+.orba-registration__typing p {
+  color: var(--service-text);
+  font-family: var(--font-serif-jp), "Shippori Mincho", serif;
+  font-size: clamp(13px, 1.1vw, 15px);
+  line-height: 2;
+  white-space: pre-wrap;
+}
+
+.orba-registration-turn.is-user {
+  margin-left: auto;
+  display: block;
+  text-align: right;
+}
+
+.orba-registration-turn.is-user > div {
+  display: inline-block;
+  max-width: min(520px, 88%);
+  padding: 13px 17px;
+  text-align: left;
+  background: color-mix(in srgb, var(--service-gold), transparent 90%);
+  border: 1px solid color-mix(in srgb, var(--service-gold), transparent 72%);
+  border-radius: 14px 3px 14px 14px;
+}
+
+.orba-registration-turn.is-user span {
+  display: none;
+}
+
+.orba-registration-turn.is-user p {
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.orba-registration__typing p i {
+  width: 3px;
+  height: 3px;
+  margin-left: 5px;
+  display: inline-block;
+  background: var(--service-gold);
+  border-radius: 50%;
+  animation: orba-registration-dot 1.1s ease-in-out infinite;
+}
+
+.orba-registration__typing p i:nth-child(2) { animation-delay: 120ms; }
+.orba-registration__typing p i:nth-child(3) { animation-delay: 240ms; }
+
+@keyframes orba-registration-dot {
+  50% { opacity: 0.28; transform: translateY(-2px); }
+}
+
+.orba-registration__result {
+  width: min(660px, 100%);
+  margin: 0 auto;
+}
+
+.orba-registration__composer {
+  padding: 14px clamp(18px, 3vw, 36px) 18px;
+  background: var(--service-surface-raised);
+  border-top: 1px solid var(--service-line);
+}
+
+.orba-registration__composer > p {
+  margin-bottom: 9px;
+  color: var(--service-subtle);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+}
+
+.orba-registration-composer-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.orba-registration-input {
+  width: 100%;
+  min-width: 0;
+  min-height: 50px;
+  padding: 0 17px;
+  color: var(--service-text);
+  background: var(--service-surface-soft);
+  border: 1px solid var(--service-line);
+  border-radius: 12px;
+  outline: 0;
+  font-size: 13px;
+  transition: border-color 180ms ease, background-color 180ms ease;
+}
+
+.orba-registration-input::placeholder {
+  color: var(--service-subtle);
+}
+
+.orba-registration-input:focus {
+  background: color-mix(in srgb, var(--service-surface-soft), var(--service-gold) 3%);
+  border-color: color-mix(in srgb, var(--service-gold), transparent 35%);
+}
+
+.orba-registration-submit {
+  min-width: 88px;
+  min-height: 50px;
+  padding: 0 22px;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.orba-registration-choices {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.orba-registration-choices button {
+  min-height: 48px;
+  padding: 0 10px;
+  color: var(--service-muted);
+  font-size: 12px;
+}
+
+.orba-registration-skip {
+  min-height: 50px;
+  padding: 0 15px;
+  color: var(--service-muted);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.orba-registration-textarea {
+  min-height: 72px;
+  padding: 13px 17px;
+  resize: none;
+  line-height: 1.7;
+}
+
+.orba-registration-composer-actions {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 6px;
+}
+
+.orba-registration-composer-actions .orba-registration-submit,
+.orba-registration-composer-actions .orba-registration-skip {
+  min-height: 0;
+}
+
 @media (max-width: 980px) {
   .orba-partner-select__layout {
     grid-template-columns: 1fr;
@@ -1655,6 +2157,28 @@ body:has(.service-start-shell) {
 
   .orba-dialogue__header {
     grid-template-columns: 38px 1fr auto;
+  }
+
+  .orba-registration__layout {
+    grid-template-columns: minmax(250px, 0.68fr) minmax(440px, 1.32fr);
+    gap: 32px;
+  }
+
+  .orba-registration__orb-stage {
+    width: min(240px, 82%);
+  }
+
+  .orba-registration__orb-stage .orba-character-orb {
+    width: 142px !important;
+    height: 142px !important;
+  }
+
+  .orba-registration__steps {
+    grid-template-columns: 1fr;
+  }
+
+  .orba-registration__steps li:nth-child(n + 5) {
+    display: none;
   }
 }
 
@@ -1820,6 +2344,136 @@ body:has(.service-start-shell) {
   .orba-dialogue-composer__tools {
     justify-content: flex-end;
   }
+
+  .orba-registration {
+    padding: 0 12px 12px;
+  }
+
+  .orba-registration__topbar {
+    min-height: 64px;
+    padding: 0 3px;
+  }
+
+  .orba-registration__topbar > div {
+    gap: 12px;
+  }
+
+  .orba-registration__topbar p {
+    display: none;
+  }
+
+  .orba-registration__topbar button {
+    font-size: 10px;
+  }
+
+  .orba-registration__layout {
+    min-height: calc(100svh - 76px);
+    padding-top: 14px;
+    display: block;
+  }
+
+  .orba-registration__observer {
+    min-height: 90px;
+    padding: 3px 7px 14px;
+    display: grid;
+    grid-template-columns: 78px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+  }
+
+  .orba-registration__orb-stage {
+    width: 78px;
+    margin: 0;
+  }
+
+  .orba-registration__orb-stage .orba-character-orb {
+    width: 58px !important;
+    height: 58px !important;
+  }
+
+  .orba-registration__observer-copy > p {
+    margin-bottom: 4px;
+    font-size: 8px;
+  }
+
+  .orba-registration__observer-copy h1 {
+    font-size: 18px;
+    line-height: 1.45;
+  }
+
+  .orba-registration__observer-copy h1 br {
+    display: none;
+  }
+
+  .orba-registration__observer-copy > span,
+  .orba-registration__steps,
+  .orba-registration__privacy {
+    display: none;
+  }
+
+  .orba-registration__dialogue {
+    min-height: calc(100svh - 170px);
+    max-height: calc(100svh - 170px);
+    border-radius: 15px;
+  }
+
+  .orba-registration__dialogue-header {
+    min-height: 68px;
+    padding: 8px 13px;
+  }
+
+  .orba-registration__dialogue-header .orba-character-orb {
+    width: 45px !important;
+    height: 45px !important;
+  }
+
+  .orba-registration__progress {
+    width: 96px;
+  }
+
+  .orba-registration__transcript {
+    padding: 26px 16px;
+  }
+
+  .orba-registration-turn,
+  .orba-registration__typing {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .orba-registration-turn .orba-character-orb,
+  .orba-registration__typing .orba-character-orb {
+    width: 34px !important;
+    height: 34px !important;
+  }
+
+  .orba-registration-turn p,
+  .orba-registration__typing p {
+    font-size: 13px;
+    line-height: 1.9;
+  }
+
+  .orba-registration__composer {
+    padding: 11px 11px 12px;
+  }
+
+  .orba-registration-composer-row.is-time {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .orba-registration-composer-row.is-time .orba-registration-skip {
+    grid-column: 1 / -1;
+    min-height: 38px;
+  }
+
+  .orba-registration-choices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .orba-registration-submit {
+    min-width: 72px;
+    padding: 0 16px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1829,7 +2483,9 @@ body:has(.service-start-shell) {
   .service-start-intro > .grid button,
   .orba-character-orb *,
   .orba-partner-option,
-  .orba-dialogue-welcome__starters button {
+  .orba-dialogue-welcome__starters button,
+  .orba-registration__orb-stage::before,
+  .orba-registration__typing p i {
     animation: none !important;
     transition: none;
   }
