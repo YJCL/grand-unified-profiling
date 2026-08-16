@@ -18,9 +18,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         const saved = localStorage.getItem('guf_theme') as Theme | null;
-        const applied = saved ?? 'dark';
-        setTheme(applied);
-        document.documentElement.setAttribute('data-theme', applied);
+        const systemTheme: Theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        const applied = saved === 'dark' || saved === 'light' ? saved : systemTheme;
+        const frame = requestAnimationFrame(() => {
+            setTheme(applied);
+            document.documentElement.setAttribute('data-theme', applied);
+        });
+        return () => cancelAnimationFrame(frame);
     }, []);
 
     const toggle = () => {

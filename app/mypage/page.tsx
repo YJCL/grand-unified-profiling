@@ -446,7 +446,7 @@ const WIDGET_META: Record<WidgetId, { label: string; icon: React.ReactNode }> = 
 
 function WidgetShell({ id, editMode, children }: { id: WidgetId; editMode: boolean; children: React.ReactNode }) {
     return (
-        <motion.div layout className="glass p-5 relative overflow-hidden">
+        <motion.div layout className={`glass service-widget service-widget--${id} p-5 relative overflow-hidden`}>
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2 text-white/45">
                     {WIDGET_META[id].icon}
@@ -720,12 +720,12 @@ export default function MyPage() {
     };
 
     return (
-        <div className="orba-service-page text-white flex flex-col relative">
+        <div className="orba-service-page hig-shell orba-service-home text-white flex flex-col relative">
             <OrbaAppNav />
             <OrbField count={14} />
 
             {/* ── 上部タブバー ───────────────────────────── */}
-            <header className="flex-none border-b border-white/5 bg-black/20 backdrop-blur-xl sticky top-[60px] md:top-[68px] z-30">
+            <header className="orba-profile-switcher flex-none border-b border-white/5 bg-black/20 backdrop-blur-xl sticky top-[60px] md:top-[68px] z-30">
               <div className="px-3 pt-4 pb-3 flex items-center justify-between max-w-2xl mx-auto w-full">
                 <button onClick={() => setShowAccount(true)} title="アカウント・設定"
                     className="flex-none mr-2 rounded-full transition-transform hover:scale-105 active:scale-95">
@@ -814,7 +814,11 @@ export default function MyPage() {
             </header>
 
             {/* ── ウィジェットエリア ─────────────────────── */}
-            <main className="flex-1 px-4 py-6 overflow-y-auto pb-28 relative z-10 w-full max-w-2xl mx-auto">
+            <main className="orba-home-main flex-1 px-4 py-6 overflow-y-auto pb-28 relative z-10 w-full max-w-2xl mx-auto">
+                <section className="orba-home-heading">
+                    <h1>おかえりなさい。</h1>
+                    <p>今日の流れと、いま役立つ言葉を置いています。</p>
+                </section>
                 <AnimatePresence>
                     {bonusMsg && (
                         <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
@@ -849,7 +853,7 @@ export default function MyPage() {
                 )}
 
                 <Reorder.Group axis="y" values={order} onReorder={editMode ? saveOrder : () => {}}
-                    className="space-y-3">
+                    className="orba-widget-stack space-y-3">
                     {order.map(id => (
                         <Reorder.Item key={id} value={id} dragListener={editMode}
                             className={cn('outline-none', editMode && 'cursor-grab active:cursor-grabbing')}>
@@ -862,7 +866,7 @@ export default function MyPage() {
             </main>
 
             {/* ── 下部サブスクバー ───────────────────────── */}
-            <div className="fixed bottom-0 left-0 right-0 z-30 bg-black/60 backdrop-blur-xl border-t border-white/5 px-4 py-3 [&>*]:max-w-2xl [&>*]:mx-auto">
+            <div className="orba-membership-bar fixed bottom-0 left-0 right-0 z-30 bg-black/60 backdrop-blur-xl border-t border-white/5 px-4 py-3 [&>*]:max-w-2xl [&>*]:mx-auto">
                 {isDevicePremium ? (
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">

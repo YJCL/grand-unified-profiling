@@ -144,9 +144,9 @@ function OrbSelect({ onSelect, isNewProfile }: { onSelect: (t: CharacterType) =>
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="relative z-10 max-w-4xl mx-auto px-6 py-14 min-h-screen flex flex-col justify-center">
+      className="service-start-intro relative z-10 max-w-4xl mx-auto px-6 py-14 min-h-screen flex flex-col justify-center">
       <p className="font-display italic text-amber-200/70 text-3xl md:text-4xl mb-2 tracking-wide">Orba</p>
-      <h1 className="text-3xl md:text-5xl mb-3 leading-tight bg-gradient-to-b from-white to-white/55 bg-clip-text text-transparent">
+      <h1 className="text-3xl md:text-5xl mb-3 leading-tight text-white">
         数ある無数のオーブの中から、<br className="hidden md:block" />君だけのパートナーを。
       </h1>
       <p className="text-white/45 mb-2 font-serif-jp text-sm md:text-base">
@@ -306,9 +306,9 @@ function Conversation({ char, profileType, userId }: { char: CharacterType; prof
   };
 
   return (
-    <div className="relative z-10 max-w-2xl mx-auto px-4 min-h-screen flex flex-col">
+    <div className="service-start-journey relative z-10 max-w-2xl mx-auto px-4 min-h-screen flex flex-col">
       {/* ヘッダー：相棒の存在 */}
-      <div className="flex items-center gap-3 py-5 sticky top-0 z-20 bg-gradient-to-b from-[#0a0820] via-[#0a0820]/90 to-transparent">
+      <div className="service-start-partner flex items-center gap-3 py-5 sticky top-0 z-20 bg-gradient-to-b from-[#0a0820] via-[#0a0820]/90 to-transparent">
         <CharacterAvatar type={char} size={48} speaking={phase === 'analyzing'} />
         <div>
           <p className="text-sm font-serif-jp text-white/90">{CHARACTER_META[char].label}</p>
@@ -322,8 +322,8 @@ function Conversation({ char, profileType, userId }: { char: CharacterType; prof
           {messages.map((m, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
               className={cn('flex', m.from === 'user' ? 'justify-end' : 'justify-start')}>
-              <div className={cn('max-w-[80%] px-4 py-3 rounded-2xl text-[15px] leading-relaxed font-serif-jp',
-                m.from === 'user' ? 'bg-white/10 text-white/90 rounded-br-sm' : 'card text-white/85 rounded-bl-sm')}>
+              <div className={cn('service-chat-bubble max-w-[80%] px-4 py-3 rounded-2xl text-[15px] leading-relaxed font-serif-jp',
+                m.from === 'user' ? 'service-chat-bubble--user bg-white/10 text-white/90 rounded-br-sm' : 'service-chat-bubble--assistant card text-white/85 rounded-bl-sm')}>
                 {m.text}
               </div>
             </motion.div>
@@ -331,7 +331,7 @@ function Conversation({ char, profileType, userId }: { char: CharacterType; prof
         </AnimatePresence>
 
         {(phase === 'analyzing' || isTyping) && (
-          <div className="flex justify-start"><div className="card px-4 py-3 rounded-2xl rounded-bl-sm flex gap-1.5">
+          <div className="flex justify-start"><div className="service-chat-bubble service-chat-bubble--assistant card px-4 py-3 rounded-2xl rounded-bl-sm flex gap-1.5">
             {[0, 1, 2].map((i) => <motion.span key={i} animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 1.1, repeat: Infinity, delay: i * 0.18 }} className="w-1.5 h-1.5 rounded-full bg-amber-200/70" />)}
           </div></div>
         )}
@@ -493,7 +493,7 @@ function HomeInner() {
   }, [isNewProfile]);
 
   return (
-    <main className="relative min-h-screen w-full bg-mesh overflow-x-hidden text-white">
+    <main className="service-start-shell hig-shell relative min-h-screen w-full bg-mesh overflow-x-hidden text-white">
       <OrbField count={22} />
       <AnimatePresence mode="wait">
         {phase === 'select' && (

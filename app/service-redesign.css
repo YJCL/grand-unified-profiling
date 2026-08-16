@@ -1,0 +1,860 @@
+/* Orba main service visual migration.
+   Runtime behavior stays in the existing routes; this file owns the shared visual language. */
+
+.hig-shell,
+.orba-service-page,
+.service-start-shell {
+  --service-canvas: #090919;
+  --service-surface: #131329;
+  --service-surface-raised: #1a1931;
+  --service-surface-soft: #24223d;
+  --service-text: #f7f1e4;
+  --service-muted: #b5afc1;
+  --service-subtle: rgba(247, 241, 228, 0.46);
+  --service-line: rgba(247, 241, 228, 0.11);
+  --service-gold: #f4c060;
+  --service-gold-ink: #211708;
+  --service-danger: #ef9b9b;
+  --service-shadow: 0 18px 42px rgba(0, 0, 0, 0.3);
+  color-scheme: dark;
+}
+
+[data-theme="light"] .hig-shell,
+[data-theme="light"] .orba-service-page,
+[data-theme="light"] .service-start-shell {
+  --service-canvas: #f6f3ed;
+  --service-surface: #fffdf8;
+  --service-surface-raised: #fbf8f0;
+  --service-surface-soft: #eee8dc;
+  --service-text: #262331;
+  --service-muted: #736e7a;
+  --service-subtle: rgba(38, 35, 49, 0.48);
+  --service-line: rgba(38, 35, 49, 0.11);
+  --service-gold: #a77c24;
+  --service-gold-ink: #fffdf8;
+  --service-danger: #a44747;
+  --service-shadow: 0 18px 42px rgba(44, 34, 25, 0.1);
+  color-scheme: light;
+}
+
+html:has(.orba-service-page),
+body:has(.orba-service-page),
+html:has(.service-start-shell),
+body:has(.service-start-shell) {
+  background: var(--service-canvas);
+}
+
+.orba-service-page,
+.service-start-shell {
+  min-height: 100dvh;
+  color: var(--service-text);
+  background:
+    radial-gradient(circle at 88% 3%, rgba(139, 127, 212, 0.1), transparent 29rem),
+    radial-gradient(circle at 15% 92%, rgba(244, 192, 96, 0.045), transparent 26rem),
+    var(--service-canvas);
+}
+
+[data-theme="light"] .orba-service-page,
+[data-theme="light"] .service-start-shell {
+  background:
+    radial-gradient(circle at 88% 3%, rgba(210, 168, 79, 0.11), transparent 26rem),
+    var(--service-canvas);
+}
+
+.orba-service-page .bg-mesh,
+.service-start-shell.bg-mesh,
+.orba-service-page.bg-mesh {
+  background-color: var(--service-canvas) !important;
+  background-image:
+    radial-gradient(circle at 88% 3%, rgba(139, 127, 212, 0.1), transparent 29rem),
+    radial-gradient(circle at 14% 94%, rgba(244, 192, 96, 0.04), transparent 24rem) !important;
+  background-size: auto !important;
+  animation: none !important;
+}
+
+[data-theme="light"] .orba-service-page .bg-mesh,
+[data-theme="light"] .service-start-shell.bg-mesh,
+[data-theme="light"] .orba-service-page.bg-mesh {
+  background-color: var(--service-canvas) !important;
+  background-image: radial-gradient(circle at 88% 3%, rgba(210, 168, 79, 0.11), transparent 26rem) !important;
+}
+
+/* Shared application chrome */
+.orba-app-header {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 70;
+  height: 68px;
+  padding: 0 clamp(18px, 3vw, 42px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #fbf8f0;
+  background: rgba(7, 7, 19, 0.92);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(18px);
+}
+
+.orba-app-header .orba-lockup {
+  gap: 10px;
+}
+
+.orba-app-header .orba-lockup img {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+}
+
+.orba-app-header .orba-lockup > span {
+  color: #fff0bd;
+  font-family: var(--font-display), "Cormorant Garamond", serif;
+  font-size: 31px;
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.orba-app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.orba-app-header__actions > span {
+  color: rgba(251, 248, 240, 0.48);
+  font-size: 9px;
+}
+
+.orba-theme-toggle {
+  width: 39px;
+  height: 39px;
+  display: grid;
+  place-items: center;
+  color: rgba(251, 248, 240, 0.7);
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: color 180ms ease, background 180ms ease, transform 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.orba-theme-toggle:hover {
+  color: #f4c060;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.orba-theme-toggle:active {
+  transform: scale(0.94);
+}
+
+.orba-theme-toggle:focus-visible,
+.orba-app-nav a:focus-visible,
+.orba-service-page button:focus-visible,
+.orba-service-page input:focus-visible,
+.orba-service-page textarea:focus-visible,
+.service-start-shell button:focus-visible,
+.service-start-shell input:focus-visible,
+.service-start-shell textarea:focus-visible {
+  outline: 2px solid #f4c060;
+  outline-offset: 3px;
+}
+
+.orba-app-nav {
+  position: fixed;
+  inset: 68px auto 0 0;
+  z-index: 60;
+  width: 236px;
+  height: auto;
+  padding: 28px 14px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  color: #fbf8f0;
+  background: linear-gradient(180deg, #111126, #0a0a1c);
+  border: 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.09);
+  backdrop-filter: none;
+}
+
+.orba-app-nav__label {
+  padding: 0 11px 10px;
+  color: rgba(251, 248, 240, 0.37);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+}
+
+.orba-app-nav__links {
+  width: 100%;
+  height: auto;
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+
+.orba-app-nav__links a {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 11px;
+  justify-content: flex-start;
+  gap: 10px;
+  color: rgba(251, 248, 240, 0.65);
+  border-radius: 11px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.orba-app-nav__links a:hover {
+  color: #fbf8f0;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.orba-app-nav__links a.is-active {
+  color: #fbf8f0;
+  background: linear-gradient(90deg, rgba(244, 192, 96, 0.13), rgba(255, 255, 255, 0.045));
+  box-shadow: inset 1px 0 0 rgba(244, 192, 96, 0.75);
+}
+
+.orba-app-nav__links a.is-active::after {
+  display: none;
+}
+
+.orba-app-nav__links a.is-active svg {
+  color: #f4c060;
+}
+
+.orba-app-nav__privacy {
+  margin-top: auto;
+  padding: 18px 10px 0;
+  color: rgba(251, 248, 240, 0.4);
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  font-size: 9px;
+  line-height: 1.75;
+}
+
+.orba-service-page {
+  padding-top: 68px;
+  padding-left: 236px;
+}
+
+.orba-chat-main {
+  height: calc(100dvh - 68px);
+  min-height: calc(100dvh - 68px);
+}
+
+/* Shared content surfaces */
+.orba-service-page .glass,
+.orba-service-page .card,
+.service-start-shell .glass,
+.service-start-shell .card {
+  color: var(--service-text);
+  background: var(--service-surface);
+  border: 0;
+  border-radius: 16px;
+  box-shadow: var(--service-shadow);
+  backdrop-filter: none;
+}
+
+.orba-service-page .glass:hover,
+.service-start-shell .glass:hover {
+  background: var(--service-surface-raised);
+}
+
+.orba-service-page .btn-gold,
+.service-start-shell .btn-gold {
+  min-height: 44px;
+  color: #211708;
+  background: #f4c060;
+  border: 0;
+  border-radius: 12px;
+  box-shadow: 0 5px 13px rgba(167, 124, 36, 0.22);
+  transition: background 180ms ease, transform 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.orba-service-page .btn-gold:hover,
+.service-start-shell .btn-gold:hover {
+  background: #f8d486;
+  box-shadow: 0 8px 18px rgba(167, 124, 36, 0.26);
+  transform: translateY(-1px);
+}
+
+.orba-service-page .btn-ghost,
+.service-start-shell .btn-ghost {
+  min-height: 44px;
+  color: var(--service-text);
+  background: transparent;
+  border-color: var(--service-line);
+  border-radius: 12px;
+}
+
+.orba-service-page input,
+.orba-service-page textarea,
+.service-start-shell input,
+.service-start-shell textarea {
+  color: var(--service-text);
+  background: color-mix(in srgb, var(--service-surface-raised), var(--service-canvas) 22%);
+  border-color: var(--service-line);
+}
+
+.orba-service-page input::placeholder,
+.orba-service-page textarea::placeholder,
+.service-start-shell input::placeholder,
+.service-start-shell textarea::placeholder {
+  color: var(--service-subtle);
+}
+
+/* Home / my page */
+.orba-service-home {
+  overflow-x: clip;
+}
+
+.orba-profile-switcher {
+  top: 68px !important;
+  color: #fbf8f0;
+  background: rgba(12, 12, 30, 0.94) !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  backdrop-filter: blur(18px);
+}
+
+.orba-profile-switcher > div {
+  max-width: 1120px !important;
+  padding-inline: clamp(18px, 4vw, 46px) !important;
+}
+
+.orba-profile-switcher button {
+  min-width: 36px;
+  min-height: 36px;
+}
+
+.orba-home-main {
+  max-width: 1120px !important;
+  padding: clamp(38px, 5vw, 72px) clamp(20px, 5vw, 64px) 150px !important;
+  margin-inline: auto;
+}
+
+.orba-home-heading {
+  max-width: 760px;
+  margin-bottom: 38px;
+}
+
+.orba-home-heading h1 {
+  margin: 0;
+  color: var(--service-text);
+  font-family: var(--font-serif), "Shippori Mincho", serif;
+  font-size: clamp(36px, 4.4vw, 58px);
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  line-height: 1.4;
+}
+
+.orba-home-heading p {
+  margin: 10px 0 0;
+  color: var(--service-muted);
+  font-size: 13px;
+  line-height: 1.9;
+}
+
+.orba-widget-stack {
+  display: grid;
+  gap: 18px;
+}
+
+.service-widget {
+  padding: 26px !important;
+  overflow: hidden;
+}
+
+.service-widget > div:first-child {
+  margin-bottom: 20px;
+}
+
+.service-widget > div:first-child > div:first-child {
+  color: var(--service-muted) !important;
+}
+
+.service-widget--daily {
+  min-height: 276px;
+  padding: 32px 34px !important;
+  color: #fbf8f0 !important;
+  background:
+    radial-gradient(circle at 84% 40%, rgba(151, 187, 220, 0.19), transparent 13rem),
+    linear-gradient(128deg, #0a0a1d, #18182e 68%, #101928) !important;
+  border-radius: 22px !important;
+  box-shadow: 0 22px 42px rgba(19, 15, 31, 0.28) !important;
+}
+
+.service-widget--daily::after {
+  content: "";
+  position: absolute;
+  right: -65px;
+  top: 48px;
+  width: 270px;
+  height: 104px;
+  border: 1px solid rgba(244, 192, 96, 0.4);
+  border-radius: 50%;
+  transform: rotate(-24deg);
+  pointer-events: none;
+}
+
+.service-widget--daily > * {
+  position: relative;
+  z-index: 1;
+}
+
+.service-widget--daily .text-white,
+.service-widget--daily .text-white\/70,
+.service-widget--daily .text-white\/60,
+.service-widget--daily .text-white\/45,
+.service-widget--daily .text-white\/30,
+.service-widget--daily .text-white\/25 {
+  color: rgba(251, 248, 240, 0.78) !important;
+}
+
+.service-widget--daily h3 {
+  color: #fbf8f0 !important;
+  font-family: var(--font-serif), "Shippori Mincho", serif;
+  font-size: clamp(25px, 3vw, 36px) !important;
+  font-weight: 500 !important;
+}
+
+.service-widget--calendar,
+.service-widget--chat,
+.service-widget--profile {
+  background: var(--service-surface-raised) !important;
+  border-radius: 16px !important;
+}
+
+.orba-membership-bar {
+  left: 236px !important;
+  color: #fbf8f0;
+  background: rgba(7, 7, 19, 0.94) !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+}
+
+/* Chat */
+.service-chat-surface {
+  color: var(--service-text);
+}
+
+.service-page-header {
+  min-height: 74px;
+  padding-inline: clamp(20px, 4vw, 48px) !important;
+  background: var(--service-surface-raised) !important;
+  border-color: var(--service-line) !important;
+  backdrop-filter: none !important;
+}
+
+.service-chat-messages {
+  padding: clamp(28px, 4vw, 54px) clamp(18px, 4vw, 48px) !important;
+}
+
+.service-chat-bubble {
+  border-radius: 4px 14px 14px 14px !important;
+  box-shadow: none !important;
+}
+
+.service-chat-bubble--assistant {
+  color: var(--service-text) !important;
+  background: var(--service-surface-soft) !important;
+}
+
+.service-chat-bubble--user {
+  color: #251b08 !important;
+  background: #e4c875 !important;
+  border-radius: 14px 4px 14px 14px !important;
+}
+
+.service-chat-composer {
+  padding: 16px clamp(18px, 4vw, 48px) 22px !important;
+  background: var(--service-surface) !important;
+  border-top: 1px solid var(--service-line);
+}
+
+.service-chat-composer input {
+  min-height: 48px;
+  border-radius: 12px !important;
+}
+
+.service-chat-composer button[type="submit"] {
+  border-radius: 12px !important;
+}
+
+/* Calendar */
+.service-calendar-main {
+  color: var(--service-text);
+}
+
+.service-calendar-content {
+  max-width: 1040px !important;
+  padding: clamp(38px, 5vw, 72px) clamp(18px, 5vw, 60px) 110px !important;
+}
+
+.service-page-heading {
+  min-height: 64px;
+  margin-bottom: 8px;
+}
+
+.service-page-heading h1 {
+  color: var(--service-text) !important;
+  font-family: var(--font-serif), "Shippori Mincho", serif;
+  font-size: clamp(30px, 3.2vw, 46px) !important;
+  font-weight: 500;
+}
+
+.service-calendar-today {
+  min-height: 180px;
+  color: #fbf8f0 !important;
+  background:
+    radial-gradient(circle at 82% 38%, rgba(151, 187, 220, 0.18), transparent 11rem),
+    linear-gradient(128deg, #0a0a1d, #18182e 68%, #101928) !important;
+  border-radius: 22px !important;
+}
+
+.service-calendar-today .text-white,
+.service-calendar-today .text-white\/40,
+.service-calendar-today .text-white\/30 {
+  color: rgba(251, 248, 240, 0.74) !important;
+}
+
+.service-calendar-content .glass:not(.service-calendar-today) {
+  background: var(--service-surface-raised) !important;
+}
+
+/* First-time profiling */
+.service-start-shell {
+  color: var(--service-text);
+}
+
+.service-start-intro {
+  padding-block: clamp(54px, 8vw, 104px) !important;
+}
+
+.service-start-intro > p:first-child {
+  color: #fff0bd !important;
+  font-size: clamp(35px, 4vw, 49px) !important;
+}
+
+.service-start-intro > h1 {
+  max-width: 16ch;
+  color: var(--service-text) !important;
+  background: none !important;
+  font-family: var(--font-serif), "Shippori Mincho", serif;
+  font-size: clamp(36px, 5vw, 64px) !important;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  line-height: 1.45 !important;
+  -webkit-text-fill-color: currentColor;
+}
+
+.service-start-intro > .grid button {
+  min-height: 210px;
+  padding: 24px !important;
+  color: var(--service-text);
+  background: var(--service-surface-raised) !important;
+  border-radius: 16px !important;
+  transition: transform 180ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 180ms ease;
+}
+
+.service-start-intro > .grid button:hover {
+  background: var(--service-surface-raised) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.22);
+}
+
+.service-start-journey {
+  max-width: 760px !important;
+  padding-inline: clamp(16px, 4vw, 28px) !important;
+}
+
+.service-start-partner {
+  background: linear-gradient(180deg, var(--service-canvas) 0 72%, transparent) !important;
+}
+
+.service-start-journey .card {
+  background: var(--service-surface-raised) !important;
+}
+
+.service-start-journey .service-chat-bubble--assistant {
+  background: var(--service-surface-soft) !important;
+}
+
+.service-start-journey .sticky.bottom-0 {
+  background: linear-gradient(0deg, var(--service-canvas) 0 74%, transparent) !important;
+}
+
+/* Theme coherence for existing Tailwind utility content */
+[data-theme="light"] .orba-service-page .text-white,
+[data-theme="light"] .service-start-shell .text-white,
+[data-theme="light"] .orba-service-page .text-white\/90,
+[data-theme="light"] .service-start-shell .text-white\/90,
+[data-theme="light"] .orba-service-page .text-white\/85,
+[data-theme="light"] .service-start-shell .text-white\/85,
+[data-theme="light"] .orba-service-page .text-white\/80,
+[data-theme="light"] .service-start-shell .text-white\/80,
+[data-theme="light"] .orba-service-page .text-white\/70,
+[data-theme="light"] .service-start-shell .text-white\/70,
+[data-theme="light"] .orba-service-page .text-white\/60,
+[data-theme="light"] .service-start-shell .text-white\/60,
+[data-theme="light"] .orba-service-page .text-white\/50,
+[data-theme="light"] .service-start-shell .text-white\/50,
+[data-theme="light"] .orba-service-page .text-white\/45,
+[data-theme="light"] .service-start-shell .text-white\/45,
+[data-theme="light"] .orba-service-page .text-white\/40,
+[data-theme="light"] .service-start-shell .text-white\/40,
+[data-theme="light"] .orba-service-page .text-white\/35,
+[data-theme="light"] .service-start-shell .text-white\/35,
+[data-theme="light"] .orba-service-page .text-white\/30,
+[data-theme="light"] .service-start-shell .text-white\/30,
+[data-theme="light"] .orba-service-page .text-white\/25,
+[data-theme="light"] .service-start-shell .text-white\/25,
+[data-theme="light"] .orba-service-page .text-white\/20,
+[data-theme="light"] .service-start-shell .text-white\/20 {
+  color: var(--service-text) !important;
+}
+
+[data-theme="light"] .orba-service-page .text-white\/70,
+[data-theme="light"] .service-start-shell .text-white\/70,
+[data-theme="light"] .orba-service-page .text-white\/60,
+[data-theme="light"] .service-start-shell .text-white\/60,
+[data-theme="light"] .orba-service-page .text-white\/50,
+[data-theme="light"] .service-start-shell .text-white\/50,
+[data-theme="light"] .orba-service-page .text-white\/45,
+[data-theme="light"] .service-start-shell .text-white\/45,
+[data-theme="light"] .orba-service-page .text-white\/40,
+[data-theme="light"] .service-start-shell .text-white\/40,
+[data-theme="light"] .orba-service-page .text-white\/35,
+[data-theme="light"] .service-start-shell .text-white\/35,
+[data-theme="light"] .orba-service-page .text-white\/30,
+[data-theme="light"] .service-start-shell .text-white\/30,
+[data-theme="light"] .orba-service-page .text-white\/25,
+[data-theme="light"] .service-start-shell .text-white\/25,
+[data-theme="light"] .orba-service-page .text-white\/20,
+[data-theme="light"] .service-start-shell .text-white\/20 {
+  color: var(--service-muted) !important;
+}
+
+[data-theme="light"] .orba-service-page .service-widget--daily .text-white,
+[data-theme="light"] .orba-service-page .service-widget--daily .text-white\/70,
+[data-theme="light"] .orba-service-page .service-widget--daily .text-white\/60,
+[data-theme="light"] .orba-service-page .service-widget--daily .text-white\/45,
+[data-theme="light"] .orba-service-page .service-widget--daily .text-white\/30,
+[data-theme="light"] .orba-service-page .service-widget--daily .text-white\/25,
+[data-theme="light"] .orba-service-page .service-calendar-today .text-white,
+[data-theme="light"] .orba-service-page .service-calendar-today .text-white\/40,
+[data-theme="light"] .orba-service-page .service-calendar-today .text-white\/30 {
+  color: rgba(251, 248, 240, 0.78) !important;
+}
+
+@media (max-width: 960px) {
+  .orba-app-header {
+    height: 60px;
+    padding: 0 15px;
+  }
+
+  .orba-app-header .orba-lockup img {
+    width: 31px;
+    height: 31px;
+  }
+
+  .orba-app-header .orba-lockup > span {
+    font-size: 28px;
+  }
+
+  .orba-app-header__actions > span {
+    display: none;
+  }
+
+  .orba-theme-toggle {
+    width: 37px;
+    height: 37px;
+  }
+
+  .orba-app-nav {
+    inset: auto 0 0 0;
+    z-index: 80;
+    width: 100%;
+    height: 66px;
+    padding: 5px 6px max(5px, env(safe-area-inset-bottom));
+    display: block;
+    background: rgba(7, 7, 19, 0.96);
+    border-right: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(18px);
+  }
+
+  .orba-app-nav__label,
+  .orba-app-nav__privacy {
+    display: none;
+  }
+
+  .orba-app-nav__links {
+    height: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+
+  .orba-app-nav__links a {
+    min-height: 0;
+    padding: 0;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    font-size: 9px;
+    border-radius: 8px;
+  }
+
+  .orba-app-nav__links a.is-active {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .orba-service-page {
+    padding-top: 60px;
+    padding-left: 0;
+    padding-bottom: 66px;
+  }
+
+  .orba-chat-main {
+    height: calc(100dvh - 126px);
+    min-height: calc(100dvh - 126px);
+  }
+
+  .orba-profile-switcher {
+    top: 60px !important;
+  }
+
+  .orba-home-main,
+  .service-calendar-content {
+    width: 100%;
+    padding: 34px 20px 120px !important;
+  }
+
+  .orba-membership-bar {
+    left: 0 !important;
+    bottom: 66px !important;
+  }
+}
+
+@media (max-width: 650px) {
+  .orba-profile-switcher > div {
+    min-height: 94px;
+    padding: 10px 13px 11px !important;
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: 36px 32px;
+    align-items: center;
+    gap: 5px 9px !important;
+  }
+
+  .orba-profile-switcher > div > button:first-child {
+    grid-column: 1;
+    grid-row: 1;
+    margin-right: 0 !important;
+  }
+
+  .orba-profile-switcher > div > div:nth-child(2) {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .orba-profile-switcher > div > div:last-child {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+    margin-left: 0 !important;
+    justify-content: flex-end;
+    overflow-x: auto;
+  }
+
+  .orba-profile-switcher button[title*="モードに切替"] {
+    display: none;
+  }
+
+  .orba-profile-switcher .text-\[9px\],
+  .orba-profile-switcher button > span:not(.absolute) {
+    display: none;
+  }
+
+  .orba-home-main,
+  .service-calendar-content {
+    padding: 34px 15px 126px !important;
+  }
+
+  .orba-home-heading {
+    margin-bottom: 28px;
+  }
+
+  .orba-home-heading h1 {
+    font-size: 35px;
+  }
+
+  .service-widget {
+    padding: 21px !important;
+  }
+
+  .service-widget--daily {
+    min-height: 248px;
+    padding: 25px 22px !important;
+  }
+
+  .service-widget--daily::after {
+    right: -92px;
+    top: 50px;
+    width: 235px;
+    height: 82px;
+  }
+
+  .service-page-header {
+    min-height: 64px;
+    padding-inline: 14px !important;
+  }
+
+  .service-chat-messages {
+    padding: 22px 14px !important;
+  }
+
+  .service-chat-composer {
+    padding: 13px 14px 16px !important;
+  }
+
+  .service-calendar-content {
+    gap: 16px;
+  }
+
+  .service-calendar-today {
+    min-height: 156px;
+    padding: 20px !important;
+  }
+
+  .service-start-intro {
+    padding: 38px 18px 48px !important;
+    justify-content: flex-start !important;
+  }
+
+  .service-start-intro > h1 {
+    font-size: 38px !important;
+  }
+
+  .service-start-intro > .grid {
+    gap: 12px !important;
+  }
+
+  .service-start-intro > .grid button {
+    min-height: 188px;
+    padding: 18px 14px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orba-theme-toggle,
+  .orba-service-page .btn-gold,
+  .service-start-shell .btn-gold,
+  .service-start-intro > .grid button {
+    transition: none;
+  }
+}

@@ -86,13 +86,13 @@ function ChatPageInner() {
     if (!userId) return null;
 
     return (
-        <div className="orba-service-page">
+        <div className="orba-service-page hig-shell service-chat-shell">
         <OrbaAppNav />
-        <main className="orba-chat-main flex flex-col w-full bg-mesh text-white relative">
+        <main className="orba-chat-main service-chat-surface flex flex-col w-full bg-mesh text-white relative">
             <OrbField count={16} />
 
             {/* Header */}
-            <header className="flex-none px-4 py-3 flex items-center gap-3 relative z-10 border-b border-white/5 bg-black/20 backdrop-blur-xl">
+            <header className="service-page-header flex-none px-4 py-3 flex items-center gap-3 relative z-10 border-b border-white/5 bg-black/20 backdrop-blur-xl">
                 <button onClick={() => router.push('/mypage')} className="text-white/40 hover:text-white transition-colors p-1">
                     <ChevronLeft className="w-5 h-5" />
                 </button>
@@ -116,13 +116,13 @@ function ChatPageInner() {
             </header>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-4 pt-6 pb-4 space-y-5 relative z-10">
+            <div className="service-chat-messages flex-1 overflow-y-auto px-4 pt-6 pb-4 space-y-5 relative z-10">
                 {messages.map((msg) => (
                     <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                         className={cn('flex gap-3 max-w-2xl mx-auto', msg.role === 'user' ? 'flex-row-reverse' : 'flex-row')}>
                         {msg.role === 'assistant' && <div className="flex-none pt-1"><CharacterAvatar type={char} size={36} /></div>}
-                        <div className={cn('rounded-2xl px-4 py-3 leading-relaxed text-[15px] font-serif-jp max-w-[82%]',
-                            msg.role === 'user' ? 'bg-white/10 text-white/90 rounded-tr-sm' : 'card text-white/85 rounded-tl-sm')}>
+                        <div className={cn('service-chat-bubble rounded-2xl px-4 py-3 leading-relaxed text-[15px] font-serif-jp max-w-[82%]',
+                            msg.role === 'user' ? 'service-chat-bubble--user bg-white/10 text-white/90 rounded-tr-sm' : 'service-chat-bubble--assistant card text-white/85 rounded-tl-sm')}>
                             <p className="whitespace-pre-wrap">{msg.content}</p>
                         </div>
                     </motion.div>
@@ -130,7 +130,7 @@ function ChatPageInner() {
                 {isLoading && (
                     <div className="flex gap-3 max-w-2xl mx-auto">
                         <div className="flex-none pt-1"><CharacterAvatar type={char} size={36} speaking /></div>
-                        <div className="card rounded-2xl rounded-tl-sm px-4 py-3 flex gap-1.5 items-center">
+                        <div className="service-chat-bubble service-chat-bubble--assistant card rounded-2xl rounded-tl-sm px-4 py-3 flex gap-1.5 items-center">
                             {[0, 1, 2].map((i) => <motion.span key={i} animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 1.1, repeat: Infinity, delay: i * 0.18 }} className="w-1.5 h-1.5 rounded-full bg-amber-200/70" />)}
                         </div>
                     </div>
@@ -139,7 +139,7 @@ function ChatPageInner() {
             </div>
 
             {/* Input + 易を立てる導線 */}
-            <div className="flex-none p-4 relative z-10 bg-gradient-to-t from-[#0a0820] to-transparent">
+            <div className="service-chat-composer flex-none p-4 relative z-10 bg-gradient-to-t from-[#0a0820] to-transparent">
                 <div className="max-w-2xl mx-auto">
                     <div className="mb-2 flex justify-end">
                         <button

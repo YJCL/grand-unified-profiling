@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Noto_Sans_JP, Shippori_Mincho, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import "./brand.css";
+import "./service-redesign.css";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { ServiceWorkerRegister } from "./components/ServiceWorkerRegister";
 

@@ -93,13 +93,13 @@ export default function CalendarPage() {
     );
 
     return (
-        <div className="orba-service-page">
+        <div className="orba-service-page hig-shell service-calendar-shell">
         <OrbaAppNav />
-        <main className="min-h-screen w-full bg-mesh text-white">
-            <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+        <main className="service-calendar-main min-h-screen w-full bg-mesh text-white">
+            <div className="service-calendar-content max-w-2xl mx-auto px-4 py-8 space-y-6">
 
                 {/* Header */}
-                <header className="flex items-center justify-between">
+                <header className="service-page-heading flex items-center justify-between">
                     <button onClick={() => router.push('/mypage')} className="flex items-center gap-1.5 text-sm text-white/40 hover:text-white transition-colors">
                         <ChevronLeft className="w-4 h-4" /> 戻る
                     </button>
@@ -110,7 +110,7 @@ export default function CalendarPage() {
                 {/* 今日のスコア — ヒーロー */}
                 {todayScore && (
                     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-                        className="glass p-6 flex items-center gap-6"
+                        className="glass service-calendar-today p-6 flex items-center gap-6"
                     >
                         <div className="relative flex-none">
                             <ScoreRing score={todayScore.score} size={80} />
