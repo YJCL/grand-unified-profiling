@@ -77,29 +77,31 @@ export function CelestialInstrument() {
           viewBox="0 0 900 900"
           aria-hidden="true"
         >
-          <g className="orba-instrument-reticle">
+          <g className="orba-instrument-outer-assembly">
             <circle className="orba-instrument-outer-ring" cx="450" cy="450" r="385" />
+            <g className="orba-instrument-ticks">
+              {Array.from({ length: 72 }, (_, index) => {
+                const angle = (index / 72) * Math.PI * 2;
+                const inner = index % 6 === 0 ? 367 : 374;
+                const outer = 384;
+                return (
+                  <line
+                    key={index}
+                    x1={450 + Math.cos(angle) * inner}
+                    y1={450 + Math.sin(angle) * inner}
+                    x2={450 + Math.cos(angle) * outer}
+                    y2={450 + Math.sin(angle) * outer}
+                  />
+                );
+              })}
+            </g>
+          </g>
+
+          <g className="orba-instrument-reticle">
             <circle cx="450" cy="450" r="354" />
             <circle cx="450" cy="450" r="322" />
             <path d="M450 48V852M48 450H852" />
             <path d="M165 165L735 735M735 165L165 735" />
-          </g>
-
-          <g className="orba-instrument-ticks">
-            {Array.from({ length: 72 }, (_, index) => {
-              const angle = (index / 72) * Math.PI * 2;
-              const inner = index % 6 === 0 ? 367 : 374;
-              const outer = 384;
-              return (
-                <line
-                  key={index}
-                  x1={450 + Math.cos(angle) * inner}
-                  y1={450 + Math.sin(angle) * inner}
-                  x2={450 + Math.cos(angle) * outer}
-                  y2={450 + Math.sin(angle) * outer}
-                />
-              );
-            })}
           </g>
 
           <path

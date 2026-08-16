@@ -281,30 +281,31 @@
   filter: drop-shadow(0 26px 46px rgba(0, 0, 0, 0.34));
 }
 .orba-instrument-reticle circle,
-.orba-instrument-reticle path {
+.orba-instrument-reticle path,
+.orba-instrument-outer-ring {
   fill: none;
   stroke: rgba(240, 238, 255, 0.075);
   stroke-width: 1;
 }
-.orba-instrument-reticle circle:first-child {
+.orba-instrument-outer-ring {
   stroke: rgba(244, 192, 96, 0.3);
   stroke-dasharray: 2 15;
 }
-.orba-instrument-reticle circle:nth-child(2) {
+.orba-instrument-reticle circle:first-child {
   stroke: rgba(240, 238, 255, 0.1);
   stroke-dasharray: 90 16 3 12;
 }
 .orba-instrument-reticle path {
   stroke-dasharray: 1 18;
 }
-.orba-instrument-outer-ring {
-  animation: orba-reticle-counterclockwise 64s linear infinite;
+.orba-instrument-outer-assembly {
+  animation: orba-reticle-counterclockwise 256s linear infinite;
   animation-play-state: paused;
   transform-box: fill-box;
   transform-origin: center;
   will-change: transform;
 }
-.orba-celestial-instrument.is-active .orba-instrument-outer-ring {
+.orba-celestial-instrument.is-active .orba-instrument-outer-assembly {
   animation-play-state: running;
 }
 .orba-instrument-ticks line {
