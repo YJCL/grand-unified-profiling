@@ -8,59 +8,64 @@ datasource db {
 }
 
 model User {
-  id            String      @id @default(uuid())
-  email         String?     @unique
-  passwordHash  String?     // scrypt(salt:hash)。本登録済みユーザーのみ。平文は保存しない
-  isPremium     Boolean     @default(false)
-  createdAt     DateTime    @default(now())
-  birthDate     String?
-  birthPlace    String?
-  birthTime     String?
-  gender        String?
-  language      String?     @default("ja")
-  name          String?
-  characterType String?
-  enneagram     String?
-  mbti          String?
-  widgetOrder   String?  // JSON: ["daily","calendar","chat","profile"]
-  profileType   String?  @default("self") // "self" | "family" | "friend"
-  chatDate      String?  // 無料枠カウントの対象日 YYYY-MM-DD
-  chatUsed      Int      @default(0) // その日の使用回数（無料は1日3回）
-  stripeCustomerId String? // Stripeの顧客ID（解約Webhookでの突き合わせ用）
-  failedLogins  Int       @default(0) // 連続ログイン失敗回数
-  lockedUntil   DateTime? // アカウントロック解除時刻
-  tickets       Int       @default(0) // 鑑定チケット（無料枠を超えて1回使える）
-  lastShareTicketDate String? // シェア報酬を最後に付与した日 YYYY-MM-DD（1日1回）
-  lastLoginBonusDate  String? // ログインボーナスを最後に付与した日 YYYY-MM-DD（1日1回）
-  memory        String?  // 「Orbaが覚えていること」。会話を安価LLMで蒸留した永続メモリ（毎回の文脈に注入）
+  id                       String             @id @default(uuid())
+  email                    String?            @unique
+  passwordHash             String? // scrypt(salt:hash)。本登録済みユーザーのみ。平文は保存しない
+  isPremium                Boolean            @default(false)
+  createdAt                DateTime           @default(now())
+  birthDate                String?
+  birthPlace               String?
+  birthTime                String?
+  gender                   String?
+  language                 String?            @default("ja")
+  name                     String?
+  characterType            String?
+  enneagram                String?
+  mbti                     String?
+  widgetOrder              String? // JSON: ["daily","calendar","chat","profile"]
+  profileType              String?            @default("self") // "self" | "family" | "friend"
+  chatDate                 String? // 無料枠カウントの対象日 YYYY-MM-DD
+  chatUsed                 Int                @default(0) // その日の使用回数（無料は1日3回）
+  komojuCustomerId         String?            @unique // KOMOJU顧客ID（カード情報そのものは保持しない）
+  komojuSubscriptionId     String?            @unique // KOMOJU定期課金ID
+  komojuCheckoutSessionId  String?            @unique // 重複購入防止用の直近セッションID
+  premiumStatus            String? // active | failed | suspended | canceled
+  premiumUntil             DateTime? // 支払済み利用期間の終了日時
+  premiumCancelAtPeriodEnd Boolean            @default(false)
+  failedLogins             Int                @default(0) // 連続ログイン失敗回数
+  lockedUntil              DateTime? // アカウントロック解除時刻
+  tickets                  Int                @default(0) // 鑑定チケット（無料枠を超えて1回使える）
+  lastShareTicketDate      String? // シェア報酬を最後に付与した日 YYYY-MM-DD（1日1回）
+  lastLoginBonusDate       String? // ログインボーナスを最後に付与した日 YYYY-MM-DD（1日1回）
+  memory                   String? // 「Orbaが覚えていること」。会話を安価LLMで蒸留した永続メモリ（毎回の文脈に注入）
   // 「人生に1度きり」固定する象徴データ。一度書かれたら上書き不可（divineを再実行しても変わらない）。
-  frozenSignature String? // signature(JSON文字列): キーカラー・数字・象徴アイテム
-  frozenCompass   String? // compass(JSON文字列): 迷ったとき/不安なとき/踏み出すときの羅針盤
-  expiresAt     DateTime?
-  chatLogs      ChatLog[]
-  dailyLogs     DailyLog[]
-  diagnoses     Diagnosis[]
-  pushSubs      PushSubscription[]
-  ichingReadings IchingReading[]
+  frozenSignature          String? // signature(JSON文字列): キーカラー・数字・象徴アイテム
+  frozenCompass            String? // compass(JSON文字列): 迷ったとき/不安なとき/踏み出すときの羅針盤
+  expiresAt                DateTime?
+  chatLogs                 ChatLog[]
+  dailyLogs                DailyLog[]
+  diagnoses                Diagnosis[]
+  pushSubs                 PushSubscription[]
+  ichingReadings           IchingReading[]
 }
 
 // 易占い結果。生成時点の6爻と解釈をスナップショット保存し、再表示時は再抽選しない。
 model IchingReading {
-  id                String   @id @default(uuid())
-  userId            String
-  question          String   // 質問原文
-  questionNormalized String  // 正規化済み（空白統一・NFKC）
-  questionHash      String   // 同一質問判定用（24h以内なら前回返す）
-  lineValues        String   // 6本の爻値 [6,7,8,9] のJSON配列文字列。下→上
-  primaryNum        Int      // 本卦番号
-  transformedNum    Int?     // 之卦番号（変爻ありの場合のみ）
-  changingLines     String   // 変爻の位置のJSON配列文字列（1〜6, 下から）
-  interpretation    String   // LLM解釈の構造化JSON文字列
-  dataVersion       String   // 卦データのバージョン
-  profileVersion    String?  // 解釈時に参照したプロフィールのバージョン/ID
-  seed              String?  // 乱数seed（指定時のみ）
-  createdAt         DateTime @default(now())
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                 String   @id @default(uuid())
+  userId             String
+  question           String // 質問原文
+  questionNormalized String // 正規化済み（空白統一・NFKC）
+  questionHash       String // 同一質問判定用（24h以内なら前回返す）
+  lineValues         String // 6本の爻値 [6,7,8,9] のJSON配列文字列。下→上
+  primaryNum         Int // 本卦番号
+  transformedNum     Int? // 之卦番号（変爻ありの場合のみ）
+  changingLines      String // 変爻の位置のJSON配列文字列（1〜6, 下から）
+  interpretation     String // LLM解釈の構造化JSON文字列
+  dataVersion        String // 卦データのバージョン
+  profileVersion     String? // 解釈時に参照したプロフィールのバージョン/ID
+  seed               String? // 乱数seed（指定時のみ）
+  createdAt          DateTime @default(now())
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
   @@index([userId, questionHash, createdAt])
@@ -70,10 +75,10 @@ model IchingReading {
 // 第一者・自前。外部アナリティクス不要。anonId は signup 前の匿名識別子。
 model Event {
   id        String   @id @default(uuid())
-  name      String   // 'landing_view' | 'onboarding_start' | 'reading_complete' | 'app_open' | 'paywall_view' | 'paywall_click' | ...
-  anonId    String?  // localStorage の匿名ID（未ログインでも追える）
-  userId    String?  // 分かればユーザーID（インスタント/本登録どちらも）
-  props     String?  // 任意の付随情報（JSON文字列）
+  name      String // 'landing_view' | 'onboarding_start' | 'reading_complete' | 'app_open' | 'paywall_view' | 'paywall_click' | ...
+  anonId    String? // localStorage の匿名ID（未ログインでも追える）
+  userId    String? // 分かればユーザーID（インスタント/本登録どちらも）
+  props     String? // 任意の付随情報（JSON文字列）
   createdAt DateTime @default(now())
 
   @@index([name, createdAt])
@@ -86,8 +91,8 @@ model PushSubscription {
   id        String   @id @default(uuid())
   userId    String
   endpoint  String   @unique // ブラウザ毎に一意。再購読時の突き合わせキー
-  p256dh    String   // 公開鍵（暗号化用）
-  auth      String   // 認証シークレット
+  p256dh    String // 公開鍵（暗号化用）
+  auth      String // 認証シークレット
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -135,4 +140,11 @@ model PasswordReset {
   userId    String
   expiresAt DateTime
   createdAt DateTime @default(now())
+}
+
+// KOMOJU Webhook は再送されるため、delivery ID を保存して二重処理を防ぐ。
+model BillingEvent {
+  id          String   @id
+  type        String
+  processedAt DateTime @default(now())
 }

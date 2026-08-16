@@ -1,0 +1,23 @@
+import type { MetadataRoute } from "next";
+import { insights } from "./data/insights";
+
+const baseUrl = "https://orba.life";
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  const staticPages: MetadataRoute.Sitemap = [
+    { url: baseUrl, lastModified: new Date("2026-08-17"), changeFrequency: "weekly", priority: 1 },
+    { url: `${baseUrl}/insights`, lastModified: new Date("2026-08-17"), changeFrequency: "weekly", priority: 0.9 },
+    { url: `${baseUrl}/brand`, lastModified: new Date("2026-08-17"), changeFrequency: "monthly", priority: 0.4 },
+    { url: `${baseUrl}/legal/terms`, lastModified: new Date("2026-08-17"), changeFrequency: "yearly", priority: 0.2 },
+    { url: `${baseUrl}/legal/privacy`, lastModified: new Date("2026-08-17"), changeFrequency: "yearly", priority: 0.2 },
+  ];
+
+  const articlePages: MetadataRoute.Sitemap = insights.map((insight) => ({
+    url: `${baseUrl}/insights/${insight.slug}`,
+    lastModified: new Date(insight.updatedAt),
+    changeFrequency: "monthly",
+    priority: 0.75,
+  }));
+
+  return [...staticPages, ...articlePages];
+}

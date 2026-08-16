@@ -1,0 +1,30 @@
+name: Security checks
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  schedule:
+    - cron: '20 1 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm audit --audit-level=high
+      - run: npx prisma generate
+      - run: npx tsc --noEmit
+      - run: npm run build
+        env:
+          DATABASE_URL: postgresql://user:password@localhost:5432/orba
+          AUTH_SECRET: ci-only-secret

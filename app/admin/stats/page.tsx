@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 type Stats = {
   generatedAt: string;
@@ -31,20 +30,18 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 function Dashboard() {
-  const key = useSearchParams().get('key') || '';
   const [stats, setStats] = useState<Stats | null>(null);
   const [err, setErr] = useState('');
 
   useEffect(() => {
-    if (!key) { setErr('?key=<ADMIN_KEY> が必要です'); return; }
-    fetch(`/api/admin/stats?key=${encodeURIComponent(key)}`)
+    fetch('/api/admin/stats')
       .then(async (r) => {
-        if (!r.ok) throw new Error(r.status === 401 ? 'ADMIN_KEY が違います' : `HTTP ${r.status}`);
+        if (!r.ok) throw new Error(r.status === 401 ? '管理者認証が必要です' : `HTTP ${r.status}`);
         return r.json();
       })
       .then(setStats)
       .catch((e) => setErr(e.message));
-  }, [key]);
+  }, []);
 
   if (err) return <div className="p-8 text-red-300">{err}</div>;
   if (!stats) return <div className="p-8 text-white/40">読み込み中…</div>;
@@ -109,9 +106,7 @@ function Dashboard() {
 export default function AdminStatsPage() {
   return (
     <main className="min-h-screen bg-[#080818] text-white">
-      <Suspense fallback={<div className="p-8 text-white/40">読み込み中…</div>}>
-        <Dashboard />
-      </Suspense>
+      <Dashboard />
     </main>
   );
 }

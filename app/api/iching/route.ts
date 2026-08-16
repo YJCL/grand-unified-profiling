@@ -131,7 +131,7 @@ ${opts.riskFlags.length ? opts.riskFlags.join('・') : 'なし'}
 上記から、6項目（今の状況／卦が示す中心テーマ／変化している部分／注意して扱うこと／今できる一歩／断定できないこと）を構造化して返してください。リスクフラグがあれば safety_notes を埋めてください。`;
 
   const res = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
+    model: 'claude-sonnet-5',
     max_tokens: 2048,
     system: sys,
     tools,

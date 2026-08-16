@@ -1,0 +1,22 @@
+import type { MetadataRoute } from "next";
+
+export default function robots(): MetadataRoute.Robots {
+  return {
+    rules: {
+      userAgent: "*",
+      allow: "/",
+      disallow: [
+        "/api/",
+        "/admin/",
+        "/chat",
+        "/calendar",
+        "/mypage",
+        "/reset",
+        "/forgot",
+        "/s/",
+      ],
+    },
+    sitemap: "https://orba.life/sitemap.xml",
+    host: "https://orba.life",
+  };
+}

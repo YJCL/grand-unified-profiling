@@ -23,7 +23,7 @@ const MEMORY_EVERY_TURNS = 3;
 const FREE_DAILY_LIMIT = 3;
 // 全プラン共通のフェアユース上限（プレミアム/無料開放でも適用）。
 // 濫用・暴走・API費用の青天井を防ぐ安全弁。通常利用ではまず当たらない。
-const ABUSE_DAILY_CAP = 50;
+const ABUSE_DAILY_CAP = 20;
 // 1通あたりの入力文字数の上限（巨大入力によるトークン濫用を防ぐ）。
 const MAX_MESSAGE_CHARS = 2000;
 
@@ -110,7 +110,8 @@ export async function POST(request: Request) {
         // 日次カウンタはJST基準（UTCだとJSTの朝9時にリセットされてしまう）
         const todayKey = jstDateKey();
         const usedToday = user.chatDate === todayKey ? user.chatUsed : 0;
-        // プレミアム or ローンチ無料開放中は「通常の無料上限(3回)」が無い
+        // プレミアム or ローンチ無料開放中は「通常の無料上限(3回)」ではなく、
+        // 全体のフェアユース上限（1日20回）まで利用できる。
         const unlimited = user.isPremium || isLaunchFreeActive();
 
         // 1) フェアユース上限（全プラン共通・コスト暴走/濫用の安全弁）
@@ -129,7 +130,7 @@ export async function POST(request: Request) {
                 return NextResponse.json({
                     error: 'Daily limit reached',
                     limitReached: true,
-                    message: `本日の無料相談回数（${FREE_DAILY_LIMIT}回）に達しました。シェアやログインボーナスでチケットを集めると追加で相談できます。プレミアムなら無制限です。`
+                    message: `本日の無料相談回数（${FREE_DAILY_LIMIT}回）に達しました。シェアやログインボーナスでチケットを集めると追加で相談できます。Orba Plusなら1日${ABUSE_DAILY_CAP}回まで話せます。`
                 }, { status: 429 });
             }
         }
@@ -289,7 +290,7 @@ ${dailySheet}` : ''}
         ];
 
         const response = await anthropic.messages.create({
-            model: isPaid ? 'claude-sonnet-4-6' : 'claude-haiku-4-5-20251001',
+            model: isPaid ? 'claude-sonnet-5' : 'claude-haiku-4-5-20251001',
             max_tokens: isPaid ? 2048 : 1600,
             // システムプロンプトは大きい（プロフィール＋鑑定＋記憶＋占術データ）ので
             // prompt caching を効かせる。連続した会話では入力コストが大幅に下がる。

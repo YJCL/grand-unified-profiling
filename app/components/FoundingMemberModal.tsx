@@ -2,26 +2,44 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, Gift, Check, MessageSquare, CalendarDays } from 'lucide-react';
+import { X, Gift, Check, MessageSquare, CalendarDays, CreditCard } from 'lucide-react';
 import { track } from '@/lib/analytics';
-import { PREMIUM_PRICE_LABEL, launchFreeUntilLabel } from '@/lib/launch';
+import { PREMIUM_PRICE_LABEL, isBillingEnabled, launchFreeUntilLabel } from '@/lib/launch';
 
 // ローンチ記念の無料開放を「期間限定・将来は有料・終了日」とともに明記するモーダル。
 // 買えない価格を煽るのではなく、いま無料で使えること＋開始時の通知登録(任意)を案内する。
 const PERKS = [
-  { icon: MessageSquare, text: 'いつでも無制限に相談できる', sub: '通常プランは1日3回まで' },
+  { icon: MessageSquare, text: '1日20回まで深く相談できる', sub: '通常プランは1日3回まで' },
   { icon: CalendarDays, text: '運気カレンダーを60日分ひと目で', sub: '通常プランは7日分まで' },
 ];
 
 export function FoundingMemberModal({ userEmail, onClose }: { userEmail?: string | null; onClose: () => void }) {
   const [email, setEmail] = useState(userEmail || '');
   const [submitted, setSubmitted] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState('');
   const untilLabel = launchFreeUntilLabel();
+  const billingEnabled = isBillingEnabled();
 
   const submit = () => {
     const e = email.trim();
     track('founding_interest', e ? { email: e } : undefined);
     setSubmitted(true);
+  };
+
+  const checkout = async () => {
+    setCheckoutLoading(true);
+    setCheckoutError('');
+    try {
+      track('paywall_click', { provider: 'komoju', plan: 'orba_plus' });
+      const response = await fetch('/api/billing/upgrade', { method: 'POST' });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.url) throw new Error(data.error || '決済画面を開けませんでした');
+      window.location.href = data.url;
+    } catch (error) {
+      setCheckoutError(error instanceof Error ? error.message : '決済画面を開けませんでした');
+      setCheckoutLoading(false);
+    }
   };
 
   return (
@@ -38,7 +56,7 @@ export function FoundingMemberModal({ userEmail, onClose }: { userEmail?: string
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-2">
             <Gift className="w-5 h-5 text-amber-300" />
-            <h3 className="text-base font-bold text-white">ローンチ記念・無料開放中</h3>
+            <h3 className="text-base font-bold text-white">{billingEnabled ? 'Orba Plus' : 'ローンチ記念・無料開放中'}</h3>
           </div>
           <button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
             <X className="w-4 h-4" />
@@ -61,7 +79,9 @@ export function FoundingMemberModal({ userEmail, onClose }: { userEmail?: string
         ) : (
           <>
             <p className="text-[12px] text-white/55 mb-4 leading-relaxed">
-              いまなら、通常はプレミアムの機能も<strong className="text-amber-200">すべて無料</strong>でお使いいただけます。
+              {billingEnabled
+                ? <>毎日の対話と運気の流れを、もっと深く。<strong className="text-amber-200">{PREMIUM_PRICE_LABEL}</strong>でご利用いただけます。</>
+                : <>いまなら、通常はプレミアムの機能も<strong className="text-amber-200">すべて無料</strong>でお使いいただけます。</>}
             </p>
 
             <ul className="space-y-2.5 mb-4">
@@ -80,24 +100,49 @@ export function FoundingMemberModal({ userEmail, onClose }: { userEmail?: string
 
             {/* ★期間限定・将来有料・終了日を明記（誠実さの最低ライン） */}
             <div className="mb-4 rounded-xl bg-white/[0.04] border border-white/10 p-3 text-[11px] text-white/55 leading-relaxed space-y-1">
-              <p>・これは<strong className="text-white/80">ローンチ記念の無料開放</strong>です。</p>
-              <p>・正式版ではプレミアム機能は<strong className="text-amber-200">{PREMIUM_PRICE_LABEL}</strong>の予定です。</p>
-              <p>・無料開放期間：{untilLabel ? <strong className="text-white/80">{untilLabel}まで</strong> : '正式リリースまで'}（延長する場合があります）。</p>
-              <p className="text-white/35">期間終了後は無料プラン（チャット1日3回 ほか）に戻ります。</p>
+              {billingEnabled ? (
+                <>
+                  <p>・料金：<strong className="text-amber-200">{PREMIUM_PRICE_LABEL}</strong></p>
+                  <p>・お申し込み時に初回決済、以後毎月同日に自動更新されます。</p>
+                  <p className="text-white/35">いつでも解約できます。解約後も支払済み期間の終了まではご利用いただけます。</p>
+                </>
+              ) : (
+                <>
+                  <p>・これは<strong className="text-white/80">ローンチ記念の無料開放</strong>です。</p>
+                  <p>・正式版ではプレミアム機能は<strong className="text-amber-200">{PREMIUM_PRICE_LABEL}</strong>の予定です。</p>
+                  <p>・無料開放期間：{untilLabel ? <strong className="text-white/80">{untilLabel}まで</strong> : '正式リリースまで'}（延長する場合があります）。</p>
+                  <p className="text-white/35">期間終了後は無料プラン（チャット1日3回 ほか）に戻ります。</p>
+                </>
+              )}
             </div>
-
-            <input
-              type="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)}
-              placeholder="メールアドレス（任意・正式開始時にお知らせ）"
-              className="w-full mb-3 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-amber-300/40"
-            />
-            <button
-              onClick={submit}
-              className="w-full py-3 rounded-full bg-gradient-to-r from-amber-300 to-amber-400 text-black text-sm font-bold hover:brightness-105 transition-all"
-            >
-              開始のお知らせを受け取る
-            </button>
-            <p className="mt-2 text-center text-[10px] text-white/25">いま課金は発生しません。登録は任意です。</p>
+            {billingEnabled ? (
+              <>
+                {checkoutError && <p className="mb-3 text-center text-[11px] text-rose-300">{checkoutError}</p>}
+                <button
+                  onClick={checkout}
+                  disabled={checkoutLoading}
+                  className="w-full py-3 rounded-full bg-gradient-to-r from-amber-300 to-amber-400 text-black text-sm font-bold hover:brightness-105 transition-all disabled:opacity-50"
+                >
+                  <span className="inline-flex items-center gap-2"><CreditCard className="w-4 h-4" />{checkoutLoading ? '決済画面を準備中…' : 'Orba Plusを始める'}</span>
+                </button>
+                <p className="mt-2 text-center text-[10px] text-white/25">カード情報はKOMOJUの安全な決済画面で入力します。</p>
+              </>
+            ) : (
+              <>
+                <input
+                  type="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                  placeholder="メールアドレス（任意・正式開始時にお知らせ）"
+                  className="w-full mb-3 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-amber-300/40"
+                />
+                <button
+                  onClick={submit}
+                  className="w-full py-3 rounded-full bg-gradient-to-r from-amber-300 to-amber-400 text-black text-sm font-bold hover:brightness-105 transition-all"
+                >
+                  開始のお知らせを受け取る
+                </button>
+                <p className="mt-2 text-center text-[10px] text-white/25">いま課金は発生しません。登録は任意です。</p>
+              </>
+            )}
           </>
         )}
       </motion.div>

@@ -13,10 +13,10 @@ const SELLER = {
   address: 'ご請求をいただいた場合、遅滞なく開示いたします',
   phone: 'ご請求をいただいた場合、遅滞なく開示いたします',
   email: 'orba.support@gmail.com',
-  price: 'プレミアムプラン：月額 3,000円（税込）※現在は提供準備中（無料開放期間中）',
+  price: 'Orba Plus：月額 1,480円（税込）',
   extraFees: 'なし（インターネット接続にかかる通信料はお客様のご負担となります）',
-  paymentMethod: '決済方法は提供開始時に確定し、本表記を更新します（先行登録の時点では課金は発生しません）',
-  paymentTiming: 'プレミアムプランの提供開始後、お申し込み時に課金され、以後は毎月同日に自動更新されます',
+  paymentMethod: 'クレジットカード（KOMOJUを通じて決済します。カード情報を当サービスでは保持しません）',
+  paymentTiming: 'お申し込み時に課金され、以後は毎月同日に自動更新されます',
   deliveryTiming: '決済完了後、ただちにご利用いただけます',
   cancel: 'いつでも解約できます。解約後も、当該課金期間の終了日まではプレミアム機能をご利用いただけます。デジタルサービスの性質上、決済済みの料金の返金はいたしかねます（法令で認められる場合を除く）。',
   environment: '最新版の主要ブラウザ（Chrome / Safari / Edge 等）。一部機能はネットワーク接続が必要です。',
@@ -36,7 +36,7 @@ export default function TokushohoPage() {
     <main className="min-h-screen bg-mesh text-white">
       <div className="max-w-2xl mx-auto px-6 py-14">
         <h1 className="text-2xl mb-2">特定商取引法に基づく表記</h1>
-        <p className="text-xs text-white/35 mb-10 font-serif-jp">最終更新日：2026年7月3日</p>
+        <p className="text-xs text-white/35 mb-10 font-serif-jp">最終更新日：2026年8月17日</p>
 
         <dl className="font-serif-jp">
           <Row label="販売事業者">{SELLER.name}</Row>

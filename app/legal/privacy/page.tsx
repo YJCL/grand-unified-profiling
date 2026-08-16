@@ -7,7 +7,7 @@ export default function PrivacyPage() {
     <main className="min-h-screen bg-mesh text-white">
       <div className="max-w-2xl mx-auto px-6 py-14">
         <h1 className="text-2xl mb-2">プライバシーポリシー</h1>
-        <p className="text-xs text-white/35 mb-10">最終更新日：2026年6月7日</p>
+        <p className="text-xs text-white/35 mb-10">最終更新日：2026年8月17日</p>
 
         <div className="space-y-8 text-sm leading-relaxed text-white/75 font-serif-jp">
           <section>
@@ -37,6 +37,7 @@ export default function PrivacyPage() {
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li>Anthropic（米国）：鑑定文・会話の生成のため、プロフィール・相談内容をAPIに送信します（同社の規約により、APIに送信されたデータはモデルの学習には使用されません）</li>
               <li>Vercel（米国）／Supabase（データはアジア太平洋リージョン）：ホスティングおよびデータベースとして利用します</li>
+              <li>KOMOJU（株式会社DEGICA）：有料プランのカード決済・継続課金の処理に利用します。当サービスはカード番号を取得・保存しません</li>
             </ul>
           </section>
 

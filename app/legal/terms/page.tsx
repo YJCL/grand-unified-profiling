@@ -7,7 +7,7 @@ export default function TermsPage() {
     <main className="min-h-screen bg-mesh text-white">
       <div className="max-w-2xl mx-auto px-6 py-14">
         <h1 className="text-2xl mb-2">利用規約</h1>
-        <p className="text-xs text-white/35 mb-10">最終更新日：2026年6月7日</p>
+        <p className="text-xs text-white/35 mb-10">最終更新日：2026年8月17日</p>
 
         <div className="space-y-8 text-sm leading-relaxed text-white/75 font-serif-jp">
           <section>
@@ -27,8 +27,9 @@ export default function TermsPage() {
           <section>
             <h2 className="text-base text-amber-200/80 mb-2">第3条（有料プラン）</h2>
             <ul className="list-disc pl-5 space-y-1">
-              <li>有料プランの内容・価格は、アプリ内の表示によります。</li>
-              <li>決済・解約の手続および返金の扱いは、決済手段ごとの規約・法令に従います。</li>
+              <li>Orba Plusは月額1,480円（税込）で、お申し込み時に初回課金され、以後毎月同日に自動更新されます。</li>
+              <li>決済はKOMOJUを通じて行われ、当サービスはカード番号を保存しません。</li>
+              <li>解約はアプリ内からいつでも行えます。解約後も支払済み期間の終了までは利用でき、法令上必要な場合を除き決済済み料金は返金されません。</li>
               <li>無料プランには利用回数・閲覧範囲等の制限があります。</li>
             </ul>
           </section>

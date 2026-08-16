@@ -18,7 +18,7 @@ import { NotificationToggle } from '@/app/components/NotificationToggle';
 import { track } from '@/lib/analytics';
 import { FoundingMemberModal } from '@/app/components/FoundingMemberModal';
 import { OrbaAppNav } from '@/app/components/OrbaAppNav';
-import { isLaunchFreeActive, launchFreeUntilLabel, PREMIUM_PRICE_LABEL } from '@/lib/launch';
+import { isBillingEnabled, isLaunchFreeActive, launchFreeUntilLabel, PREMIUM_PRICE_LABEL } from '@/lib/launch';
 
 function copyToClipboard(text: string): Promise<void> {
     if (navigator.clipboard?.writeText) {
@@ -532,11 +532,15 @@ export default function MyPage() {
     const [showAccount, setShowAccount] = useState(false);
     const [orbSaving, setOrbSaving] = useState(false);
 
-    // Stripe決済から ?upgraded=1 で戻ってきたらお礼を表示し、URLを綺麗にする
+    // KOMOJU決済から戻ってきた結果を表示し、URLを綺麗にする。
     useEffect(() => {
         if (typeof window === 'undefined') return;
-        if (new URLSearchParams(window.location.search).get('upgraded') === '1') {
+        const billing = new URLSearchParams(window.location.search).get('billing');
+        if (billing === 'success') {
             setShowWelcome(true); // 閉じるまで表示（自動消去しない）
+            window.history.replaceState({}, '', '/mypage');
+        } else if (billing === 'error' || billing === 'invalid') {
+            alert('決済の確認に失敗しました。課金状況を確認のうえ、サポートへお問い合わせください。');
             window.history.replaceState({}, '', '/mypage');
         }
     }, []);
@@ -876,10 +880,13 @@ export default function MyPage() {
                         </div>
                         <button
                             onClick={async () => {
+                                if (!confirm('Orba Plusを解約しますか？ 支払済み期間の終了までは引き続き利用できます。')) return;
                                 const res = await fetch('/api/billing/portal', { method: 'POST' });
                                 const data = await res.json().catch(() => ({}));
-                                if (res.ok && data.url) window.location.href = data.url;
-                                else alert(data.error || '管理ページを開けませんでした');
+                                if (res.ok && data.canceled) {
+                                    const until = data.effectiveUntil ? new Date(data.effectiveUntil).toLocaleDateString('ja-JP') : '現在の利用期間末';
+                                    alert(`解約を受け付けました。${until}までご利用いただけます。`);
+                                } else alert(data.error || '解約処理に失敗しました');
                             }}
                             className="text-[10px] text-white/30 hover:text-white/70 transition-colors uppercase tracking-widest">
                             管理・解約
@@ -909,13 +916,13 @@ export default function MyPage() {
                                 プレミアムにアップグレード
                                 <span className="text-[10px] font-normal text-amber-300/90">🎟 鑑定チケット ×{tickets}</span>
                             </p>
-                            <p className="text-[10px] text-white/40">チャット無制限・運気カレンダー60日分</p>
+                            <p className="text-[10px] text-white/40">高品質チャット1日20回・運気カレンダー60日分</p>
                         </div>
                         <button
                             onClick={() => { track('paywall_click'); setShowFounding(true); }}
                             className="flex-none px-4 py-2 bg-gradient-to-r from-amber-300 to-amber-400 text-black text-xs font-bold rounded-full whitespace-nowrap hover:brightness-105 transition-all"
                         >
-                            先行登録
+                            {isBillingEnabled() ? 'Orba Plusを始める' : '先行登録'}
                         </button>
                     </div>
                 )}

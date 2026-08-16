@@ -23,6 +23,9 @@ npm run dev
 - `ANTHROPIC_API_KEY` … Claude API
 - `AUTH_SECRET` … セッション署名鍵
 - `NEXT_PUBLIC_APP_URL` … 本番URL（OGP等で使用）
+- `KOMOJU_SECRET_KEY` / `KOMOJU_WEBHOOK_SECRET` … 決済APIとWebhook署名検証（サーバー限定）
+- `NEXT_PUBLIC_BILLING_ENABLED` … 審査・本番疎通後に `true` へ変更して購入導線を公開
+- `ADMIN_BASIC_USER` / `ADMIN_BASIC_PASSWORD` … `/admin` と管理APIのBasic認証
 
 占術エンジンの検算：
 

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowDown,
@@ -10,6 +11,10 @@ import {
 import { BrandOrb } from "./components/BrandOrb";
 import { CelestialInstrument } from "./components/CelestialInstrument";
 import { OrbaMark } from "./components/OrbaMark";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 const layers = [
   "東洋の命理",
@@ -33,6 +38,7 @@ export default function LandingPage() {
           <a href="#about">Orbaとは</a>
           <a href="#experience">できること</a>
           <a href="#method">読み解き方</a>
+          <Link href="/insights">読みもの</Link>
         </nav>
         <Link className="orba-lp__header-cta" href="/start">
           Orbaをはじめる <ArrowRight size={14} />
@@ -147,8 +153,10 @@ export default function LandingPage() {
         <OrbaMark />
         <p>精密に確かめ、温かく言葉にする。</p>
         <div>
+          <Link href="/insights">読みもの</Link>
           <Link href="/legal/terms">利用規約</Link>
           <Link href="/legal/privacy">プライバシー</Link>
+          <Link href="/legal/tokushoho">特定商取引法に基づく表記</Link>
           <Link href="/brand">Brand guide</Link>
         </div>
       </footer>

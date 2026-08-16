@@ -1,18 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-// 管理用ファネル統計。ADMIN_KEY（?key= もしくは Bearer）で保護。
-function authorized(request: Request): boolean {
-  const key = process.env.ADMIN_KEY;
-  if (!key) return false;
-  const url = new URL(request.url);
-  const q = url.searchParams.get('key');
-  const bearer = request.headers.get('authorization');
-  return q === key || bearer === `Bearer ${key}`;
-}
-
-export async function GET(request: Request) {
-  if (!authorized(request)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+// /admin と /api/admin は proxy.ts のHTTP Basic認証で一括保護する。
+export async function GET() {
 
   const now = Date.now();
   const d1 = new Date(now - 1 * 864e5);

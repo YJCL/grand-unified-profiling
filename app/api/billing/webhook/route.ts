@@ -1,65 +1,123 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { stripe } from '@/lib/stripe';
-import type Stripe from 'stripe';
+import { customerIdFrom, nextMonthlyPeriod, verifyKomojuSignature } from '@/lib/komoju';
 
-// StripeのWebhook受信。署名を検証し、課金状態を isPremium に反映する。
+type KomojuEvent = {
+  id?: string;
+  type?: string;
+  created_at?: string;
+  data?: Record<string, unknown>;
+};
+
+function metadata(data: Record<string, unknown>): Record<string, string> {
+  const raw = data.metadata;
+  if (!raw || typeof raw !== 'object') return {};
+  return Object.fromEntries(
+    Object.entries(raw).filter((entry): entry is [string, string] => typeof entry[1] === 'string'),
+  );
+}
+
+function subscriptionId(data: Record<string, unknown>): string | null {
+  if (typeof data.id === 'string' && data.resource === 'subscription') return data.id;
+  const nested = data.subscription;
+  if (typeof nested === 'string') return nested;
+  if (nested && typeof nested === 'object' && typeof (nested as { id?: unknown }).id === 'string') {
+    return (nested as { id: string }).id;
+  }
+  return null;
+}
+
+async function findUser(data: Record<string, unknown>) {
+  const userId = metadata(data).user_id;
+  if (userId) return prisma.user.findUnique({ where: { id: userId } });
+  const subId = subscriptionId(data);
+  if (subId) return prisma.user.findUnique({ where: { komojuSubscriptionId: subId } });
+  const customerId = customerIdFrom(data.customer);
+  if (customerId) return prisma.user.findUnique({ where: { komojuCustomerId: customerId } });
+  return null;
+}
+
 export async function POST(request: Request) {
-    const secret = process.env.STRIPE_WEBHOOK_SECRET;
-    if (!stripe || !secret) {
-        console.error('[webhook] Stripe未設定');
-        return NextResponse.json({ error: 'not configured' }, { status: 500 });
+  const body = await request.text();
+  if (!verifyKomojuSignature(body, request.headers.get('x-komoju-signature'))) {
+    return NextResponse.json({ error: 'invalid signature' }, { status: 400 });
+  }
+
+  let event: KomojuEvent;
+  try {
+    event = JSON.parse(body) as KomojuEvent;
+  } catch {
+    return NextResponse.json({ error: 'invalid json' }, { status: 400 });
+  }
+
+  const deliveryId = request.headers.get('x-komoju-id') || event.id;
+  const type = request.headers.get('x-komoju-event') || event.type;
+  if (!deliveryId || !type) return NextResponse.json({ error: 'missing event metadata' }, { status: 400 });
+
+  try {
+    await prisma.billingEvent.create({ data: { id: deliveryId, type } });
+  } catch (error) {
+    if (typeof error === 'object' && error && 'code' in error && error.code === 'P2002') {
+      return NextResponse.json({ received: true, duplicate: true });
+    }
+    throw error;
+  }
+
+  try {
+    if (type === 'ping') return NextResponse.json({ received: true });
+    const data = event.data || {};
+    const user = await findUser(data);
+    if (!user) {
+      console.warn('[billing/webhook] user not found', { type, deliveryId });
+      return NextResponse.json({ received: true, unmatched: true });
     }
 
-    const sig = request.headers.get('stripe-signature');
-    const body = await request.text(); // 署名検証のため生のボディが必要
+    const subId = subscriptionId(data);
+    const customerId = customerIdFrom(data.customer);
+    const status = typeof data.status === 'string' ? data.status : type.split('.')[1];
 
-    let event: Stripe.Event;
-    try {
-        event = stripe.webhooks.constructEvent(body, sig || '', secret);
-    } catch (err) {
-        console.error('[webhook] 署名検証失敗:', err instanceof Error ? err.message : err);
-        return NextResponse.json({ error: 'invalid signature' }, { status: 400 });
+    if (type === 'subscription.created') {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          komojuSubscriptionId: subId || user.komojuSubscriptionId,
+          komojuCustomerId: customerId || user.komojuCustomerId,
+          premiumStatus: status,
+        },
+      });
+    } else if (type === 'subscription.captured') {
+      const nextCapture = typeof data.next_capture_at === 'string'
+        ? new Date(data.next_capture_at)
+        : nextMonthlyPeriod(event.created_at ? new Date(event.created_at) : new Date());
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          isPremium: true,
+          komojuSubscriptionId: subId || user.komojuSubscriptionId,
+          komojuCustomerId: customerId || user.komojuCustomerId,
+          premiumStatus: 'active',
+          premiumUntil: nextCapture,
+          premiumCancelAtPeriodEnd: false,
+        },
+      });
+    } else if (type === 'subscription.failed' || type === 'subscription.suspended') {
+      const stillPaid = !!user.premiumUntil && user.premiumUntil > new Date();
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { isPremium: stillPaid, premiumStatus: status },
+      });
+    } else if (type === 'subscription.deleted') {
+      const stillPaid = !!user.premiumUntil && user.premiumUntil > new Date();
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { isPremium: stillPaid, premiumStatus: 'canceled', premiumCancelAtPeriodEnd: true },
+      });
     }
-
-    try {
-        switch (event.type) {
-            case 'checkout.session.completed': {
-                const s = event.data.object as Stripe.Checkout.Session;
-                const userId = s.client_reference_id;
-                const customerId = typeof s.customer === 'string' ? s.customer : s.customer?.id;
-                if (userId) {
-                    await prisma.user.update({
-                        where: { id: userId },
-                        data: { isPremium: true, stripeCustomerId: customerId ?? undefined },
-                    }).catch((e) => console.error('[webhook] user更新失敗', e));
-                }
-                break;
-            }
-            case 'customer.subscription.deleted': {
-                const sub = event.data.object as Stripe.Subscription;
-                const customerId = typeof sub.customer === 'string' ? sub.customer : sub.customer.id;
-                await prisma.user.updateMany({
-                    where: { stripeCustomerId: customerId },
-                    data: { isPremium: false },
-                });
-                break;
-            }
-            case 'customer.subscription.updated': {
-                const sub = event.data.object as Stripe.Subscription;
-                const customerId = typeof sub.customer === 'string' ? sub.customer : sub.customer.id;
-                // active/trialing 以外（解約予約満了・支払い失敗等）は無効化
-                const active = sub.status === 'active' || sub.status === 'trialing';
-                await prisma.user.updateMany({
-                    where: { stripeCustomerId: customerId },
-                    data: { isPremium: active },
-                });
-                break;
-            }
-        }
-        return NextResponse.json({ received: true });
-    } catch (error) {
-        console.error('[webhook] 処理エラー:', error);
-        return NextResponse.json({ error: 'handler error' }, { status: 500 });
-    }
+    return NextResponse.json({ received: true });
+  } catch (error) {
+    // Webhookを再送してもらうため、処理失敗時は記録を戻す。
+    await prisma.billingEvent.delete({ where: { id: deliveryId } }).catch(() => undefined);
+    console.error('[billing/webhook] handler error', error);
+    return NextResponse.json({ error: 'handler error' }, { status: 500 });
+  }
 }

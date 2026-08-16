@@ -191,7 +191,7 @@ ${answersText ? '## 心理テスト傾向（補助）\n' + answersText : ''}
         for (let i = 0; i < 3; i++) {
             try {
                 const response = await anthropic.messages.create({
-                    model: 'claude-sonnet-4-6',
+                    model: 'claude-sonnet-5',
                     max_tokens: 4096,
                     system: systemPrompt,
                     tools,
