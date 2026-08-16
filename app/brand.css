@@ -184,6 +184,7 @@
 .orba-lp__instrument {
   position: relative;
   aspect-ratio: 1;
+  isolation: isolate;
 }
 .orba-lp__instrument .brand-orb {
   position: absolute;
@@ -724,7 +725,140 @@
     gap: 9px;
   }
   .orba-lp__instrument {
-    margin-top: 0;
+    width: calc(100% + 40px);
+    margin: 4px -20px -18px;
+    overflow: hidden;
+  }
+  .orba-lp__instrument::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    inset: 4% -18% 1%;
+    background:
+      radial-gradient(
+        ellipse at 50% 48%,
+        rgba(244, 192, 96, 0.1) 0,
+        rgba(109, 82, 168, 0.09) 28%,
+        rgba(54, 42, 96, 0.04) 46%,
+        transparent 69%
+      );
+    filter: blur(12px);
+  }
+  .orba-lp__instrument::after {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    inset: 9% 1% 8%;
+    border: 1px solid rgba(240, 238, 255, 0.1);
+    border-radius: 50%;
+    transform: rotate(-31deg) scaleY(0.45);
+    box-shadow:
+      0 -1px 18px rgba(137, 113, 205, 0.08),
+      inset 0 1px 18px rgba(244, 192, 96, 0.04);
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      transparent 4%,
+      #000 22%,
+      #000 78%,
+      transparent 96%
+    );
+    mask-image: linear-gradient(
+      90deg,
+      transparent 4%,
+      #000 22%,
+      #000 78%,
+      transparent 96%
+    );
+  }
+  .orba-lp__instrument .brand-orb {
+    inset: 17%;
+    filter:
+      drop-shadow(0 28px 52px rgba(0, 0, 0, 0.78))
+      drop-shadow(0 0 24px rgba(168, 119, 210, 0.12));
+  }
+  .orba-lp__instrument .orbit {
+    left: -8%;
+    right: -8%;
+    top: 34%;
+    height: 32%;
+    border-color: rgba(244, 192, 96, 0.54);
+    box-shadow: 0 0 14px rgba(244, 192, 96, 0.025);
+  }
+  .orba-lp__instrument .orbit-b {
+    left: 10%;
+    right: 10%;
+    top: 9%;
+    height: 82%;
+    border-color: rgba(240, 238, 255, 0.25);
+  }
+  .orba-lp__instrument .orbit-c {
+    left: 3%;
+    right: 3%;
+    top: 18%;
+    height: 64%;
+    border-color: rgba(139, 127, 212, 0.34);
+  }
+  .orba-lp__instrument .orbit::before,
+  .orba-lp__instrument .orbit::after {
+    content: "";
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #fff0bd;
+    box-shadow:
+      0 0 5px rgba(255, 240, 189, 0.96),
+      0 0 15px 3px rgba(244, 192, 96, 0.31);
+  }
+  .orba-lp__instrument .orbit-a::before {
+    left: 9%;
+    top: 16%;
+  }
+  .orba-lp__instrument .orbit-a::after {
+    right: 8%;
+    bottom: 17%;
+    width: 3px;
+    height: 3px;
+    opacity: 0.72;
+  }
+  .orba-lp__instrument .orbit-b::before {
+    right: 13%;
+    top: 13%;
+    width: 4px;
+    height: 4px;
+    background: var(--orba-paper);
+    box-shadow:
+      0 0 5px rgba(222, 216, 255, 0.88),
+      0 0 13px 3px rgba(139, 127, 212, 0.3);
+  }
+  .orba-lp__instrument .orbit-b::after {
+    left: 11%;
+    bottom: 15%;
+    width: 2px;
+    height: 2px;
+    opacity: 0.58;
+  }
+  .orba-lp__instrument .orbit-c::before {
+    left: 17%;
+    bottom: 9%;
+    width: 3px;
+    height: 3px;
+    background: #8b7fd4;
+    box-shadow:
+      0 0 5px rgba(212, 199, 255, 0.78),
+      0 0 12px 2px rgba(139, 127, 212, 0.26);
+  }
+  .orba-lp__instrument .orbit-c::after {
+    right: 18%;
+    top: 8%;
+    width: 2px;
+    height: 2px;
+    opacity: 0.48;
+  }
+  .orba-lp__instrument > span {
+    right: 7%;
+    bottom: 7%;
+    color: rgba(251, 248, 240, 0.48);
   }
   .orba-lp__statement,
   .orba-lp__method {
