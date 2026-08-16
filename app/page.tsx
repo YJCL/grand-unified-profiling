@@ -8,6 +8,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { BrandOrb } from "./components/BrandOrb";
+import { CelestialInstrument } from "./components/CelestialInstrument";
 import { OrbaMark } from "./components/OrbaMark";
 
 const layers = [
@@ -57,20 +58,7 @@ export default function LandingPage() {
             </a>
           </div>
         </div>
-        <div
-          className="orba-lp__instrument"
-          aria-label="Orbaの多層的な読み解きを表す立体オーブ"
-        >
-          <i className="orbit orbit-a" />
-          <i className="orbit orbit-b" />
-          <i className="orbit orbit-c" />
-          <BrandOrb />
-          <span>
-            8 LAYERS
-            <br />
-            ONE LIVING PROFILE
-          </span>
-        </div>
+        <CelestialInstrument />
       </section>
 
       <section className="orba-lp__statement" id="about">

@@ -249,6 +249,322 @@
   line-height: 1.7;
   text-align: right;
 }
+.orba-celestial-instrument {
+  position: relative;
+  z-index: 2;
+  width: min(62vw, 880px);
+  aspect-ratio: 1;
+  margin-left: clamp(-88px, -5vw, -42px);
+  pointer-events: none;
+}
+.orba-instrument-motion,
+.orba-instrument-svg {
+  position: absolute;
+  inset: 0;
+}
+.orba-instrument-aura {
+  position: absolute;
+  inset: 22%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(244, 192, 96, 0.16),
+    rgba(103, 82, 181, 0.1) 37%,
+    transparent 70%
+  );
+  filter: blur(28px);
+}
+.orba-instrument-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 26px 46px rgba(0, 0, 0, 0.34));
+}
+.orba-instrument-reticle circle,
+.orba-instrument-reticle path {
+  fill: none;
+  stroke: rgba(240, 238, 255, 0.075);
+  stroke-width: 1;
+}
+.orba-instrument-reticle circle:first-child {
+  stroke: rgba(244, 192, 96, 0.3);
+  stroke-dasharray: 2 15;
+}
+.orba-instrument-reticle circle:nth-child(2) {
+  stroke: rgba(240, 238, 255, 0.1);
+  stroke-dasharray: 90 16 3 12;
+}
+.orba-instrument-reticle path {
+  stroke-dasharray: 1 18;
+}
+.orba-instrument-outer-ring {
+  animation: orba-reticle-counterclockwise 64s linear infinite;
+  animation-play-state: paused;
+  transform-box: fill-box;
+  transform-origin: center;
+  will-change: transform;
+}
+.orba-celestial-instrument.is-active .orba-instrument-outer-ring {
+  animation-play-state: running;
+}
+.orba-instrument-ticks line {
+  stroke: rgba(244, 192, 96, 0.4);
+  stroke-width: 1;
+}
+.orba-instrument-scan {
+  fill: none;
+  stroke: rgba(244, 192, 96, 0.58);
+  stroke-width: 1.15;
+  stroke-dasharray: 2 10 48 12;
+}
+.orba-instrument-object {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 68%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  perspective: 920px;
+  transform-style: preserve-3d;
+}
+.orba-instrument-object .brand-orb {
+  position: absolute;
+  z-index: 2;
+  inset: 25%;
+  width: auto;
+  height: auto;
+  filter:
+    drop-shadow(0 20px 32px rgba(0, 0, 0, 0.65))
+    drop-shadow(0 0 28px rgba(115, 82, 196, 0.22));
+}
+.orba-orbital-volume,
+.orba-orbital-plane {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+.orba-orbital-volume {
+  z-index: 3;
+}
+.orba-orbital-plane-track {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  transform-style: preserve-3d;
+  background: conic-gradient(
+    from 22deg,
+    rgba(244, 192, 96, 0.06),
+    rgba(255, 241, 197, 0.8) 22%,
+    rgba(244, 192, 96, 0.18) 43%,
+    rgba(116, 91, 190, 0.08) 61%,
+    rgba(244, 192, 96, 0.52) 83%,
+    rgba(244, 192, 96, 0.06)
+  );
+  -webkit-mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 1.5px),
+    #000 calc(100% - 1px)
+  );
+  mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 1.5px),
+    #000 calc(100% - 1px)
+  );
+  filter: drop-shadow(0 0 4px rgba(244, 192, 96, 0.28));
+  animation-play-state: paused !important;
+}
+.orba-celestial-instrument.is-active .orba-orbital-plane-track {
+  animation-play-state: running !important;
+}
+.orba-orbital-plane-track i {
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #fff1c1;
+  box-shadow: 0 0 9px rgba(244, 192, 96, 0.95);
+}
+.orba-orbital-plane.plane-a {
+  transform: rotateZ(18deg) rotateX(67deg);
+}
+.orba-orbital-plane.plane-b {
+  inset: 8%;
+  transform: rotateZ(-40deg) rotateY(69deg);
+}
+.orba-orbital-plane.plane-c {
+  inset: 16%;
+  transform: rotateZ(57deg) rotateX(73deg);
+}
+.orba-orbital-plane.plane-d {
+  inset: -12%;
+  opacity: 0.55;
+  transform: rotateZ(-9deg) rotateY(78deg);
+}
+.orba-orbital-depth-haze {
+  position: absolute;
+  z-index: 1;
+  inset: 24%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 42% 38%,
+    rgba(255, 239, 188, 0.1),
+    rgba(80, 55, 148, 0.13) 42%,
+    transparent 72%
+  );
+  filter: blur(18px);
+}
+.orba-instrument-readout {
+  position: absolute;
+  min-width: 160px;
+  padding: 8px 10px;
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 8px;
+  color: rgba(240, 238, 255, 0.86);
+  background: linear-gradient(90deg, rgba(8, 8, 24, 0.62), transparent);
+  border-top: 1px solid rgba(244, 192, 96, 0.46);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+}
+.orba-instrument-readout::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -3px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--orba-gold);
+  box-shadow: 0 0 10px rgba(244, 192, 96, 0.8);
+}
+.orba-instrument-readout > span {
+  color: var(--orba-gold);
+  font-family: var(--font-serif), serif;
+  font-size: 16px;
+  line-height: 1.15;
+}
+.orba-instrument-readout p {
+  margin: 0;
+  line-height: 1.4;
+}
+.orba-instrument-readout small {
+  display: block;
+  margin-top: 4px;
+  color: rgba(186, 183, 206, 0.72);
+  font-size: 6px;
+  letter-spacing: 0.13em;
+}
+.orba-instrument-readout.readout-a {
+  top: 14%;
+  left: 14%;
+}
+.orba-instrument-readout.readout-b {
+  top: 20%;
+  right: 5%;
+}
+.orba-instrument-readout.readout-c {
+  bottom: 17%;
+  left: 5%;
+}
+.orba-instrument-readout.readout-d {
+  right: 11%;
+  bottom: 13%;
+}
+.orba-instrument-status {
+  position: absolute;
+  left: 28%;
+  bottom: 5%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(240, 238, 255, 0.62);
+  font-size: 7px;
+  letter-spacing: 0.18em;
+}
+.orba-instrument-status i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #8adfc7;
+  box-shadow: 0 0 11px rgba(138, 223, 199, 0.8);
+}
+.orba-instrument-coordinate {
+  position: absolute;
+  top: 8%;
+  right: 24%;
+  color: rgba(244, 192, 96, 0.66);
+  font-size: 7px;
+  line-height: 1.65;
+  letter-spacing: 0.15em;
+  text-align: right;
+}
+.orba-instrument-coordinate span {
+  color: rgba(240, 238, 255, 0.4);
+}
+@keyframes orba-reticle-counterclockwise {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+@keyframes orba-orbital-plane-turn {
+  to {
+    transform: rotateZ(360deg);
+  }
+}
+@keyframes orba-instrument-scan {
+  from {
+    stroke-dashoffset: 0;
+    opacity: 0.25;
+  }
+  to {
+    stroke-dashoffset: -72;
+    opacity: 0.9;
+  }
+}
+@keyframes orba-instrument-pulse {
+  from {
+    opacity: 0.62;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+@keyframes orba-instrument-status {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .orba-orbital-plane.plane-a .orba-orbital-plane-track {
+    animation: orba-orbital-plane-turn 22s linear infinite;
+  }
+  .orba-orbital-plane.plane-b .orba-orbital-plane-track {
+    animation: orba-orbital-plane-turn 31s linear -9s infinite reverse;
+  }
+  .orba-orbital-plane.plane-c .orba-orbital-plane-track {
+    animation: orba-orbital-plane-turn 17s linear -4s infinite;
+  }
+  .orba-orbital-plane.plane-d .orba-orbital-plane-track {
+    animation: orba-orbital-plane-turn 39s linear -18s infinite reverse;
+  }
+  .orba-celestial-instrument.is-active .orba-instrument-scan {
+    animation: orba-instrument-scan 5.5s ease-in-out infinite alternate;
+  }
+  .orba-celestial-instrument.is-active .orba-instrument-aura {
+    animation: orba-instrument-pulse 6s ease-in-out infinite alternate;
+  }
+  .orba-celestial-instrument.is-active .orba-instrument-status i {
+    animation: orba-instrument-status 2.4s ease-in-out infinite;
+  }
+}
 .orba-lp__statement {
   padding: clamp(110px, 14vw, 205px) clamp(22px, 13vw, 205px);
   color: var(--orba-ink);
@@ -692,6 +1008,12 @@
     width: min(620px, 100%);
     margin: -25px auto 0;
   }
+  .orba-celestial-instrument {
+    left: 50%;
+    width: min(780px, 112vw);
+    margin: -36px 0 -92px;
+    transform: translateX(-50%);
+  }
   .orba-lp__experiences {
     grid-template-columns: 1fr;
   }
@@ -877,6 +1199,30 @@
     right: 7%;
     bottom: 7%;
     color: rgba(251, 248, 240, 0.48);
+  }
+  .orba-celestial-instrument {
+    width: 150vw;
+    margin: -22px 0 -88px;
+  }
+  .orba-instrument-reticle {
+    opacity: 0.75;
+  }
+  .orba-instrument-readout {
+    min-width: 142px;
+    padding: 7px 8px;
+    transform: scale(0.84);
+  }
+  .orba-instrument-readout.readout-a,
+  .orba-instrument-readout.readout-b,
+  .orba-instrument-readout.readout-c,
+  .orba-instrument-coordinate,
+  .orba-instrument-status {
+    display: none;
+  }
+  .orba-instrument-readout.readout-d {
+    right: 17%;
+    bottom: 14%;
+    transform-origin: right center;
   }
   .orba-lp__statement,
   .orba-lp__method {
