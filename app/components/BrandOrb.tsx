@@ -71,9 +71,16 @@ export function BrandOrb() {
     gl.enableVertexAttribArray(position);
     gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const instrument = canvas.closest<HTMLElement>(".orba-lp__instrument");
     const start = performance.now();
     let frame = 0;
     let visible = true;
+    const syncOrbitMotion = () => {
+      instrument?.classList.toggle(
+        "is-orbiting",
+        visible && !document.hidden && !reduced,
+      );
+    };
     const draw = (now: number) => {
       const dpr = Math.min(devicePixelRatio || 1, 1.5);
       const width = Math.max(1, Math.round(canvas.clientWidth * dpr));
@@ -93,14 +100,18 @@ export function BrandOrb() {
     };
     const observer = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
+      syncOrbitMotion();
       if (visible) frame = requestAnimationFrame(draw);
     });
+    document.addEventListener("visibilitychange", syncOrbitMotion);
     observer.observe(canvas);
     setReady(true);
     frame = requestAnimationFrame(draw);
     return () => {
       cancelAnimationFrame(frame);
       observer.disconnect();
+      document.removeEventListener("visibilitychange", syncOrbitMotion);
+      instrument?.classList.remove("is-orbiting");
       gl.deleteBuffer(buffer);
       gl.deleteProgram(program);
       gl.deleteShader(vs);

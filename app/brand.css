@@ -213,6 +213,24 @@
   border-color: rgba(240, 238, 255, 0.19);
   transform: rotate(63deg);
 }
+@keyframes orba-outer-orbit-counterclockwise {
+  from {
+    transform: rotate(63deg);
+  }
+  to {
+    transform: rotate(-297deg);
+  }
+}
+@media (min-width: 651px) {
+  .orba-lp__instrument .orbit-b {
+    animation: orba-outer-orbit-counterclockwise 56s linear infinite;
+    animation-play-state: paused;
+    will-change: transform;
+  }
+  .orba-lp__instrument.is-orbiting .orbit-b {
+    animation-play-state: running;
+  }
+}
 .orba-lp__instrument .orbit-c {
   left: 13%;
   right: 13%;
@@ -971,6 +989,9 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .orba-lp__instrument .orbit-b {
+    animation: none !important;
+  }
   .orba-lp *,
   .orba-brand-page * {
     scroll-behavior: auto !important;
