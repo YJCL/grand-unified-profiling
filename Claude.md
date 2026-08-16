@@ -79,3 +79,13 @@ npx tsx scripts/test-engine.ts
 - 出生情報という機微データの取り扱い方針（保存範囲・アクセス制御）は現行実装の妥当性を要精査（`orba_integrated_review_handoff.md` 軸B参照）。
 - 易占いMVPの品質データ（応答速度・解釈精度・再利用率）は計測ログの有無を要確認。
 - ココナラPDFとOrba本体の接続方法（ココナラは外部送客が規約で全面禁止）は未確定。次の検討課題。
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
