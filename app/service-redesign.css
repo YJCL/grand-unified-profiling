@@ -850,11 +850,987 @@ body:has(.service-start-shell) {
   }
 }
 
+/* Dimensional partner orb */
+.orba-character-orb {
+  position: relative;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+  overflow: visible;
+  pointer-events: none;
+  contain: layout;
+}
+
+.orba-character-orb__halo {
+  position: absolute;
+  inset: -25%;
+  border-radius: 50%;
+  background: radial-gradient(circle, hsl(var(--orb-hue) 76% 62% / 0.28), transparent 66%);
+  filter: blur(calc(var(--orb-size) * 0.09));
+  opacity: 0.76;
+  transform: scale(0.94);
+}
+
+.orba-character-orb__orbit {
+  position: absolute;
+  inset: 17% -10%;
+  border: 1px solid hsl(var(--orb-hue) 84% 77% / 0.28);
+  border-radius: 50%;
+  transform: rotate(-21deg) scaleY(0.43);
+}
+
+.orba-character-orb__orbit i {
+  position: absolute;
+  top: 39%;
+  right: 3%;
+  width: max(2px, calc(var(--orb-size) * 0.035));
+  height: max(2px, calc(var(--orb-size) * 0.035));
+  border-radius: 50%;
+  background: #fff8dc;
+  box-shadow: 0 0 calc(var(--orb-size) * 0.08) hsl(var(--orb-hue) 90% 72% / 0.8);
+}
+
+.orba-character-orb__sphere {
+  position: relative;
+  z-index: 2;
+  width: 68%;
+  height: 68%;
+  overflow: hidden;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 31% 24%, rgba(255, 255, 255, 0.98) 0 2%, rgba(255, 246, 218, 0.72) 6%, transparent 18%),
+    radial-gradient(circle at 38% 34%, hsl(var(--orb-hue) 86% 84%) 0, hsl(var(--orb-hue) 74% 61%) 29%, hsl(var(--orb-hue) 62% 34%) 62%, hsl(var(--orb-hue) 48% 11%) 100%);
+  box-shadow:
+    inset calc(var(--orb-size) * -0.07) calc(var(--orb-size) * -0.09) calc(var(--orb-size) * 0.16) rgba(0, 0, 0, 0.72),
+    inset calc(var(--orb-size) * 0.04) calc(var(--orb-size) * 0.03) calc(var(--orb-size) * 0.08) rgba(255, 255, 255, 0.24),
+    0 calc(var(--orb-size) * 0.12) calc(var(--orb-size) * 0.22) rgba(0, 0, 0, 0.46);
+}
+
+.orba-character-orb__mineral,
+.orba-character-orb__shade,
+.orba-character-orb__glint {
+  position: absolute;
+  inset: -12%;
+  border-radius: 50%;
+}
+
+.orba-character-orb__mineral {
+  background:
+    conic-gradient(from 18deg at 46% 52%, transparent 0 8%, hsl(var(--orb-hue) 92% 76% / 0.24) 14%, transparent 27% 46%, rgba(255, 243, 204, 0.19) 55%, transparent 70% 100%),
+    radial-gradient(ellipse at 70% 30%, hsl(var(--orb-hue) 86% 76% / 0.36), transparent 42%);
+  filter: blur(calc(var(--orb-size) * 0.025));
+  mix-blend-mode: screen;
+  transform: rotate(-12deg) scale(1.12);
+}
+
+.orba-character-orb__shade {
+  inset: 0;
+  background: radial-gradient(circle at 30% 24%, transparent 0 34%, rgba(3, 3, 12, 0.13) 57%, rgba(3, 3, 12, 0.72) 100%);
+}
+
+.orba-character-orb__glint {
+  inset: 13% 45% 58% 17%;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.7), transparent 64%);
+  filter: blur(calc(var(--orb-size) * 0.018));
+  transform: rotate(-23deg);
+}
+
+@keyframes orba-partner-surface-drift {
+  to { transform: rotate(348deg) scale(1.12); }
+}
+
+@keyframes orba-partner-breathe {
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .orba-character-orb__mineral {
+    animation: orba-partner-surface-drift 18s linear infinite;
+  }
+  .orba-character-orb__halo {
+    animation: orba-partner-breathe 5.8s ease-in-out infinite;
+  }
+  .orba-character-orb.is-speaking .orba-character-orb__halo {
+    animation-duration: 1.7s;
+  }
+}
+
+/* Partner selection */
+.orba-partner-select {
+  width: min(1480px, 100%);
+  min-height: 100svh;
+  margin: 0 auto;
+  padding: 0 clamp(22px, 4.8vw, 72px) 28px;
+  display: flex;
+  flex-direction: column;
+}
+
+.orba-partner-select__header {
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--service-line);
+}
+
+.orba-partner-select__header > p {
+  margin: 0;
+  color: var(--service-muted);
+  font-size: 10px;
+}
+
+.orba-partner-select__header > p span {
+  color: var(--service-gold);
+}
+
+.orba-partner-select__layout {
+  flex: 1;
+  padding: clamp(28px, 4.5vh, 58px) 0 clamp(24px, 3.5vh, 44px);
+  display: grid;
+  grid-template-columns: minmax(440px, 0.92fr) minmax(470px, 1.08fr);
+  align-items: center;
+  gap: clamp(48px, 7vw, 112px);
+}
+
+.orba-partner-select__copy h1 {
+  max-width: 11ch;
+  margin: 0;
+  color: var(--service-text);
+  font-family: var(--font-serif), "Shippori Mincho", serif;
+  font-size: clamp(44px, 4vw, 60px);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.42;
+}
+
+.orba-partner-select__lead {
+  max-width: 52ch;
+  margin: 24px 0 34px;
+  color: var(--service-muted);
+  font-size: 13px;
+  line-height: 2;
+}
+
+.orba-partner-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--service-line);
+}
+
+.orba-partner-option {
+  min-height: 78px;
+  padding: 10px 13px 10px 7px;
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 9px;
+  color: var(--service-text);
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--service-line);
+  transition: background 180ms ease, color 180ms ease;
+}
+
+.orba-partner-option:nth-child(odd) {
+  border-right: 1px solid var(--service-line);
+}
+
+.orba-partner-option:hover,
+.orba-partner-option.is-selected {
+  background: color-mix(in srgb, var(--service-surface-raised), transparent 32%);
+}
+
+.orba-partner-option strong,
+.orba-partner-option small {
+  display: block;
+}
+
+.orba-partner-option strong {
+  font-family: var(--font-serif), "Shippori Mincho", serif;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.orba-partner-option small {
+  margin-top: 4px;
+  color: var(--service-muted);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.orba-partner-option > i {
+  width: 13px;
+  height: 13px;
+  border: 1px solid var(--service-line);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 3px transparent;
+}
+
+.orba-partner-option.is-selected > i {
+  background: var(--service-gold);
+  border-color: var(--service-gold);
+  box-shadow: inset 0 0 0 3px var(--service-surface-raised);
+}
+
+.orba-partner-preview {
+  min-height: min(590px, calc(100svh - 190px));
+  padding: clamp(28px, 4vw, 52px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  color: #f7f1e4;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(118, 91, 180, 0.2), transparent 28rem),
+    #111126;
+  border: 1px solid rgba(247, 241, 228, 0.11);
+  border-radius: 16px;
+}
+
+.orba-partner-preview__instrument {
+  width: min(440px, 100%);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  position: relative;
+}
+
+.orba-partner-preview__instrument > div {
+  width: 260px;
+  height: 260px;
+  display: grid;
+  place-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+.orba-partner-preview__instrument .brand-orb {
+  width: 240px;
+  height: 240px;
+}
+
+.orba-partner-preview__ring {
+  position: absolute;
+  inset: 23% 2%;
+  border: 1px solid rgba(244, 192, 96, 0.38);
+  border-radius: 50%;
+  transform: rotate(-19deg) scaleY(0.43);
+}
+
+.orba-partner-preview__ring.ring-b {
+  inset: 7% 24%;
+  border-color: rgba(195, 187, 230, 0.22);
+  transform: rotate(59deg) scaleY(0.48);
+}
+
+.orba-partner-preview__ring::after {
+  content: "";
+  position: absolute;
+  right: 7%;
+  top: 20%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #fff0bd;
+  box-shadow: 0 0 11px rgba(244, 192, 96, 0.76);
+}
+
+.orba-partner-preview__coordinate {
+  position: absolute;
+  right: 5%;
+  bottom: 8%;
+  color: rgba(247, 241, 228, 0.32);
+  font-size: 7px;
+  letter-spacing: 0.15em;
+}
+
+.orba-partner-preview__voice {
+  min-height: 91px;
+  width: min(480px, 100%);
+  text-align: center;
+}
+
+.orba-partner-preview__voice > p {
+  margin: 0 0 9px;
+  color: #f4c060;
+  font-size: 9px;
+}
+
+.orba-partner-preview__voice blockquote {
+  margin: 0;
+  color: #f7f1e4;
+  font-family: var(--font-serif), "Shippori Mincho", serif;
+  font-size: clamp(18px, 2vw, 24px);
+  line-height: 1.8;
+}
+
+.orba-partner-preview__confirm {
+  width: min(350px, 100%);
+  margin-top: 20px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.orba-partner-preview__confirm svg {
+  width: 16px;
+  height: 16px;
+}
+
+.orba-partner-preview__confirm:disabled {
+  color: rgba(247, 241, 228, 0.4) !important;
+  background: rgba(247, 241, 228, 0.08) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.orba-partner-preview__note {
+  margin: 12px 0 0;
+  color: rgba(247, 241, 228, 0.42);
+  font-size: 9px;
+}
+
+.orba-partner-select__utility {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  color: var(--service-muted);
+  border-top: 1px solid var(--service-line);
+}
+
+.orba-partner-select__utility > button,
+.orba-partner-select__legal a,
+.orba-partner-select__code > div button:first-child {
+  color: inherit;
+  font-size: 9px;
+  background: transparent;
+  border: 0;
+}
+
+.orba-partner-select__utility > button:hover,
+.orba-partner-select__legal a:hover {
+  color: var(--service-text);
+}
+
+.orba-partner-select__legal {
+  margin-left: auto;
+  display: flex;
+  gap: 15px;
+}
+
+.orba-partner-select__code {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.orba-partner-select__code input {
+  width: 145px;
+  min-height: 38px;
+  padding: 0 12px;
+  text-align: center;
+  font-size: 12px;
+  letter-spacing: 0.24em;
+  border-radius: 12px;
+}
+
+.orba-partner-select__code > p {
+  margin: 0;
+  color: var(--service-danger);
+  font-size: 10px;
+}
+
+.orba-partner-select__code > div {
+  display: flex;
+  gap: 6px;
+}
+
+.orba-partner-select__code > div button {
+  min-height: 38px;
+  padding: 0 12px;
+  font-size: 9px;
+}
+
+/* Dialogue */
+.orba-dialogue {
+  color: var(--service-text);
+  background:
+    radial-gradient(circle at 78% 18%, rgba(139, 127, 212, 0.08), transparent 28rem),
+    var(--service-canvas);
+}
+
+.orba-dialogue__field {
+  opacity: 0.46;
+}
+
+.orba-dialogue__header {
+  min-height: 82px;
+  padding: 10px clamp(20px, 4vw, 48px);
+  display: grid;
+  grid-template-columns: 38px minmax(210px, 1fr) auto auto;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+  z-index: 12;
+  background: var(--service-surface-raised);
+  border-bottom: 1px solid var(--service-line);
+}
+
+.orba-dialogue__back,
+.orba-dialogue__new {
+  min-height: 44px;
+  color: var(--service-muted);
+  background: transparent;
+  border: 0;
+}
+
+.orba-dialogue__back {
+  width: 38px;
+  display: grid;
+  place-items: center;
+}
+
+.orba-dialogue__back svg {
+  width: 19px;
+  height: 19px;
+}
+
+.orba-dialogue__identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.orba-dialogue__identity p,
+.orba-dialogue__identity span {
+  margin: 0;
+  display: block;
+}
+
+.orba-dialogue__identity p {
+  font-family: var(--font-serif), "Shippori Mincho", serif;
+  font-size: 14px;
+}
+
+.orba-dialogue__identity span {
+  margin-top: 3px;
+  color: var(--service-muted);
+  font-size: 9px;
+}
+
+.orba-dialogue__privacy {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--service-muted);
+  font-size: 9px;
+}
+
+.orba-dialogue__privacy i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #79cbb8;
+  box-shadow: 0 0 9px rgba(121, 203, 184, 0.6);
+}
+
+.orba-dialogue__new {
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+}
+
+.orba-dialogue__new:hover,
+.orba-dialogue__back:hover {
+  color: var(--service-text);
+}
+
+.orba-dialogue__new svg {
+  width: 13px;
+  height: 13px;
+}
+
+.orba-dialogue__scroll {
+  min-height: 0;
+  padding: 0 clamp(20px, 4vw, 48px);
+  scrollbar-color: color-mix(in srgb, var(--service-muted), transparent 65%) transparent;
+}
+
+.orba-dialogue__initializing,
+.orba-dialogue-welcome {
+  width: min(760px, 100%);
+  min-height: 100%;
+  margin: 0 auto;
+  padding: 20px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.orba-dialogue__initializing p {
+  margin: 15px 0 0;
+  color: var(--service-muted);
+  font-size: 11px;
+}
+
+.orba-dialogue-welcome h1 {
+  margin: 12px 0 0;
+  color: var(--service-text);
+  font-family: var(--font-serif), "Shippori Mincho", serif;
+  font-size: clamp(36px, 3.5vw, 46px);
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  line-height: 1.42;
+}
+
+.orba-dialogue-welcome > .orba-character-orb {
+  width: 116px !important;
+  height: 116px !important;
+}
+
+.orba-dialogue-welcome > p {
+  max-width: 48ch;
+  margin: 12px 0 18px;
+  color: var(--service-muted);
+  font-size: 12px;
+  line-height: 1.9;
+}
+
+.orba-dialogue-welcome__starters {
+  width: min(560px, 100%);
+  border-top: 1px solid var(--service-line);
+}
+
+.orba-dialogue-welcome__starters button {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--service-text);
+  font-family: var(--font-serif), "Shippori Mincho", serif;
+  font-size: 13px;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--service-line);
+}
+
+.orba-dialogue-welcome__starters button:hover {
+  color: var(--service-gold);
+  padding-inline: 12px 4px;
+}
+
+.orba-dialogue-welcome__starters svg {
+  width: 15px;
+  height: 15px;
+  transform: rotate(45deg);
+}
+
+.orba-dialogue-welcome__iching {
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--service-gold);
+  font-size: 10px;
+  background: transparent;
+  border: 0;
+}
+
+.orba-dialogue-welcome__iching svg {
+  width: 13px;
+  height: 13px;
+}
+
+.orba-dialogue__transcript {
+  width: min(760px, 100%);
+  margin: 0 auto;
+  padding: clamp(35px, 5vw, 64px) 0;
+}
+
+.orba-dialogue-turn,
+.orba-dialogue__thinking {
+  display: flex;
+  gap: 13px;
+}
+
+.orba-dialogue-turn + .orba-dialogue-turn {
+  margin-top: 30px;
+}
+
+.orba-dialogue-turn > div,
+.orba-dialogue__thinking > div {
+  max-width: min(620px, 86%);
+}
+
+.orba-dialogue-turn span,
+.orba-dialogue__thinking span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--service-muted);
+  font-size: 9px;
+}
+
+.orba-dialogue-turn p,
+.orba-dialogue__thinking p {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: var(--font-serif), "Shippori Mincho", serif;
+  font-size: 15px;
+  line-height: 2;
+}
+
+.orba-dialogue-turn.is-assistant > div {
+  padding-top: 4px;
+}
+
+.orba-dialogue-turn.is-user {
+  justify-content: flex-end;
+}
+
+.orba-dialogue-turn.is-user > div {
+  padding: 13px 16px;
+  color: #211708;
+  background: #e4c875;
+  border-radius: 14px 4px 14px 14px;
+}
+
+.orba-dialogue-turn.is-user span {
+  color: rgba(33, 23, 8, 0.58);
+}
+
+.orba-dialogue__thinking {
+  width: min(760px, 100%);
+  margin: 0 auto;
+  padding: 0 0 34px;
+}
+
+.orba-dialogue__thinking > div {
+  padding-top: 4px;
+}
+
+.orba-dialogue__thinking p {
+  color: var(--service-muted);
+  font-size: 12px;
+}
+
+.orba-dialogue__thinking p i {
+  width: 3px;
+  height: 3px;
+  margin-left: 5px;
+  display: inline-block;
+  border-radius: 50%;
+  background: var(--service-gold);
+  opacity: 0.35;
+}
+
+.orba-dialogue-composer {
+  flex: 0 0 auto;
+  padding: 12px clamp(20px, 4vw, 48px) 18px;
+  background: var(--service-surface-raised);
+  border-top: 1px solid var(--service-line);
+}
+
+.orba-dialogue-composer__inner {
+  width: min(760px, 100%);
+  margin: 0 auto;
+}
+
+.orba-dialogue-composer__tools {
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.orba-dialogue-composer__tools > span {
+  color: var(--service-muted);
+  font-size: 9px;
+}
+
+.orba-dialogue-composer__tools button {
+  min-height: 30px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--service-gold);
+  font-size: 9px;
+  background: transparent;
+  border: 0;
+}
+
+.orba-dialogue-composer__tools svg {
+  width: 12px;
+  height: 12px;
+}
+
+.orba-dialogue-composer__form {
+  min-height: 54px;
+  padding: 5px 5px 5px 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  align-items: end;
+  gap: 8px;
+  background: var(--service-surface-soft);
+  border: 1px solid var(--service-line);
+  border-radius: 14px;
+}
+
+.orba-dialogue-composer__form:focus-within {
+  border-color: color-mix(in srgb, var(--service-gold), transparent 28%);
+}
+
+.orba-dialogue-composer__form textarea {
+  min-height: 42px;
+  max-height: 132px;
+  padding: 10px 0 7px;
+  color: var(--service-text);
+  background: transparent !important;
+  border: 0 !important;
+  resize: none;
+  outline: 0;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.orba-dialogue-composer__form button {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  color: #211708;
+  background: var(--service-gold);
+  border: 0;
+  border-radius: 12px;
+}
+
+.orba-dialogue-composer__form button:disabled {
+  color: var(--service-muted);
+  background: transparent;
+}
+
+.orba-dialogue-composer__form button svg {
+  width: 17px;
+  height: 17px;
+}
+
+@media (max-width: 980px) {
+  .orba-partner-select__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .orba-partner-select__copy {
+    width: min(720px, 100%);
+    margin: 0 auto;
+  }
+
+  .orba-partner-preview {
+    width: min(720px, 100%);
+    min-height: 620px;
+    margin: 0 auto;
+  }
+
+  .orba-dialogue__privacy {
+    display: none;
+  }
+
+  .orba-dialogue__header {
+    grid-template-columns: 38px 1fr auto;
+  }
+}
+
+@media (max-width: 650px) {
+  .orba-partner-select {
+    padding: 0 16px 22px;
+  }
+
+  .orba-partner-select__header {
+    min-height: 64px;
+  }
+
+  .orba-partner-select__layout {
+    padding: 34px 0 28px;
+    gap: 30px;
+  }
+
+  .orba-partner-select__copy h1 {
+    max-width: 9ch;
+    font-size: 42px;
+  }
+
+  .orba-partner-select__lead {
+    margin: 18px 0 25px;
+    font-size: 12px;
+  }
+
+  .orba-partner-option {
+    min-height: 72px;
+    padding: 8px 8px 8px 3px;
+    grid-template-columns: 43px minmax(0, 1fr) 14px;
+    gap: 5px;
+  }
+
+  .orba-partner-option strong {
+    font-size: 12px;
+  }
+
+  .orba-partner-option small {
+    font-size: 8px;
+  }
+
+  .orba-partner-preview {
+    min-height: 500px;
+    padding: 24px 18px;
+  }
+
+  .orba-partner-preview__instrument {
+    width: 320px;
+    max-width: 100%;
+  }
+
+  .orba-partner-preview__instrument > div {
+    width: 210px;
+    height: 210px;
+  }
+
+  .orba-partner-preview__instrument .brand-orb {
+    width: 190px;
+    height: 190px;
+  }
+
+  .orba-partner-preview__voice {
+    min-height: 84px;
+  }
+
+  .orba-partner-preview__voice blockquote {
+    font-size: 17px;
+  }
+
+  .orba-partner-select__utility {
+    padding-top: 17px;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+  }
+
+  .orba-partner-select__legal {
+    width: 100%;
+    margin: 4px 0 0;
+    flex-wrap: wrap;
+  }
+
+  .orba-partner-select__code {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .orba-dialogue__header {
+    min-height: 70px;
+    padding: 8px 10px 8px 7px;
+    grid-template-columns: 34px 1fr auto;
+    gap: 7px;
+  }
+
+  .orba-dialogue__back {
+    width: 34px;
+  }
+
+  .orba-dialogue__identity .orba-character-orb {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  .orba-dialogue__new {
+    width: 40px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .orba-dialogue__new span {
+    display: none;
+  }
+
+  .orba-dialogue__scroll {
+    padding: 0 14px;
+  }
+
+  .orba-dialogue-welcome {
+    padding: 32px 0;
+    justify-content: flex-start;
+  }
+
+  .orba-dialogue-welcome > .orba-character-orb {
+    width: 118px !important;
+    height: 118px !important;
+  }
+
+  .orba-dialogue-welcome h1 {
+    margin-top: 12px;
+    font-size: 34px;
+  }
+
+  .orba-dialogue-welcome > p {
+    margin: 12px 0 20px;
+    font-size: 11px;
+  }
+
+  .orba-dialogue-welcome__starters button {
+    min-height: 46px;
+    font-size: 12px;
+  }
+
+  .orba-dialogue__transcript {
+    padding: 30px 0;
+  }
+
+  .orba-dialogue-turn + .orba-dialogue-turn {
+    margin-top: 24px;
+  }
+
+  .orba-dialogue-turn p {
+    font-size: 14px;
+  }
+
+  .orba-dialogue-composer {
+    padding: 8px 10px 10px;
+  }
+
+  .orba-dialogue-composer__tools > span {
+    display: none;
+  }
+
+  .orba-dialogue-composer__tools {
+    justify-content: flex-end;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .orba-theme-toggle,
   .orba-service-page .btn-gold,
   .service-start-shell .btn-gold,
-  .service-start-intro > .grid button {
+  .service-start-intro > .grid button,
+  .orba-character-orb *,
+  .orba-partner-option,
+  .orba-dialogue-welcome__starters button {
+    animation: none !important;
     transition: none;
   }
 }

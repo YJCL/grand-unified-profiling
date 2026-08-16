@@ -6,6 +6,7 @@
 //  小さな伴星がまわる「生きた光の玉」。
 // ─────────────────────────────────────────────────────────────
 
+import type { CSSProperties } from 'react';
 import { cn } from '@/lib/utils';
 
 export type CharacterType = 'fairy' | 'shaman' | 'sage' | 'friend' | 'cool' | 'burn';
@@ -32,36 +33,26 @@ export function CharacterAvatar({
   className?: string;
 }) {
   const { hue } = ORBS[type];
-  // 賢者(紫)の柔らかさを基準に、彩度を全色で統一し色相だけ変える
-  const sat = 68;
-  const glow = `hsla(${hue}, ${sat}%, 60%, 0.45)`;
-  // 輪郭を作らず、中心から一様に透明へ溶ける拡散グロー（はっきりした縁を出さない）
-  const core = `radial-gradient(circle, #ffffff 0%, hsla(${hue} ${sat}% 80% / 0.95) 14%, hsla(${hue} ${sat}% 62% / 0.7) 32%, hsla(${hue} ${sat}% 54% / 0.28) 52%, transparent 72%)`;
+  const style = {
+    width: size,
+    height: size,
+    '--orb-hue': hue,
+    '--orb-size': `${size}px`,
+  } as CSSProperties;
 
   return (
     <div
-      className={cn('relative flex items-center justify-center', className)}
-      style={{ width: size, height: size }}
+      className={cn('orba-character-orb', speaking && 'is-speaking', className)}
+      style={style}
+      aria-hidden="true"
     >
-      {/* 広く柔らかいグロー（呼吸） */}
-      <div
-        className="absolute rounded-full animate-aura"
-        style={{
-          width: size * 1.5, height: size * 1.5,
-          background: `radial-gradient(circle, ${glow} 0%, transparent 60%)`,
-          filter: `blur(${size * 0.1}px)`,
-        }}
-      />
-      {/* 光の玉本体（縁をぼかして拡散・輪郭を消す） */}
-      <div
-        className="relative rounded-full"
-        style={{
-          width: size * 0.92, height: size * 0.92,
-          background: core,
-          filter: `blur(${size * 0.035}px)`,
-          animation: `aura-breathe ${speaking ? 1.6 : 5}s ease-in-out infinite`,
-        }}
-      />
+      <span className="orba-character-orb__halo" />
+      <span className="orba-character-orb__orbit"><i /></span>
+      <span className="orba-character-orb__sphere">
+        <i className="orba-character-orb__mineral" />
+        <i className="orba-character-orb__shade" />
+        <i className="orba-character-orb__glint" />
+      </span>
     </div>
   );
 }

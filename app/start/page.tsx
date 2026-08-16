@@ -3,10 +3,13 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { type UserProfile, type AnalysisResult } from '@/types';
 import { CharacterAvatar, CHARACTER_META, type CharacterType } from '@/app/components/CharacterAvatar';
+import { BrandOrb } from '@/app/components/BrandOrb';
 import { OrbField } from '@/app/components/OrbField';
+import { OrbaMark } from '@/app/components/OrbaMark';
 import { AuthModal } from '@/app/components/AuthModal';
 import { FoundingMemberModal } from '@/app/components/FoundingMemberModal';
 import { track } from '@/lib/analytics';
@@ -95,6 +98,15 @@ const SCRIPT: Record<CharacterType, Script> = {
   },
 };
 
+const PARTNER_SAMPLE: Record<CharacterType, string> = {
+  fairy: '気持ちがほどけるまで、急がなくていいよ。',
+  burn: '迷っているなら、まず一歩だ。背中は押す。',
+  shaman: '言葉にならない揺らぎも、ここで受け止めます。',
+  sage: '急いで結論を出さず、構造から一緒に見ていこう。',
+  cool: '余計なものを外して、今の核心だけを見よう。',
+  friend: 'まとまってなくていい。話しながら一緒に考えよう。',
+};
+
 type Msg = { from: 'orb' | 'user'; text: string };
 
 // 「〇〇です。」「〇〇と申します」等から名前部分だけを抽出
@@ -111,6 +123,7 @@ function cleanName(raw: string): string {
 function OrbSelect({ onSelect, isNewProfile }: { onSelect: (t: CharacterType) => void; isNewProfile: boolean }) {
   const router = useRouter();
   const types = Object.keys(CHARACTER_META) as CharacterType[];
+  const [selected, setSelected] = useState<CharacterType | null>(null);
   const [showCode, setShowCode] = useState(false);
   const [code, setCode] = useState('');
   const [codeErr, setCodeErr] = useState('');
@@ -143,57 +156,118 @@ function OrbSelect({ onSelect, isNewProfile }: { onSelect: (t: CharacterType) =>
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="service-start-intro relative z-10 max-w-4xl mx-auto px-6 py-14 min-h-screen flex flex-col justify-center">
-      <p className="font-display italic text-amber-200/70 text-3xl md:text-4xl mb-2 tracking-wide">Orba</p>
-      <h1 className="text-3xl md:text-5xl mb-3 leading-tight text-white">
-        数ある無数のオーブの中から、<br className="hidden md:block" />君だけのパートナーを。
-      </h1>
-      <p className="text-white/45 mb-2 font-serif-jp text-sm md:text-base">
-        ひとつ選んでください。その光が、あなたの人生にそっと寄り添います。
-      </p>
-      <p className="text-white/30 mb-9 text-xs">
-        ※ 選ぶオーブで変わるのは<span className="text-amber-200/70">話し方（口調）だけ</span>。鑑定結果（占いの中身）は同じです。後からいつでも変えられます。
-      </p>
+    <motion.section
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="orba-partner-select relative z-10"
+    >
+      <header className="orba-partner-select__header">
+        <OrbaMark size={34} />
+        <p><span>1</span> / 2　相棒を選ぶ</p>
+      </header>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-        {types.map((t) => (
-          <motion.button key={t} whileHover={{ y: -4, scale: 1.02 }} whileTap={{ scale: 0.97 }}
-            onClick={() => onSelect(t)}
-            className="card p-5 flex flex-col items-center gap-2.5 text-center transition-colors hover:border-white/25">
-            <CharacterAvatar type={t} size={96} />
-            <p className="text-base md:text-lg font-serif-jp">{CHARACTER_META[t].label}</p>
-            <p className="text-[11px] text-white/45 leading-snug font-serif-jp">{CHARACTER_META[t].tone}</p>
-          </motion.button>
-        ))}
+      <div className="orba-partner-select__layout">
+        <div className="orba-partner-select__copy">
+          <h1>話したくなる光を、ひとつ。</h1>
+          <p className="orba-partner-select__lead">
+            読み解く内容は、どのオーブでも同じです。変わるのは、あなたへ言葉を渡すときの温度だけ。
+          </p>
+
+          <div className="orba-partner-list" role="radiogroup" aria-label="パートナーオーブを選ぶ">
+            {types.map((t) => {
+              const active = selected === t;
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  onClick={() => setSelected(t)}
+                  className={cn('orba-partner-option', active && 'is-selected')}
+                >
+                  <CharacterAvatar type={t} size={46} />
+                  <span>
+                    <strong>{CHARACTER_META[t].label}</strong>
+                    <small>{CHARACTER_META[t].tone}</small>
+                  </span>
+                  <i aria-hidden="true" />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <aside className={cn('orba-partner-preview', selected && 'has-selection')} aria-live="polite">
+          <div className="orba-partner-preview__instrument" aria-hidden="true">
+            <span className="orba-partner-preview__ring ring-a" />
+            <span className="orba-partner-preview__ring ring-b" />
+            <AnimatePresence mode="wait">
+              {selected ? (
+                <motion.div
+                  key={selected}
+                  initial={{ opacity: 0, scale: 0.88, filter: 'blur(10px)' }}
+                  animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                  exit={{ opacity: 0, scale: 0.94, filter: 'blur(8px)' }}
+                  transition={{ duration: 0.55, ease: [0.23, 1, 0.32, 1] }}
+                >
+                  <CharacterAvatar type={selected} size={260} />
+                </motion.div>
+              ) : (
+                <motion.div key="unselected" initial={{ opacity: 0 }} animate={{ opacity: 0.7 }}>
+                  <BrandOrb />
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <span className="orba-partner-preview__coordinate">VOICE / CALIBRATION</span>
+          </div>
+
+          <div className="orba-partner-preview__voice">
+            <p>{selected ? CHARACTER_META[selected].label : 'まだ名前のない光'}</p>
+            <blockquote>
+              {selected ? `「${PARTNER_SAMPLE[selected]}」` : '気になる光に触れて、声の温度を確かめてください。'}
+            </blockquote>
+          </div>
+
+          <button
+            type="button"
+            disabled={!selected}
+            onClick={() => selected && onSelect(selected)}
+            className="orba-partner-preview__confirm btn-gold"
+          >
+            {selected ? `${CHARACTER_META[selected].label}と話してみる` : 'オーブを選んでください'}
+            <ArrowRight aria-hidden="true" />
+          </button>
+          <p className="orba-partner-preview__note">選んだ相棒は、あとからいつでも変更できます。</p>
+        </aside>
       </div>
 
-      <div className="mt-10 flex flex-col items-center gap-3">
+      <div className="orba-partner-select__utility">
         {!showCode ? (
-          <button onClick={() => setShowCode(true)} className="text-[11px] text-white/30 hover:text-white/60 tracking-wide transition-colors">
-            引き継ぎコードをお持ちの方 →
+          <button onClick={() => setShowCode(true)}>
+            引き継ぎコードをお持ちの方
           </button>
         ) : (
-          <div className="flex flex-col items-center gap-2 w-full max-w-xs">
+          <div className="orba-partner-select__code">
             <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 6))} placeholder="6文字のコード"
-              className="w-full bg-white/5 border border-white/10 rounded-full px-5 py-2.5 text-center font-mono tracking-[0.4em] text-white placeholder:text-white/20 focus:outline-none focus:border-white/30" />
-            {codeErr && <p className="text-xs text-rose-300">{codeErr}</p>}
-            <div className="flex gap-2 w-full">
-              <button onClick={() => { setShowCode(false); setCodeErr(''); }} className="flex-1 py-2 text-xs text-white/40 border border-white/10 rounded-full hover:text-white/70">キャンセル</button>
-              <button onClick={redeem} disabled={code.length < 6 || codeLoading} className="flex-1 py-2 text-xs btn-gold font-bold disabled:opacity-40">{codeLoading ? '確認中…' : '引き継ぐ'}</button>
+              aria-label="6文字の引き継ぎコード" />
+            {codeErr && <p role="alert">{codeErr}</p>}
+            <div>
+              <button onClick={() => { setShowCode(false); setCodeErr(''); }}>キャンセル</button>
+              <button onClick={redeem} disabled={code.length < 6 || codeLoading} className="btn-gold">{codeLoading ? '確認中…' : '引き継ぐ'}</button>
             </div>
           </div>
         )}
         {isNewProfile && (
-          <button onClick={() => router.push('/mypage')} className="text-[11px] text-white/25 hover:text-white/50 tracking-wide">← ダッシュボードに戻る</button>
+          <button onClick={() => router.push('/mypage')}>ダッシュボードに戻る</button>
         )}
-        <button onClick={() => setShowAuth(true)} className="text-[11px] text-white/40 hover:text-white/70 tracking-wide">
-          登録済みの方はログイン →
+        <button onClick={() => setShowAuth(true)}>
+          登録済みの方はログイン
         </button>
-        <div className="flex flex-wrap gap-x-5 gap-y-1 justify-center mt-2 text-[10px] text-white/20">
-          <a href="/legal/terms" className="hover:text-white/50">利用規約</a>
-          <a href="/legal/privacy" className="hover:text-white/50">プライバシーポリシー</a>
-          <a href="/legal/tokushoho" className="hover:text-white/50">特定商取引法に基づく表記</a>
+        <div className="orba-partner-select__legal">
+          <a href="/legal/terms">利用規約</a>
+          <a href="/legal/privacy">プライバシーポリシー</a>
+          <a href="/legal/tokushoho">特定商取引法に基づく表記</a>
         </div>
       </div>
 
@@ -204,7 +278,7 @@ function OrbSelect({ onSelect, isNewProfile }: { onSelect: (t: CharacterType) =>
             onSuccess={() => router.push('/mypage')} />
         )}
       </AnimatePresence>
-    </motion.div>
+    </motion.section>
   );
 }
 
