@@ -10,6 +10,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/brand`, lastModified: new Date("2026-08-17"), changeFrequency: "monthly", priority: 0.4 },
     { url: `${baseUrl}/legal/terms`, lastModified: new Date("2026-08-17"), changeFrequency: "yearly", priority: 0.2 },
     { url: `${baseUrl}/legal/privacy`, lastModified: new Date("2026-08-17"), changeFrequency: "yearly", priority: 0.2 },
+    { url: `${baseUrl}/legal/cancellation`, lastModified: new Date("2026-08-17"), changeFrequency: "yearly", priority: 0.2 },
+    { url: `${baseUrl}/contact`, lastModified: new Date("2026-08-17"), changeFrequency: "yearly", priority: 0.3 },
   ];
 
   const articlePages: MetadataRoute.Sitemap = insights.map((insight) => ({

@@ -66,6 +66,7 @@ export default function PrivacyPage() {
           <Link href="/" className="hover:text-white/70">← トップへ</Link>
           <Link href="/legal/terms" className="hover:text-white/70">利用規約</Link>
           <Link href="/legal/tokushoho" className="hover:text-white/70">特商法表記</Link>
+          <Link href="/contact" className="hover:text-white/70">お問い合わせ</Link>
         </div>
       </div>
     </main>

@@ -276,6 +276,8 @@ function OrbSelect({ onSelect, isNewProfile }: { onSelect: (t: CharacterType) =>
           <a href="/legal/terms">利用規約</a>
           <a href="/legal/privacy">プライバシーポリシー</a>
           <a href="/legal/tokushoho">特定商取引法に基づく表記</a>
+          <a href="/legal/cancellation">キャンセルポリシー</a>
+          <a href="/contact">お問い合わせ</a>
         </div>
       </div>
 

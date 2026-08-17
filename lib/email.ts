@@ -6,7 +6,7 @@
 
 const FROM = process.env.EMAIL_FROM || 'Orba <noreply@orba.life>';
 
-export async function sendEmail(opts: { to: string; subject: string; html: string }): Promise<{ ok: boolean; skipped?: boolean }> {
+export async function sendEmail(opts: { to: string; subject: string; html: string; replyTo?: string }): Promise<{ ok: boolean; skipped?: boolean }> {
   const key = process.env.RESEND_API_KEY;
   if (!key) {
     console.warn('[email] RESEND_API_KEY 未設定のため送信スキップ:', opts.subject, '→', opts.to);
@@ -16,7 +16,13 @@ export async function sendEmail(opts: { to: string; subject: string; html: strin
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: FROM, to: opts.to, subject: opts.subject, html: opts.html }),
+      body: JSON.stringify({
+        from: FROM,
+        to: opts.to,
+        subject: opts.subject,
+        html: opts.html,
+        ...(opts.replyTo ? { reply_to: opts.replyTo } : {}),
+      }),
     });
     if (!res.ok) {
       console.error('[email] 送信失敗:', res.status, await res.text().catch(() => ''));

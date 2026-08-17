@@ -21,6 +21,7 @@ export default function TermsPage() {
               <li>アカウント登録なしでも一部機能を利用できますが、複数端末での利用には登録が必要です。</li>
               <li>登録情報は正確に保ち、パスワードは自身で適切に管理してください。</li>
               <li>第三者のなりすまし、アカウントの譲渡・売買は禁止します。</li>
+              <li>18歳未満の方は有料プランを利用できません。未成年者が無料機能を利用する場合は、保護者の同意を得てください。</li>
             </ul>
           </section>
 
@@ -30,6 +31,7 @@ export default function TermsPage() {
               <li>Orba Plusは月額1,480円（税込）で、お申し込み時に初回課金され、以後毎月同日に自動更新されます。</li>
               <li>決済はKOMOJUを通じて行われ、当サービスはカード番号を保存しません。</li>
               <li>解約はアプリ内からいつでも行えます。解約後も支払済み期間の終了までは利用でき、法令上必要な場合を除き決済済み料金は返金されません。</li>
+              <li>解約・返金の詳細は、キャンセル・返金ポリシーに定めます。</li>
               <li>無料プランには利用回数・閲覧範囲等の制限があります。</li>
             </ul>
           </section>
@@ -63,6 +65,8 @@ export default function TermsPage() {
           <Link href="/" className="hover:text-white/70">← トップへ</Link>
           <Link href="/legal/privacy" className="hover:text-white/70">プライバシーポリシー</Link>
           <Link href="/legal/tokushoho" className="hover:text-white/70">特商法表記</Link>
+          <Link href="/legal/cancellation" className="hover:text-white/70">キャンセルポリシー</Link>
+          <Link href="/contact" className="hover:text-white/70">お問い合わせ</Link>
         </div>
       </div>
     </main>

@@ -96,6 +96,7 @@ export default function InsightsPage() {
         <OrbaMark />
         <Link href="/">Orbaトップ</Link>
         <Link href="/legal/privacy">プライバシー</Link>
+        <Link href="/contact">お問い合わせ</Link>
       </footer>
     </main>
   );

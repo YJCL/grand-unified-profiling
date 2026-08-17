@@ -57,6 +57,8 @@ export default function TokushohoPage() {
           <Link href="/" className="hover:text-white/70">← トップへ</Link>
           <Link href="/legal/terms" className="hover:text-white/70">利用規約</Link>
           <Link href="/legal/privacy" className="hover:text-white/70">プライバシーポリシー</Link>
+          <Link href="/legal/cancellation" className="hover:text-white/70">キャンセルポリシー</Link>
+          <Link href="/contact" className="hover:text-white/70">お問い合わせ</Link>
         </div>
       </div>
     </main>

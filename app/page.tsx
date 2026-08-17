@@ -157,6 +157,8 @@ export default function LandingPage() {
           <Link href="/legal/terms">利用規約</Link>
           <Link href="/legal/privacy">プライバシー</Link>
           <Link href="/legal/tokushoho">特定商取引法に基づく表記</Link>
+          <Link href="/legal/cancellation">キャンセルポリシー</Link>
+          <Link href="/contact">お問い合わせ</Link>
           <Link href="/brand">Brand guide</Link>
         </div>
       </footer>
