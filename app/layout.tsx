@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Noto_Sans_JP, Shippori_Mincho, Cormorant_Garamond } from "next/font/google";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import "./brand.css";
 import "./service-redesign.css";
@@ -31,6 +32,7 @@ const cormorant = Cormorant_Garamond({
 });
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://orba.life";
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "G-9Z2S2XGR5S";
 const APP_DESC = "複数の知恵と、あなた自身の言葉をひとつに。Orbaは、迷いの中に静かな輪郭をつくるパーソナルパートナーです。";
 
 export const metadata: Metadata = {
@@ -87,6 +89,7 @@ export default function RootLayout({
         </ThemeProvider>
         <ServiceWorkerRegister />
       </body>
+      <GoogleAnalytics gaId={GA_MEASUREMENT_ID} />
     </html>
   );
 }
