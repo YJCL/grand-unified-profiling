@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowDown,
-  ArrowRight,
   CalendarDays,
   MessageCircle,
   Orbit,
@@ -10,6 +9,7 @@ import {
 } from "lucide-react";
 import { BrandOrb } from "./components/BrandOrb";
 import { CelestialInstrument } from "./components/CelestialInstrument";
+import { LandingAccountActions } from "./components/LandingAccountActions";
 import { OrbaMark } from "./components/OrbaMark";
 
 export const metadata: Metadata = {
@@ -37,12 +37,10 @@ export default function LandingPage() {
         <nav aria-label="LPナビゲーション">
           <a href="#about">Orbaとは</a>
           <a href="#experience">できること</a>
-          <a href="#method">読み解き方</a>
+          <a href="#flow">ご利用の流れ</a>
           <Link href="/insights">読みもの</Link>
         </nav>
-        <Link className="orba-lp__header-cta" href="/start">
-          Orbaをはじめる <ArrowRight size={14} />
-        </Link>
+        <LandingAccountActions placement="header" />
       </header>
 
       <section className="orba-lp__hero">
@@ -56,9 +54,7 @@ export default function LandingPage() {
             複数の知恵と、あなた自身の言葉をひとつに。Orbaは、迷いの中に静かな輪郭をつくるパーソナルパートナーです。
           </p>
           <div className="orba-lp__actions">
-            <Link href="/start">
-              無料ではじめる <ArrowRight size={16} />
-            </Link>
+            <LandingAccountActions placement="hero" />
             <a href="#about">
               もう少し知る <ArrowDown size={15} />
             </a>
@@ -115,6 +111,39 @@ export default function LandingPage() {
         </article>
       </section>
 
+      <section className="orba-lp__flow" id="flow">
+        <div className="orba-lp__flow-intro">
+          <h2>
+            登録から、
+            <br />
+            最初の
+            <br />
+            読み解きまで。
+          </h2>
+          <p>
+            メールアドレスとパスワードで無料登録。相棒を選び、6つの質問に答えると、約2分で最初のプロフィールが完成します。
+          </p>
+        </div>
+        <ol className="orba-lp__flow-steps">
+          <li>
+            <span>01</span>
+            <div><strong>無料アカウント登録</strong><p>メールアドレスと8文字以上のパスワードを設定します。</p></div>
+          </li>
+          <li>
+            <span>02</span>
+            <div><strong>プロフィールを作成</strong><p>相棒のオーブを選び、生年月日など6つの質問に答えます。</p></div>
+          </li>
+          <li>
+            <span>03</span>
+            <div><strong>無料で利用を開始</strong><p>最初の読み解きを受け取り、対話や運気カレンダーを試せます。</p></div>
+          </li>
+          <li>
+            <span>04</span>
+            <div><strong>必要な方だけOrba Plusへ</strong><p>プラン内容を確認後、KOMOJUの安全な決済画面で申し込みます。</p></div>
+          </li>
+        </ol>
+      </section>
+
       <section className="orba-lp__method" id="method">
         <div>
           <h2>
@@ -144,9 +173,7 @@ export default function LandingPage() {
           <br />
           少しだけ聞かせてください。
         </h2>
-        <Link href="/start">
-          Orbaをはじめる <ArrowRight size={16} />
-        </Link>
+        <LandingAccountActions placement="final" />
       </section>
 
       <footer className="orba-lp__footer">

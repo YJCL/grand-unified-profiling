@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { X } from 'lucide-react';
 
@@ -24,6 +25,9 @@ export function AuthModal({
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,18 +48,20 @@ export function AuthModal({
     }
   };
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} onClick={(e) => e.stopPropagation()}
         className="w-full max-w-sm card p-7 rounded-3xl">
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-xl font-serif-jp text-white">{mode === 'register' ? 'アカウント登録' : 'ログイン'}</h2>
-          <button onClick={onClose} className="text-white/30 hover:text-white"><X className="w-5 h-5" /></button>
+          <button type="button" aria-label="閉じる" onClick={onClose} className="text-white/30 hover:text-white"><X className="w-5 h-5" /></button>
         </div>
         <p className="text-xs text-white/40 mb-5 font-serif-jp">
           {mode === 'register'
-            ? (userId ? '今のプロフィールを引き継いで本登録します。別の端末でも同じデータを使えます。' : 'メールとパスワードで登録します。')
+            ? (userId ? '今のプロフィールを引き継いで本登録します。別の端末でも同じデータを使えます。' : '無料アカウントを作成後、そのままプロフィール作成へ進みます。')
             : '登録済みのメールとパスワードでログインします。'}
         </p>
 
@@ -69,6 +75,12 @@ export function AuthModal({
             {loading ? '処理中…' : mode === 'register' ? '登録する' : 'ログイン'}
           </button>
         </form>
+
+        {mode === 'register' && (
+          <p className="mt-3 text-[10px] text-white/35 leading-relaxed">
+            登録することで、<a href="/legal/terms" className="underline hover:text-white/60">利用規約</a>と<a href="/legal/privacy" className="underline hover:text-white/60">プライバシーポリシー</a>に同意したものとみなされます。
+          </p>
+        )}
 
         <button onClick={() => { setMode(mode === 'register' ? 'login' : 'register'); setError(''); }}
           className="mt-4 w-full text-center text-xs text-white/40 hover:text-white/70">
@@ -84,6 +96,7 @@ export function AuthModal({
           パスワードは暗号化（一方向ハッシュ）して保存され、運営も元のパスワードを見ることはできません。
         </p>
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body,
   );
 }
