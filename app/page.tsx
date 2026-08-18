@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowDown,
+  ArrowRight,
   CalendarDays,
   MessageCircle,
   Orbit,
@@ -40,7 +41,7 @@ export default function LandingPage() {
           <a href="#flow">ご利用の流れ</a>
           <Link href="/insights">読みもの</Link>
         </nav>
-        <LandingAccountActions placement="header" />
+        <LandingAccountActions />
       </header>
 
       <section className="orba-lp__hero">
@@ -54,7 +55,9 @@ export default function LandingPage() {
             複数の知恵と、あなた自身の言葉をひとつに。Orbaは、迷いの中に静かな輪郭をつくるパーソナルパートナーです。
           </p>
           <div className="orba-lp__actions">
-            <LandingAccountActions placement="hero" />
+            <Link className="orba-lp__trial-cta" href="/start">
+              無料プロフィールを作る <ArrowRight size={16} />
+            </Link>
             <a href="#about">
               もう少し知る <ArrowDown size={15} />
             </a>
@@ -114,28 +117,26 @@ export default function LandingPage() {
       <section className="orba-lp__flow" id="flow">
         <div className="orba-lp__flow-intro">
           <h2>
-            登録から、
+            まず知って、
             <br />
-            最初の
-            <br />
-            読み解きまで。
+            続きはあとから。
           </h2>
           <p>
-            メールアドレスとパスワードで無料登録。相棒を選び、6つの質問に答えると、約2分で最初のプロフィールが完成します。
+            アカウント登録なしで、相棒を選び、6つの質問から最初のプロフィールを作れます。まず少し触れて、続けたいと思ったときに無料登録してください。
           </p>
         </div>
         <ol className="orba-lp__flow-steps">
           <li>
             <span>01</span>
-            <div><strong>無料アカウント登録</strong><p>メールアドレスと8文字以上のパスワードを設定します。</p></div>
+            <div><strong>無料プロフィールを作成</strong><p>メール登録なしで、相棒を選び6つの質問に答えます。</p></div>
           </li>
           <li>
             <span>02</span>
-            <div><strong>プロフィールを作成</strong><p>相棒のオーブを選び、生年月日など6つの質問に答えます。</p></div>
+            <div><strong>まずはOrbaを体験</strong><p>最初の読み解き、対話、運気カレンダーを試せます。</p></div>
           </li>
           <li>
             <span>03</span>
-            <div><strong>無料で利用を開始</strong><p>最初の読み解きを受け取り、対話や運気カレンダーを試せます。</p></div>
+            <div><strong>続きは無料アカウント登録</strong><p>気に入ったらメールとパスワードを設定。プロフィールをそのまま引き継ぎます。</p></div>
           </li>
           <li>
             <span>04</span>
@@ -173,7 +174,9 @@ export default function LandingPage() {
           <br />
           少しだけ聞かせてください。
         </h2>
-        <LandingAccountActions placement="final" />
+        <Link className="orba-lp__trial-cta" href="/start">
+          まずは無料でプロフィールを作る <ArrowRight size={16} />
+        </Link>
       </section>
 
       <footer className="orba-lp__footer">

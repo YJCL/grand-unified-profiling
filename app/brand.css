@@ -126,6 +126,22 @@
 }
 .orba-lp__register {
   min-height: 38px;
+  padding: 0 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(251, 248, 240, 0.66);
+  background: transparent;
+  border-bottom: 1px solid rgba(244, 192, 96, 0.48) !important;
+  font-size: 11px;
+  font-weight: 700;
+}
+.orba-lp__register:hover {
+  color: var(--orba-paper);
+}
+.orba-lp__trial,
+.orba-lp__trial-cta {
+  min-height: 38px;
   padding: 0 15px;
   display: inline-flex;
   align-items: center;
@@ -135,11 +151,16 @@
   background: var(--orba-gold);
   font-size: 11px;
   font-weight: 700;
+  transition: transform 180ms ease, background-color 180ms ease;
 }
-.orba-lp__register:hover {
+.orba-lp__trial:hover,
+.orba-lp__trial-cta:hover {
+  color: #211708;
   transform: translateY(-1px);
 }
-.orba-lp__account-actions button:focus-visible {
+.orba-lp__account-actions button:focus-visible,
+.orba-lp__trial:focus-visible,
+.orba-lp__trial-cta:focus-visible {
   outline: 2px solid var(--orba-gold);
   outline-offset: 4px;
 }
@@ -198,9 +219,6 @@
   gap: 28px;
   margin-top: 36px;
 }
-.orba-lp__actions .orba-lp__account-actions {
-  flex: 0 0 auto;
-}
 .orba-lp__actions a {
   display: inline-flex;
   align-items: center;
@@ -211,13 +229,11 @@
   font-size: 12px;
   font-weight: 600;
 }
-.orba-lp__actions .orba-lp__register {
+.orba-lp__actions .orba-lp__trial-cta {
   min-height: 44px;
   padding: 0 17px;
+  border-bottom: 0;
   font-size: 12px;
-}
-.orba-lp__actions .orba-lp__login {
-  display: none;
 }
 
 .orba-lp__flow {
@@ -793,10 +809,8 @@
 .orba-lp__final h2 {
   font-size: clamp(34px, 4.4vw, 60px);
 }
-.orba-lp__final .orba-lp__account-actions {
+.orba-lp__final .orba-lp__trial-cta {
   margin-top: 32px;
-}
-.orba-lp__final .orba-lp__register {
   min-height: 46px;
   padding: 0 19px;
   font-size: 12px;
@@ -1153,6 +1167,11 @@
     font-size: 9px;
   }
   .orba-lp__account-actions.is-header .orba-lp__register {
+    min-height: 34px;
+    padding: 0 1px;
+    font-size: 9px;
+  }
+  .orba-lp__account-actions.is-header .orba-lp__trial {
     min-height: 34px;
     padding: 0 10px;
     font-size: 9px;

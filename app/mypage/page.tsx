@@ -525,6 +525,7 @@ export default function MyPage() {
     const [genCodeLoading, setGenCodeLoading] = useState(false);
     const [genCodeCopied, setGenCodeCopied] = useState(false);
     const [showAuth, setShowAuth] = useState(false);
+    const [showRegistrationNudge, setShowRegistrationNudge] = useState(false);
     const [showWelcome, setShowWelcome] = useState(false);
     const [tickets, setTickets] = useState(0);
     const [bonusMsg, setBonusMsg] = useState('');
@@ -600,6 +601,9 @@ export default function MyPage() {
             }
 
             setUserData(data);
+            if (!data.email && localStorage.getItem('orba_registration_nudge_dismissed') !== '1') {
+                setShowRegistrationNudge(true);
+            }
             setActiveId(id);
             setTickets(data.tickets ?? 0);
             track('app_open');
@@ -824,6 +828,39 @@ export default function MyPage() {
                     <p>今日の流れと、いま役立つ言葉を置いています。</p>
                 </section>
                 <AnimatePresence>
+                    {showRegistrationNudge && !userData.email && (
+                        <motion.aside
+                            initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+                            className="mb-4 card p-4 border border-amber-300/25 bg-amber-300/[0.05]"
+                            aria-label="プロフィールの保存案内"
+                        >
+                            <div className="flex items-start gap-3">
+                                <UserPlus className="w-4 h-4 mt-0.5 text-amber-200/80 flex-none" />
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-serif-jp text-white">この続きも、残しておけます。</p>
+                                    <p className="mt-1 text-[11px] leading-relaxed text-white/45">無料登録すると、今のプロフィールを引き継いで、別の端末でも続きから使えます。</p>
+                                    <div className="mt-3 flex flex-wrap items-center gap-3">
+                                        <button onClick={() => setShowAuth(true)}
+                                            className="px-3 py-2 rounded-full text-[11px] font-bold text-[#211708] bg-amber-200 hover:bg-amber-100 transition-colors">
+                                            無料で保存する
+                                        </button>
+                                        <button onClick={() => {
+                                            localStorage.setItem('orba_registration_nudge_dismissed', '1');
+                                            setShowRegistrationNudge(false);
+                                        }} className="text-[11px] text-white/35 hover:text-white/65 transition-colors">
+                                            今はこのまま使う
+                                        </button>
+                                    </div>
+                                </div>
+                                <button onClick={() => {
+                                    localStorage.setItem('orba_registration_nudge_dismissed', '1');
+                                    setShowRegistrationNudge(false);
+                                }} aria-label="保存案内を閉じる" className="text-white/25 hover:text-white/60">
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </motion.aside>
+                    )}
                     {bonusMsg && (
                         <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
                             className="mb-4 card p-3 flex items-center gap-2 border border-amber-300/30 text-sm font-serif-jp text-amber-100">
