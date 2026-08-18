@@ -17,6 +17,8 @@ import {
   type LineValue,
 } from '@/lib/engine/iching';
 import { buildProfileFromUser } from '@/lib/engine/profile';
+import { isLaunchFreeActive } from '@/lib/launch';
+import { jstDateKey, jstDayRange } from '@/lib/jst';
 
 export const maxDuration = 60;
 
@@ -173,6 +175,31 @@ export async function POST(request: Request) {
         reused: true,
         reuseNote: '同じ問いについて短時間に何度も卦を立てることは推奨していません。前回の卦をお返しします。',
       });
+    }
+
+    // 無料ユーザーは初回1回、Premiumは1日1回。無料開放中はPremium相当。
+    const included = access.user.isPremium || isLaunchFreeActive();
+    if (included) {
+      const { start, end } = jstDayRange(jstDateKey());
+      const todayReading = await prisma.ichingReading.findFirst({
+        where: { userId, createdAt: { gte: start, lt: end } },
+        orderBy: { createdAt: 'desc' },
+      });
+      if (todayReading) {
+        return NextResponse.json({
+          error: 'daily limit reached',
+          message: '今日の卦は、すでに立っています。履歴から静かに読み返してみてください。',
+        }, { status: 429 });
+      }
+    } else {
+      const previousCount = await prisma.ichingReading.count({ where: { userId } });
+      if (previousCount >= 1) {
+        return NextResponse.json({
+          error: 'premium required',
+          upgradeRequired: true,
+          message: '無料で立てられる最初の一卦を使いました。Orba Plusでは、1日1回新しい問いを立てられます。',
+        }, { status: 402 });
+      }
     }
 
     // 1) 卦を立てる

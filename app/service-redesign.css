@@ -1441,9 +1441,18 @@ body:has(.service-start-shell) {
   transform: rotate(45deg);
 }
 
-.orba-dialogue-welcome__iching {
+.orba-dialogue-welcome__rituals {
   min-height: 44px;
   margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.orba-dialogue-welcome__rituals button {
+  min-height: 44px;
   padding: 0 10px;
   display: inline-flex;
   align-items: center;
@@ -1454,9 +1463,23 @@ body:has(.service-start-shell) {
   border: 0;
 }
 
-.orba-dialogue-welcome__iching svg {
+.orba-dialogue-welcome__rituals button:first-child {
+  color: #211708;
+  background: var(--service-gold);
+  border-radius: 12px;
+  padding-inline: 15px;
+  font-weight: 700;
+}
+
+.orba-dialogue-welcome__rituals svg {
   width: 13px;
   height: 13px;
+}
+
+.orba-dialogue-welcome__rituals em {
+  padding-left: 7px;
+  font-style: normal;
+  opacity: 0.58;
 }
 
 .orba-dialogue__transcript {
@@ -1578,9 +1601,273 @@ body:has(.service-start-shell) {
   border: 0;
 }
 
+.orba-dialogue-composer__actions {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.orba-dialogue-composer__actions button:first-child {
+  color: #211708;
+  background: var(--service-gold);
+  border-radius: 10px;
+  padding-inline: 9px;
+  font-weight: 700;
+}
+
+.orba-dialogue-composer__actions em {
+  font-style: normal;
+  opacity: 0.58;
+}
+
 .orba-dialogue-composer__tools svg {
   width: 12px;
   height: 12px;
+}
+
+/* 今日の鑑定: 夜の観測室から、紙の読み物へ焦点を切り替える */
+.orba-daily-reading {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(3, 3, 11, 0.78);
+  backdrop-filter: blur(14px);
+}
+
+.orba-daily-reading__sheet {
+  width: min(620px, 100%);
+  max-height: min(820px, calc(100svh - 48px));
+  overflow-y: auto;
+  color: var(--service-text);
+  background: var(--service-surface-raised);
+  border-radius: 16px;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.48);
+}
+
+.orba-daily-reading__sheet > header {
+  min-height: 68px;
+  padding: 0 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--service-line);
+}
+
+.orba-daily-reading__sheet > header > div,
+.orba-daily-reading__sheet > header button {
+  display: flex;
+  align-items: center;
+}
+
+.orba-daily-reading__sheet > header > div {
+  gap: 10px;
+}
+
+.orba-daily-reading__sheet > header svg {
+  width: 17px;
+  height: 17px;
+  color: var(--service-gold);
+}
+
+.orba-daily-reading__sheet > header h2 {
+  margin: 0;
+  font-family: var(--font-serif), "Shippori Mincho", serif;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.orba-daily-reading__sheet > header button {
+  width: 40px;
+  height: 40px;
+  justify-content: center;
+  color: var(--service-muted);
+  background: transparent;
+  border: 0;
+}
+
+.orba-daily-reading__loading {
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: var(--service-muted);
+}
+
+.orba-daily-reading__loading svg,
+.orba-daily-reading__primary svg {
+  width: 16px;
+  height: 16px;
+}
+
+.orba-daily-reading__loading svg,
+.orba-daily-reading__primary:disabled svg {
+  animation: spin 1s linear infinite;
+}
+
+.orba-daily-reading__intro {
+  padding: 42px 38px 36px;
+}
+
+.orba-daily-reading__intro > h3 {
+  margin: 0;
+  font-family: var(--font-serif), "Shippori Mincho", serif;
+  font-size: clamp(25px, 5vw, 34px);
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+.orba-daily-reading__intro > p:not(.orba-daily-reading__error, .orba-daily-reading__note) {
+  max-width: 48ch;
+  margin: 16px 0 0;
+  color: var(--service-muted);
+  font-size: 12px;
+  line-height: 1.9;
+}
+
+.orba-daily-reading__access {
+  margin: 28px 0 22px;
+  padding: 15px 0;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  border-top: 1px solid var(--service-line);
+  border-bottom: 1px solid var(--service-line);
+}
+
+.orba-daily-reading__access > svg {
+  width: 18px;
+  height: 18px;
+  color: var(--service-gold);
+}
+
+.orba-daily-reading__access strong,
+.orba-daily-reading__access span {
+  display: block;
+}
+
+.orba-daily-reading__access strong {
+  color: var(--service-text);
+  font-size: 12px;
+}
+
+.orba-daily-reading__access span {
+  margin-top: 3px;
+  color: var(--service-muted);
+  font-size: 10px;
+}
+
+.orba-daily-reading__primary,
+.orba-daily-reading__secondary {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-family: inherit;
+  font-weight: 700;
+  border: 0;
+}
+
+.orba-daily-reading__primary {
+  width: 100%;
+  color: #211708;
+  background: var(--service-gold);
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.orba-daily-reading__primary:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
+.orba-daily-reading__secondary {
+  margin: 0 auto 26px;
+  padding-inline: 18px;
+  color: var(--service-muted);
+  background: transparent;
+  font-size: 11px;
+}
+
+.orba-daily-reading__error {
+  margin: 0 0 14px;
+  color: #f4b8bc;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.orba-daily-reading__note {
+  margin: 10px 0 0;
+  color: var(--service-muted);
+  font-size: 10px;
+  text-align: center;
+}
+
+.orba-daily-reading__paper {
+  margin: 0;
+  padding: 42px clamp(25px, 6vw, 52px) 48px;
+  color: #262331;
+  background: #fbf8f0;
+}
+
+.orba-daily-reading__date {
+  margin: 0 0 8px;
+  color: #a77c24;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.orba-daily-reading__paper > h3 {
+  margin: 0;
+  font-family: var(--font-serif), "Shippori Mincho", serif;
+  font-size: clamp(25px, 5vw, 35px);
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+.orba-daily-reading__opening {
+  margin: 18px 0 34px;
+  color: #5f5967;
+  font-family: var(--font-serif), "Shippori Mincho", serif;
+  font-size: 14px;
+  line-height: 2;
+}
+
+.orba-daily-reading__sections section {
+  padding: 22px 0;
+  border-top: 1px solid #d8d0c2;
+}
+
+.orba-daily-reading__sections h4 {
+  margin: 0 0 9px;
+  color: #a77c24;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.orba-daily-reading__sections p {
+  margin: 0;
+  font-family: var(--font-serif), "Shippori Mincho", serif;
+  font-size: 14px;
+  line-height: 2;
+}
+
+.orba-daily-reading__paper blockquote {
+  margin: 26px 0 0;
+  padding: 20px 0 0;
+  color: #5d467d;
+  font-family: var(--font-serif), "Shippori Mincho", serif;
+  font-size: 15px;
+  line-height: 1.9;
+  border-top: 1px solid #a77c24;
 }
 
 .orba-dialogue-composer__form {
@@ -2343,6 +2630,44 @@ body:has(.service-start-shell) {
 
   .orba-dialogue-composer__tools {
     justify-content: flex-end;
+  }
+
+  .orba-dialogue-composer__actions {
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .orba-dialogue-composer__actions button {
+    min-height: 34px;
+  }
+
+  .orba-dialogue-welcome__rituals {
+    width: 100%;
+    gap: 5px 13px;
+  }
+
+  .orba-daily-reading {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .orba-daily-reading__sheet {
+    max-height: 92svh;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .orba-daily-reading__sheet > header {
+    min-height: 62px;
+    padding-inline: 18px 10px;
+  }
+
+  .orba-daily-reading__intro {
+    padding: 32px 22px 28px;
+  }
+
+  .orba-daily-reading__paper {
+    padding: 34px 22px 42px;
   }
 
   .orba-registration {

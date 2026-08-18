@@ -2,14 +2,16 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, Gift, Check, MessageSquare, CalendarDays, CreditCard } from 'lucide-react';
+import { X, Gift, Check, MessageSquare, CalendarDays, CreditCard, BookOpen, Sparkles } from 'lucide-react';
 import { track } from '@/lib/analytics';
 import { PREMIUM_PRICE_LABEL, isBillingEnabled, launchFreeUntilLabel } from '@/lib/launch';
 
 // ローンチ記念の無料開放を「期間限定・将来は有料・終了日」とともに明記するモーダル。
 // 買えない価格を煽るのではなく、いま無料で使えること＋開始時の通知登録(任意)を案内する。
 const PERKS = [
-  { icon: MessageSquare, text: '1日20回まで深く相談できる', sub: '通常プランは1日3回まで' },
+  { icon: MessageSquare, text: '高品質な対話を1日50回まで', sub: '通常プランは1日3回まで' },
+  { icon: BookOpen, text: '今日の鑑定を毎日ひらける', sub: '仕事・人間関係・心・タイミングを一つの読み物に' },
+  { icon: Sparkles, text: '易を1日1回立てられる', sub: '無料プランは最初の一卦を体験できます' },
   { icon: CalendarDays, text: '運気カレンダーを60日分ひと目で', sub: '通常プランは7日分まで' },
 ];
 

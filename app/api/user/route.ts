@@ -32,6 +32,7 @@ export async function POST(request: Request) {
                     characterType: characterType || null,
                     profileType: profileType || 'self',
                     expiresAt: expiresAt ? new Date(expiresAt) : null,
+                    tickets: 2,
                 }
             });
             created = true;

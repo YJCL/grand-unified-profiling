@@ -3,14 +3,16 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowUp, ChevronLeft, PenSquare, Sparkles } from 'lucide-react';
+import { ArrowUp, BookOpen, ChevronLeft, PenSquare, Sparkles } from 'lucide-react';
 import { IchingSheet } from '@/app/components/IchingSheet';
+import { DailyReadingSheet } from '@/app/components/DailyReadingSheet';
 import { cn } from '@/lib/utils';
 import { CharacterAvatar, CHARACTER_META, type CharacterType } from '@/app/components/CharacterAvatar';
 import { OrbField } from '@/app/components/OrbField';
 import { FoundingMemberModal } from '@/app/components/FoundingMemberModal';
 import { OrbaAppNav } from '@/app/components/OrbaAppNav';
 import { track } from '@/lib/analytics';
+import { isLaunchFreeActive } from '@/lib/launch';
 
 type Message = { id: string; role: 'user' | 'assistant'; content: string };
 
@@ -30,8 +32,11 @@ function ChatPageInner() {
     const [userId, setUserId] = useState<string | null>(null);
     const [char, setChar] = useState<CharacterType>('sage');
     const [userEmail, setUserEmail] = useState<string | null>(null);
+    const [isPremium, setIsPremium] = useState(false);
+    const [tickets, setTickets] = useState(0);
     const [showFounding, setShowFounding] = useState(false);
     const [showIching, setShowIching] = useState(false);
+    const [showDailyReading, setShowDailyReading] = useState(false);
     const endRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -51,6 +56,8 @@ function ChatPageInner() {
                     if (data.characterType && CHARACTER_META[data.characterType as CharacterType]) setChar(data.characterType);
                     name = data.name ? `${data.name}` : 'あなた';
                     setUserEmail(data.email ?? null);
+                    setIsPremium(Boolean(data.isPremium));
+                    setTickets(data.tickets ?? 0);
                 }
                 // 過去の会話履歴を読み込んで表示
                 const hist = await fetch(`/api/chat?userId=${id}`).then(r => r.ok ? r.json() : { messages: [] }).catch(() => ({ messages: [] }));
@@ -65,7 +72,7 @@ function ChatPageInner() {
                     ]);
                 } else {
                     setMessages([{ id: 'welcome', role: 'assistant',
-                        content: `${name}、はじめまして。\n今日はどんなことを話す？日々の悩みでも、大きな決断でも、なんでも聞かせて。「鑑定して」と言えば、本格的に視るよ。` }]);
+                        content: `${name}、はじめまして。\n今日はどんなことを話す？日々の悩みでも、大きな決断でも、まとまっていない気持ちのままでも大丈夫だよ。` }]);
                 }
             } catch (e) { console.error(e); }
             finally { setIsInitializing(false); }
@@ -157,9 +164,15 @@ function ChatPageInner() {
                                 </button>
                             ))}
                         </div>
-                        <button type="button" onClick={() => setShowIching(true)} className="orba-dialogue-welcome__iching">
-                            <Sparkles aria-hidden="true" /> 具体的な問いを、易で確かめる
-                        </button>
+                        <div className="orba-dialogue-welcome__rituals">
+                            <button type="button" onClick={() => setShowDailyReading(true)}>
+                                <BookOpen aria-hidden="true" /> 今日の鑑定
+                                <em>{isPremium ? 'Premium' : isLaunchFreeActive() ? '無料開放中' : `残り${tickets}枚`}</em>
+                            </button>
+                            <button type="button" onClick={() => setShowIching(true)}>
+                                <Sparkles aria-hidden="true" /> 具体的な問いを、易で確かめる
+                            </button>
+                        </div>
                     </motion.section>
                 ) : (
                     <div className="orba-dialogue__transcript">
@@ -195,13 +208,19 @@ function ChatPageInner() {
                 <div className="orba-dialogue-composer__inner">
                     <div className="orba-dialogue-composer__tools">
                         <span>書きかけのままでも大丈夫です。</span>
-                        <button
-                            type="button"
-                            onClick={() => setShowIching(true)}
-                            title="易を立てる（具体的な問いに対して卦を立てる）"
-                        >
-                            <Sparkles aria-hidden="true" /> 易を立てる
-                        </button>
+                        <div className="orba-dialogue-composer__actions">
+                            <button type="button" onClick={() => setShowDailyReading(true)} title="プロフィールと今日の流れを重ねて鑑定する">
+                                <BookOpen aria-hidden="true" /> 今日の鑑定
+                                <em>{isPremium ? 'Premium' : isLaunchFreeActive() ? '無料開放中' : `残り${tickets}枚`}</em>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setShowIching(true)}
+                                title="易を立てる（具体的な問いに対して卦を立てる）"
+                            >
+                                <Sparkles aria-hidden="true" /> 易を立てる
+                            </button>
+                        </div>
                     </div>
                     <form onSubmit={handleSubmit} className="orba-dialogue-composer__form">
                         <textarea
@@ -227,11 +246,20 @@ function ChatPageInner() {
 
             <AnimatePresence>
                 {showFounding && <FoundingMemberModal userEmail={userEmail} onClose={() => setShowFounding(false)} />}
+                {showDailyReading && userId && (
+                    <DailyReadingSheet
+                        userId={userId}
+                        onClose={() => setShowDailyReading(false)}
+                        onUpgrade={() => { setShowDailyReading(false); track('paywall_view', { source: 'daily_reading' }); setShowFounding(true); }}
+                        onTicketChange={setTickets}
+                    />
+                )}
                 {showIching && userId && (
                     <IchingSheet
                         userId={userId}
                         initialQuestion={input.trim()}
                         onClose={() => setShowIching(false)}
+                        onUpgrade={() => { setShowIching(false); track('paywall_view', { source: 'iching' }); setShowFounding(true); }}
                     />
                 )}
             </AnimatePresence>

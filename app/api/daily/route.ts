@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import Anthropic from '@anthropic-ai/sdk';
-import { type DailyContent } from '@/types';
+import { type DailyContent, type DailyLogEnvelope } from '@/types';
 import { buildProfileFromUser } from '@/lib/engine/profile';
 import { computeDailyState } from '@/lib/engine/daily';
 import { summarizeProfile, summarizeDaily } from '@/lib/engine/summarize';
 import { characterToneBlock } from '@/lib/character';
 import { checkUserAccess } from '@/lib/auth';
+import { jstDateKey } from '@/lib/jst';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -23,7 +24,7 @@ export async function GET(request: Request) {
     const access = await checkUserAccess(userId);
     if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = jstDateKey();
 
     try {
         const user = await prisma.user.findUnique({
@@ -32,8 +33,12 @@ export async function GET(request: Request) {
         });
 
         if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        let envelope: DailyLogEnvelope = {};
         if (user.dailyLogs.length > 0) {
-            return NextResponse.json(JSON.parse(user.dailyLogs[0].data));
+            const stored = JSON.parse(user.dailyLogs[0].data) as DailyContent | DailyLogEnvelope;
+            if ('theme' in stored) return NextResponse.json(stored);
+            envelope = stored;
+            if (envelope.daily) return NextResponse.json(envelope.daily);
         }
         if (!user.birthDate) {
             return NextResponse.json({ error: 'Profile incomplete' }, { status: 422 });
@@ -85,7 +90,12 @@ ${characterToneBlock(user.characterType)}
         if (!toolUse || toolUse.type !== 'tool_use') throw new Error('No structured output');
 
         const parsed = toolUse.input as DailyContent;
-        await prisma.dailyLog.create({ data: { userId, date: today, data: JSON.stringify(parsed) } });
+        const data = JSON.stringify({ ...envelope, daily: parsed } satisfies DailyLogEnvelope);
+        await prisma.dailyLog.upsert({
+            where: { userId_date: { userId, date: today } },
+            create: { userId, date: today, data },
+            update: { data },
+        });
         return NextResponse.json(parsed);
 
     } catch (error) {

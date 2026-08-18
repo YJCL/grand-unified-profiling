@@ -56,16 +56,19 @@ export function IchingSheet({
   userId,
   initialQuestion = '',
   onClose,
+  onUpgrade,
 }: {
   userId: string;
   initialQuestion?: string;
   onClose: () => void;
+  onUpgrade: () => void;
 }) {
   const [question, setQuestion] = useState(initialQuestion);
   const [showHowTo, setShowHowTo] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [isCasting, setIsCasting] = useState(false);
   const [error, setError] = useState('');
+  const [upgradeRequired, setUpgradeRequired] = useState(false);
   const [reading, setReading] = useState<Reading | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
 
@@ -84,7 +87,7 @@ export function IchingSheet({
   const cast = async () => {
     const q = question.trim();
     if (!q) { setError('問いを入力してください'); return; }
-    setIsCasting(true); setError(''); setReading(null);
+    setIsCasting(true); setError(''); setUpgradeRequired(false); setReading(null);
     try {
       const r = await fetch('/api/iching', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -92,7 +95,8 @@ export function IchingSheet({
       });
       const d = await r.json();
       if (!r.ok) {
-        setError(d.error || 'うまく卦が立ちませんでした');
+        setError(d.message || d.error || 'うまく卦が立ちませんでした');
+        setUpgradeRequired(Boolean(d.upgradeRequired));
       } else {
         setReading(d);
         loadHistory();
@@ -166,6 +170,11 @@ export function IchingSheet({
               <span>{question.length}/400</span>
             </div>
             {error && <p className="text-xs text-rose-300 mb-3">{error}</p>}
+            {upgradeRequired && (
+              <button type="button" onClick={onUpgrade} className="w-full mb-3 py-2.5 rounded-full border border-amber-300/30 text-amber-100 text-xs font-bold hover:bg-amber-300/10 transition-colors">
+                Orba Plusを見る
+              </button>
+            )}
             <button
               onClick={cast}
               disabled={isCasting || !question.trim()}

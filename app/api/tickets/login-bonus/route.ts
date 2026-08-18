@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkUserAccess } from '@/lib/auth';
+import { canClaimWeekly, jstDateKey } from '@/lib/jst';
 
-// ログインボーナス：1日1回まで +1 チケット
+// 週次ログイン：前回付与から7日ごとに鑑定チケット +1
 export async function POST(request: Request) {
     try {
         const { userId } = await request.json();
@@ -10,8 +11,8 @@ export async function POST(request: Request) {
         if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
         const user = access.user;
 
-        const today = new Date().toISOString().split('T')[0];
-        if (user.lastLoginBonusDate === today) {
+        const today = jstDateKey();
+        if (!canClaimWeekly(user.lastLoginBonusDate, today)) {
             return NextResponse.json({ granted: false, tickets: user.tickets });
         }
         const updated = await prisma.user.update({

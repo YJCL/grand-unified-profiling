@@ -34,9 +34,9 @@ model User {
   premiumCancelAtPeriodEnd Boolean            @default(false)
   failedLogins             Int                @default(0) // 連続ログイン失敗回数
   lockedUntil              DateTime? // アカウントロック解除時刻
-  tickets                  Int                @default(0) // 鑑定チケット（無料枠を超えて1回使える）
-  lastShareTicketDate      String? // シェア報酬を最後に付与した日 YYYY-MM-DD（1日1回）
-  lastLoginBonusDate       String? // ログインボーナスを最後に付与した日 YYYY-MM-DD（1日1回）
+  tickets                  Int                @default(0) // 鑑定チケット（無料ユーザーの「今日の鑑定」で1枚消費）
+  lastShareTicketDate      String? // シェア報酬を最後に付与した日 YYYY-MM-DD（7日ごと）
+  lastLoginBonusDate       String? // ログイン特典を最後に付与した日 YYYY-MM-DD（7日ごと）
   memory                   String? // 「Orbaが覚えていること」。会話を安価LLMで蒸留した永続メモリ（毎回の文脈に注入）
   // 「人生に1度きり」固定する象徴データ。一度書かれたら上書き不可（divineを再実行しても変わらない）。
   frozenSignature          String? // signature(JSON文字列): キーカラー・数字・象徴アイテム

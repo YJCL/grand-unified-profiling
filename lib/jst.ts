@@ -12,6 +12,21 @@ export function jstDateKey(d: Date = new Date()): string {
   return d.toLocaleDateString('en-CA', { timeZone: TZ });
 }
 
+/** 指定JST日付の開始・終了をUTCのDateで返す（DBの日次検索用） */
+export function jstDayRange(dateKey: string = jstDateKey()): { start: Date; end: Date } {
+  const start = new Date(`${dateKey}T00:00:00+09:00`);
+  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+  return { start, end };
+}
+
+/** 前回日付から7日以上経過していれば週次報酬を付与できる */
+export function canClaimWeekly(lastDate: string | null | undefined, today: string = jstDateKey()): boolean {
+  if (!lastDate) return true;
+  const previous = new Date(`${lastDate}T00:00:00+09:00`).getTime();
+  const current = new Date(`${today}T00:00:00+09:00`).getTime();
+  return Number.isFinite(previous) && current - previous >= 7 * 24 * 60 * 60 * 1000;
+}
+
 /** '2026年7月15日(水)' */
 export function jstDateLabel(d: Date = new Date()): string {
   return d.toLocaleDateString('ja-JP', {

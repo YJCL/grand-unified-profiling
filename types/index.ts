@@ -73,3 +73,21 @@ export type DailyContent = {
   action: string;
   affirmation: string;
 };
+
+export type DailyReadingContent = {
+  date: string;
+  title: string;
+  opening: string;
+  overall: string;
+  work: string;
+  relationships: string;
+  inner: string;
+  timing: string;
+  action: string;
+  closing: string;
+};
+
+export type DailyLogEnvelope = {
+  daily?: DailyContent;
+  reading?: DailyReadingContent;
+};

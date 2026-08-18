@@ -6,7 +6,7 @@ import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import {
     Sparkles, MessageSquare, CalendarDays, User,
     Zap, Shield, Target, RefreshCw, GripVertical,
-    Settings, Crown, Moon, Plus, X, Copy, Check, Clock, Share2, Sun, LogOut, UserPlus
+    Settings, Crown, Moon, Plus, X, Copy, Check, Clock, Share2, Sun, LogOut, UserPlus, Ticket
 } from 'lucide-react';
 import { useTheme } from '@/app/components/ThemeProvider';
 import { cn } from '@/lib/utils';
@@ -286,8 +286,8 @@ function ShareRow({ diagnosisId, characterType, summary, userId, isPremium, onTi
         try {
             const r = await fetch('/api/tickets/share', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId }) });
             const d = await r.json();
-            if (d.granted) { setReward('シェアありがとう！鑑定チケット +1 🎟'); onTicket?.(d.tickets); }
-            else setReward('チケットは1日1回までです');
+            if (d.granted) { setReward('シェアありがとう。鑑定チケットを1枚受け取りました。'); onTicket?.(d.tickets); }
+            else setReward('シェアで受け取れるチケットは7日ごとに1枚です。');
             setTimeout(() => setReward(''), 4000);
         } catch { /* noop */ }
     };
@@ -298,7 +298,7 @@ function ShareRow({ diagnosisId, characterType, summary, userId, isPremium, onTi
 
     return (
         <div className="mt-2">
-            <p className="text-[9px] text-white/25 uppercase tracking-widest mb-1.5 flex items-center gap-1"><Share2 className="w-2.5 h-2.5" /> 結果をシェア{!isPremium && <span className="text-amber-300/70 normal-case tracking-normal">・1日1回シェアで鑑定チケット+1🎟</span>}</p>
+            <p className="text-[9px] text-white/25 uppercase tracking-widest mb-1.5 flex items-center gap-1"><Share2 className="w-2.5 h-2.5" /> 結果をシェア{!isPremium && <span className="text-amber-300/70 normal-case tracking-normal">・7日ごとに鑑定チケット1枚</span>}</p>
             <div className="flex gap-2">
                 <button onClick={openX} className="flex-1 py-2 text-[11px] font-bold rounded-lg bg-white/10 hover:bg-white/15 transition-colors">X</button>
                 <button onClick={openLine} className="flex-1 py-2 text-[11px] font-bold rounded-lg text-[#06C755] bg-[#06C755]/12 hover:bg-[#06C755]/20 transition-colors">LINE</button>
@@ -608,10 +608,10 @@ export default function MyPage() {
             setTickets(data.tickets ?? 0);
             track('app_open');
             if (!data.isPremium) track('paywall_view'); // 無料ユーザーは下部アップグレードバーを必ず見る
-            // ログインボーナス（1日1回 +1チケット）
+            // 週次ログイン特典（7日ごとに鑑定チケット +1）
             fetch('/api/tickets/login-bonus', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: id }) })
                 .then(r => r.json())
-                .then(d => { if (d.granted) { setTickets(d.tickets); setBonusMsg('ログインボーナス：鑑定チケット +1 🎟'); setTimeout(() => setBonusMsg(''), 6000); } })
+                .then(d => { if (d.granted) { setTickets(d.tickets); setBonusMsg('週のログイン特典：鑑定チケットを1枚受け取りました。'); setTimeout(() => setBonusMsg(''), 6000); } })
                 .catch(() => {});
             if (data.widgetOrder) {
                 try { setOrder(JSON.parse(data.widgetOrder)); } catch {}
@@ -864,7 +864,7 @@ export default function MyPage() {
                     {bonusMsg && (
                         <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
                             className="mb-4 card p-3 flex items-center gap-2 border border-amber-300/30 text-sm font-serif-jp text-amber-100">
-                            🎟 {bonusMsg}
+                            <Ticket className="w-4 h-4 flex-none" /> {bonusMsg}
                         </motion.div>
                     )}
                     {showWelcome && (
@@ -951,9 +951,9 @@ export default function MyPage() {
                         <div className="flex-1">
                             <p className="text-xs font-bold text-white flex items-center gap-2">
                                 プレミアムにアップグレード
-                                <span className="text-[10px] font-normal text-amber-300/90">🎟 鑑定チケット ×{tickets}</span>
+                                <span className="inline-flex items-center gap-1 text-[10px] font-normal text-amber-300/90"><Ticket className="w-3 h-3" /> 鑑定チケット ×{tickets}</span>
                             </p>
-                            <p className="text-[10px] text-white/40">高品質チャット1日20回・運気カレンダー60日分</p>
+                            <p className="text-[10px] text-white/40">高品質チャット1日50回・今日の鑑定・易・運気カレンダー60日分</p>
                         </div>
                         <button
                             onClick={() => { track('paywall_click'); setShowFounding(true); }}
