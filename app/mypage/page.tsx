@@ -540,6 +540,14 @@ export default function MyPage() {
         if (billing === 'success') {
             setShowWelcome(true); // 閉じるまで表示（自動消去しない）
             window.history.replaceState({}, '', '/mypage');
+        } else if (billing === 'pending') {
+            alert('決済を確認しています。確認が完了するとOrba Plusが自動で反映されます。数分たっても反映されない場合はお問い合わせください。');
+            window.history.replaceState({}, '', '/mypage');
+        } else if (billing === 'login_required') {
+            alert('決済の確認には、申し込みに使用したOrbaアカウントでのログインが必要です。');
+            window.history.replaceState({}, '', '/mypage');
+        } else if (billing === 'cancelled') {
+            window.history.replaceState({}, '', '/mypage');
         } else if (billing === 'error' || billing === 'invalid') {
             alert('決済の確認に失敗しました。課金状況を確認のうえ、サポートへお問い合わせください。');
             window.history.replaceState({}, '', '/mypage');

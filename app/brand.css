@@ -293,6 +293,135 @@
   font-size: 12px;
   line-height: 1.85;
 }
+.orba-lp__plus {
+  padding: clamp(105px, 13vw, 190px) clamp(22px, 8vw, 124px);
+  display: grid;
+  grid-template-columns: minmax(300px, 0.78fr) minmax(520px, 1.22fr);
+  gap: clamp(58px, 9vw, 142px);
+  color: var(--orba-paper);
+  background:
+    radial-gradient(circle at 12% 22%, rgba(244, 192, 96, 0.08), transparent 28rem),
+    radial-gradient(circle at 88% 78%, rgba(103, 82, 181, 0.14), transparent 32rem),
+    var(--orba-night-800);
+}
+.orba-lp__plus-intro > small {
+  color: var(--orba-gold);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+.orba-lp__plus-intro h2 {
+  margin: 23px 0 0;
+  font-family: var(--font-serif), serif;
+  font-size: clamp(40px, 3.8vw, 52px);
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  line-height: 1.48;
+}
+.orba-lp__plus-intro > p {
+  max-width: 44ch;
+  margin: 29px 0 0;
+  color: rgba(251, 248, 240, 0.56);
+  font-size: 13px;
+  line-height: 2;
+}
+.orba-lp__plus-price {
+  margin-top: 45px;
+  padding-top: 24px;
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid rgba(244, 192, 96, 0.38);
+}
+.orba-lp__plus-price strong {
+  color: var(--orba-paper);
+  font-family: var(--font-serif), serif;
+  font-size: clamp(26px, 3vw, 39px);
+  font-weight: 500;
+}
+.orba-lp__plus-price span {
+  color: rgba(251, 248, 240, 0.38);
+  font-size: 9px;
+  letter-spacing: 0.05em;
+}
+.orba-lp__plus-details {
+  min-width: 0;
+}
+.orba-lp__plus-plans {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+.orba-lp__plus-plans article {
+  min-width: 0;
+  padding: 32px clamp(20px, 3vw, 38px) 34px 0;
+}
+.orba-lp__plus-plans article + article {
+  padding-left: clamp(20px, 3vw, 38px);
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+.orba-lp__plus-plans article.is-plus {
+  background: linear-gradient(135deg, rgba(244, 192, 96, 0.06), transparent 66%);
+}
+.orba-lp__plus-plans small {
+  color: rgba(251, 248, 240, 0.36);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+.orba-lp__plus-plans .is-plus small {
+  color: var(--orba-gold);
+}
+.orba-lp__plus-plans h3 {
+  min-height: 65px;
+  margin: 18px 0 25px;
+  font-family: var(--font-serif), serif;
+  font-size: clamp(20px, 2vw, 28px);
+  font-weight: 500;
+  line-height: 1.55;
+}
+.orba-lp__plus-plans ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.orba-lp__plus-plans li {
+  min-height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  color: rgba(251, 248, 240, 0.46);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 10px;
+}
+.orba-lp__plus-plans li strong {
+  color: rgba(251, 248, 240, 0.84);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: right;
+}
+.orba-lp__plus-status {
+  margin: 24px 0 18px;
+  color: rgba(251, 248, 240, 0.55);
+  font-size: 11px;
+  line-height: 1.8;
+}
+.orba-lp__plus-details > .orba-lp__trial-cta {
+  min-height: 44px;
+  padding: 0 18px;
+}
+.orba-lp__plus-legal {
+  margin: 15px 0 0;
+  color: rgba(251, 248, 240, 0.3);
+  font-size: 9px;
+  line-height: 1.8;
+}
+.orba-lp__plus-legal a {
+  color: rgba(251, 248, 240, 0.55);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 .orba-lp__instrument {
   position: relative;
   aspect-ratio: 1;
@@ -1132,6 +1261,7 @@
   }
   .orba-lp__method,
   .orba-lp__flow,
+  .orba-lp__plus,
   .orba-brand-page__foundation,
   .orba-brand-page__colors {
     grid-template-columns: 1fr;
@@ -1142,6 +1272,10 @@
   .orba-lp__flow {
     grid-template-columns: 1fr;
     gap: 54px;
+  }
+  .orba-lp__plus {
+    grid-template-columns: 1fr;
+    gap: 58px;
   }
   .orba-brand-page__lockups {
     grid-template-columns: 1fr;
@@ -1193,6 +1327,23 @@
   }
   .orba-lp__flow {
     padding: 92px 20px;
+  }
+  .orba-lp__plus {
+    padding: 92px 20px;
+  }
+  .orba-lp__plus-intro h2 {
+    font-size: 40px;
+  }
+  .orba-lp__plus-plans {
+    grid-template-columns: 1fr;
+  }
+  .orba-lp__plus-plans article,
+  .orba-lp__plus-plans article + article {
+    padding: 28px 0;
+  }
+  .orba-lp__plus-plans article + article {
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-left: 0;
   }
   .orba-lp__flow-intro h2 {
     font-size: 40px;

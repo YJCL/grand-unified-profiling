@@ -13,6 +13,7 @@ const SELLER = {
   address: 'ご請求をいただいた場合、遅滞なく開示いたします',
   phone: 'ご請求をいただいた場合、遅滞なく開示いたします',
   email: 'orba.support@gmail.com',
+  support: 'お問い合わせは24時間受け付けています。回答は通常3営業日以内を目安に行います。',
   price: 'Orba Plus：月額 1,480円（税込）',
   extraFees: 'なし（インターネット接続にかかる通信料はお客様のご負担となります）',
   paymentMethod: 'クレジットカード（KOMOJUを通じて決済します。カード情報を当サービスでは保持しません）',
@@ -36,7 +37,7 @@ export default function TokushohoPage() {
     <main className="min-h-screen bg-mesh text-white">
       <div className="max-w-2xl mx-auto px-6 py-14">
         <h1 className="text-2xl mb-2">特定商取引法に基づく表記</h1>
-        <p className="text-xs text-white/35 mb-10 font-serif-jp">最終更新日：2026年8月17日</p>
+        <p className="text-xs text-white/35 mb-10 font-serif-jp">最終更新日：2026年8月19日</p>
 
         <dl className="font-serif-jp">
           <Row label="販売事業者">{SELLER.name}</Row>
@@ -44,6 +45,7 @@ export default function TokushohoPage() {
           <Row label="所在地">{SELLER.address}</Row>
           <Row label="電話番号">{SELLER.phone}</Row>
           <Row label="メールアドレス">{SELLER.email}</Row>
+          <Row label="お問い合わせ受付">{SELLER.support}</Row>
           <Row label="販売価格">{SELLER.price}</Row>
           <Row label="商品代金以外の必要料金">{SELLER.extraFees}</Row>
           <Row label="お支払い方法">{SELLER.paymentMethod}</Row>

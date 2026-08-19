@@ -13,7 +13,7 @@ export default function ContactPage() {
         <p className="text-[11px] tracking-[0.22em] text-amber-200/55 mb-3">CONTACT / SUPPORT</p>
         <h1 className="text-3xl mb-4">お問い合わせ</h1>
         <p className="text-sm leading-relaxed text-white/60 mb-9">
-          サービスの使い方、アカウント、お支払い・解約、不具合についてはこちらからご連絡ください。通常3営業日以内を目安に返信します。
+          サービスの使い方、アカウント、お支払い・解約、不具合についてはこちらからご連絡ください。お問い合わせは24時間受け付け、通常3営業日以内を目安に返信します。
         </p>
         <ContactForm />
         <div className="mt-8 rounded-2xl border border-white/10 px-5 py-4 text-sm text-white/55">

@@ -77,12 +77,19 @@ export async function POST(request: Request) {
     const status = typeof data.status === 'string' ? data.status : type.split('.')[1];
 
     if (type === 'subscription.created') {
+      const createdActive = status === 'active';
+      const nextCapture = createdActive && typeof data.next_capture_at === 'string'
+        ? new Date(data.next_capture_at)
+        : undefined;
       await prisma.user.update({
         where: { id: user.id },
         data: {
           komojuSubscriptionId: subId || user.komojuSubscriptionId,
           komojuCustomerId: customerId || user.komojuCustomerId,
           premiumStatus: status,
+          isPremium: createdActive,
+          premiumUntil: createdActive ? (nextCapture || nextMonthlyPeriod()) : null,
+          premiumCancelAtPeriodEnd: false,
         },
       });
     } else if (type === 'subscription.captured') {
@@ -100,6 +107,9 @@ export async function POST(request: Request) {
           premiumCancelAtPeriodEnd: false,
         },
       });
+      await prisma.event.create({
+        data: { name: 'purchase', userId: user.id, props: JSON.stringify({ plan: 'orba_plus', provider: 'komoju' }) },
+      }).catch(() => undefined);
     } else if (type === 'subscription.failed' || type === 'subscription.suspended') {
       const stillPaid = !!user.premiumUntil && user.premiumUntil > new Date();
       await prisma.user.update({

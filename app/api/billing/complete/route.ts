@@ -40,25 +40,29 @@ export async function GET(request: Request) {
       userId: user.id,
       checkoutSessionId: sessionId,
     });
-    const until = subscription.next_capture_at
-      ? new Date(subscription.next_capture_at)
-      : nextMonthlyPeriod();
+    const status = (subscription.status || 'pending').toLowerCase();
+    const isActive = status === 'active';
+    const until = isActive
+      ? (subscription.next_capture_at ? new Date(subscription.next_capture_at) : nextMonthlyPeriod())
+      : null;
 
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        isPremium: true,
+        isPremium: isActive,
         komojuCustomerId: customerId,
         komojuSubscriptionId: subscription.id,
-        premiumStatus: subscription.status || 'active',
+        premiumStatus: status,
         premiumUntil: until,
         premiumCancelAtPeriodEnd: false,
       },
     });
-    await prisma.event.create({
-      data: { name: 'purchase', userId: user.id, props: JSON.stringify({ plan: 'orba_plus', provider: 'komoju' }) },
-    }).catch(() => undefined);
-    return mypage('success');
+    if (isActive) {
+      await prisma.event.create({
+        data: { name: 'purchase', userId: user.id, props: JSON.stringify({ plan: 'orba_plus', provider: 'komoju' }) },
+      }).catch(() => undefined);
+    }
+    return mypage(isActive ? 'success' : 'pending');
   } catch (error) {
     console.error('[billing/complete] error', error);
     return mypage('error');

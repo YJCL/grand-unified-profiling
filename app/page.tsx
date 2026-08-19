@@ -12,6 +12,7 @@ import { BrandOrb } from "./components/BrandOrb";
 import { CelestialInstrument } from "./components/CelestialInstrument";
 import { LandingAccountActions } from "./components/LandingAccountActions";
 import { OrbaMark } from "./components/OrbaMark";
+import { isBillingEnabled, PREMIUM_PRICE_LABEL } from "@/lib/launch";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -29,6 +30,7 @@ const layers = [
 ];
 
 export default function LandingPage() {
+  const billingEnabled = isBillingEnabled();
   return (
     <main className="orba-lp" id="top">
       <header className="orba-lp__header">
@@ -39,6 +41,7 @@ export default function LandingPage() {
           <a href="#about">Orbaとは</a>
           <a href="#experience">できること</a>
           <a href="#flow">ご利用の流れ</a>
+          <a href="#plus">Orba Plus</a>
           <Link href="/insights">読みもの</Link>
         </nav>
         <LandingAccountActions />
@@ -143,6 +146,61 @@ export default function LandingPage() {
             <div><strong>必要な方だけOrba Plusへ</strong><p>プラン内容を確認後、KOMOJUの安全な決済画面で申し込みます。</p></div>
           </li>
         </ol>
+      </section>
+
+      <section className="orba-lp__plus" id="plus">
+        <div className="orba-lp__plus-intro">
+          <small>ORBA PLUS</small>
+          <h2>
+            必要な日に、
+            <br />
+            もう少し深く。
+          </h2>
+          <p>
+            無料プロフィールと基本機能はそのまま。毎日の対話や鑑定を生活のリズムにしたい方だけが選べる月額プランです。
+          </p>
+          <div className="orba-lp__plus-price">
+            <strong>{PREMIUM_PRICE_LABEL}</strong>
+            <span>18歳以上 / 毎月自動更新 / いつでも解約可能</span>
+          </div>
+        </div>
+
+        <div className="orba-lp__plus-details">
+          <div className="orba-lp__plus-plans" aria-label="無料プランとOrba Plusの比較">
+            <article>
+              <small>FREE</small>
+              <h3>まず、自分を知る。</h3>
+              <ul>
+                <li><span>対話</span><strong>1日3回</strong></li>
+                <li><span>今日の鑑定</span><strong>チケット1枚</strong></li>
+                <li><span>易</span><strong>最初の一卦</strong></li>
+                <li><span>運気カレンダー</span><strong>7日分</strong></li>
+              </ul>
+            </article>
+            <article className="is-plus">
+              <small>PLUS</small>
+              <h3>日々の選択に、伴走を。</h3>
+              <ul>
+                <li><span>対話</span><strong>1日50回</strong></li>
+                <li><span>今日の鑑定</span><strong>毎日</strong></li>
+                <li><span>易</span><strong>1日1回</strong></li>
+                <li><span>運気カレンダー</span><strong>60日分</strong></li>
+              </ul>
+            </article>
+          </div>
+
+          <p className="orba-lp__plus-status">
+            {billingEnabled
+              ? 'Plusは、無料プロフィールを作成して本登録した後にお申し込みいただけます。'
+              : '現在、決済会社による最終確認中です。受付開始までは無料プランをご利用いただけます。'}
+          </p>
+          <Link className="orba-lp__trial-cta" href="/start">
+            無料プロフィールから始める <ArrowRight size={16} />
+          </Link>
+          <p className="orba-lp__plus-legal">
+            お申し込み前に、<Link href="/legal/terms">利用規約</Link>・<Link href="/legal/cancellation">キャンセルポリシー</Link>・<Link href="/legal/tokushoho">特商法表記</Link>をご確認いただけます。
+          </p>
+        </div>
       </section>
 
       <section className="orba-lp__method" id="method">

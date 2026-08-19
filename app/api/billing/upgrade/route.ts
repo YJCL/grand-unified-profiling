@@ -2,12 +2,18 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUserId } from '@/lib/auth';
 import { createCustomerSession, KomojuApiError } from '@/lib/komoju';
+import { isAtLeastAge } from '@/lib/age';
+import { isBillingEnabled } from '@/lib/launch';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://orba.life';
 
 // カード情報はOrbaを経由せず、KOMOJUのホスト画面で登録する。
 export async function POST() {
   try {
+    if (!isBillingEnabled()) {
+      return NextResponse.json({ error: 'Orba Plusのお申し込みは現在準備中です' }, { status: 503 });
+    }
+
     const userId = await getSessionUserId();
     if (!userId) return NextResponse.json({ error: 'ログインが必要です' }, { status: 401 });
 
@@ -16,6 +22,18 @@ export async function POST() {
     if (!user.email || !user.passwordHash) {
       return NextResponse.json(
         { error: 'Orba Plusのお申し込みには本登録が必要です', needsRegistration: true },
+        { status: 403 },
+      );
+    }
+    if (!user.birthDate) {
+      return NextResponse.json(
+        { error: 'お申し込み前にプロフィールへ生年月日を登録してください', needsProfile: true },
+        { status: 403 },
+      );
+    }
+    if (!isAtLeastAge(user.birthDate, 18)) {
+      return NextResponse.json(
+        { error: 'Orba Plusは18歳以上の方のみお申し込みいただけます', ageRestricted: true },
         { status: 403 },
       );
     }
