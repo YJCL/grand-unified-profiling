@@ -8,6 +8,8 @@ import { summarizeProfile, summarizeDaily } from '@/lib/engine/summarize';
 import { characterToneBlock } from '@/lib/character';
 import { checkUserAccess } from '@/lib/auth';
 import { jstDateKey } from '@/lib/jst';
+import { AI_SAFETY_PROMPT, reviewAiGeneratedValue } from '@/lib/ai-safety';
+import { recordAiSafetyEvent } from '@/lib/ai-safety-log';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -59,7 +61,8 @@ ${characterToneBlock(user.characterType)}
 - 下の占術データ・運気データは天体暦による実計算。**自分で計算し直さず、その数値を根拠に**今日の指針を語る。
 - 与えられた「総合運/攻め守り/月相/今日の宿/効いているトランジット」を必ず反映し、毎日内容が変わるようにする。
 - 占いを前面に出しすぎず、相棒として自然に。ネガティブは対処とセット。
-- JSONのみ。必ず${langName}で。`;
+- JSONのみ。必ず${langName}で。
+${AI_SAFETY_PROMPT}`;
 
         const userMessage = `${factSheet}\n\n${dailySheet}\n\n上の運気データを踏まえ、deliver_daily ツールで今日の指針を返してください。`;
 
@@ -89,7 +92,17 @@ ${characterToneBlock(user.characterType)}
         const toolUse = response.content.find((c) => c.type === 'tool_use');
         if (!toolUse || toolUse.type !== 'tool_use') throw new Error('No structured output');
 
-        const parsed = toolUse.input as DailyContent;
+        const safetyOutput = reviewAiGeneratedValue(toolUse.input as DailyContent);
+        if (safetyOutput.flagged) {
+            await recordAiSafetyEvent({
+                userId,
+                route: 'daily',
+                phase: 'output',
+                action: 'output_rewritten',
+                ruleIds: safetyOutput.ruleIds,
+            });
+        }
+        const parsed = safetyOutput.value;
         const data = JSON.stringify({ ...envelope, daily: parsed } satisfies DailyLogEnvelope);
         await prisma.dailyLog.upsert({
             where: { userId_date: { userId, date: today } },

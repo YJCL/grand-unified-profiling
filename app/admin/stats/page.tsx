@@ -8,6 +8,11 @@ type Stats = {
   active: { dau: number; wau: number; mau: number };
   funnel30d: { landing: number; onboardingStart: number; readingComplete: number; startRate: number; completeRate: number };
   monetization30d: { paywallView: number; paywallClick: number; foundingInterest: number; purchase: number; clickRate: number; intentRate: number };
+  aiSafety30d: {
+    total: number;
+    categories: Record<string, number>;
+    recent: Array<{ createdAt: string; route?: string; phase?: string; action?: string; categories?: string[]; ruleIds?: string[] }>;
+  };
 };
 
 function Stat({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
@@ -78,6 +83,27 @@ function Dashboard() {
         <Stat label="先行登録" value={s.monetization30d.foundingInterest} sub={`課金欲 ${s.monetization30d.intentRate}%`} />
         <Stat label="実課金" value={s.monetization30d.purchase} />
       </Section>
+
+      <section className="mb-8">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-widest text-amber-200/80">AI安全性（30日）</h2>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+          <Stat label="安全ルール作動" value={s.aiSafety30d.total} sub="原文は安全ログに保存しません" />
+          {Object.entries(s.aiSafety30d.categories).map(([category, count]) => (
+            <Stat key={category} label={category} value={count} />
+          ))}
+        </div>
+        <div className="mt-3 overflow-hidden rounded-xl bg-white/[0.03]">
+          {s.aiSafety30d.recent.length === 0 ? (
+            <p className="p-4 text-xs text-white/45">直近30日に検知記録はありません。</p>
+          ) : s.aiSafety30d.recent.map((item, index) => (
+            <div key={`${item.createdAt}-${index}`} className="flex flex-wrap gap-x-3 gap-y-1 border-b border-white/8 px-4 py-3 text-[11px] text-white/60 last:border-b-0">
+              <time>{new Date(item.createdAt).toLocaleString('ja-JP')}</time>
+              <strong className="text-white/80">{item.route} / {item.action}</strong>
+              <span>{(item.categories || []).join(', ') || (item.ruleIds || []).join(', ')}</span>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* ROADMAP 採用判断ゲート: 鑑定完了の5%以上が Founding 登録なら拡散投資にコミット */}
       <section className="mb-8 rounded-2xl border border-amber-300/20 bg-amber-400/[0.04] p-5">

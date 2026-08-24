@@ -198,7 +198,7 @@ export default function LandingPage() {
             無料プロフィールから始める <ArrowRight size={16} />
           </Link>
           <p className="orba-lp__plus-legal">
-            お申し込み前に、<Link href="/legal/terms">利用規約</Link>・<Link href="/legal/cancellation">キャンセルポリシー</Link>・<Link href="/legal/tokushoho">特商法表記</Link>をご確認いただけます。
+            お申し込み前に、<Link href="/legal/terms">利用規約</Link>・<Link href="/safety">AI利用と安全性</Link>・<Link href="/legal/cancellation">キャンセルポリシー</Link>・<Link href="/legal/tokushoho">特商法表記</Link>をご確認いただけます。
           </p>
         </div>
       </section>
@@ -244,6 +244,7 @@ export default function LandingPage() {
           <Link href="/insights">読みもの</Link>
           <Link href="/legal/terms">利用規約</Link>
           <Link href="/legal/privacy">プライバシー</Link>
+          <Link href="/safety">AI利用と安全性</Link>
           <Link href="/legal/tokushoho">特定商取引法に基づく表記</Link>
           <Link href="/legal/cancellation">キャンセルポリシー</Link>
           <Link href="/contact">お問い合わせ</Link>

@@ -19,6 +19,12 @@ import {
 import { buildProfileFromUser } from '@/lib/engine/profile';
 import { isLaunchFreeActive } from '@/lib/launch';
 import { jstDateKey, jstDayRange } from '@/lib/jst';
+import {
+  AI_SAFETY_PROMPT,
+  evaluateAiSafetyInput,
+  reviewAiGeneratedValue,
+} from '@/lib/ai-safety';
+import { recordAiSafetyEvent } from '@/lib/ai-safety-log';
 
 export const maxDuration = 60;
 
@@ -26,24 +32,6 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const MAX_QUESTION_CHARS = 400;
 const SAME_QUESTION_WINDOW_HOURS = 24;
-
-// 高リスク語彙のヒューリスティック検出。
-// 完全な分類ではないが、頻出語をひっかけて注意文を付ける。
-const RISK_PATTERNS: { key: string; words: string[] }[] = [
-  { key: 'medical',  words: ['薬', '手術', '病気', '通院', '医者', '医師', '治療', '抗うつ', '抗がん', '副作用', '症状', 'うつ', '癌', 'がん'] },
-  { key: 'safety',   words: ['死', '殺', '自殺', '自傷', '消えたい', 'リスカ'] },
-  { key: 'legal',    words: ['訴訟', '弁護士', '裁判', '逮捕', '違法', '犯罪'] },
-  { key: 'finance',  words: ['投資', '株', '仮想通貨', 'FX', '借金', 'ローン', 'ギャンブル'] },
-  { key: 'lifeevent', words: ['離婚', '退職', '会社辞', '会社を辞', '別れる', '退社'] },
-];
-
-function detectRisk(text: string): string[] {
-  const flags = new Set<string>();
-  for (const r of RISK_PATTERNS) {
-    if (r.words.some((w) => text.includes(w))) flags.add(r.key);
-  }
-  return [...flags];
-}
 
 // プロフィールから「易の解釈で本当に使う」最大3項目だけ抜く（個別化用）。
 function pickRelevantProfile(user: {
@@ -108,6 +96,7 @@ async function interpret(opts: {
 - 高リスク領域（医療・薬・法律・投資・生死・自傷・犯罪・緊急の安全・離婚や退職など重大かつ不可逆な判断）では、具体的な決定を促す表現をしない。象徴の解釈は可能だが、「専門家や現実の情報を優先してください」と safety_notes に明記する。
 - 「医療」「法律」「投資」と判定されたフラグがある場合は safety_notes を必ず埋める。
 - 自分を AI/モデル/計算 と呼ばない。Orba として静かに読む。
+${AI_SAFETY_PROMPT}
 
 出力は deliver_iching_reading ツールで返すこと。`;
 
@@ -159,7 +148,35 @@ export async function POST(request: Request) {
     const access = await checkUserAccess(userId);
     if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
 
-    const normalized = normalizeQuestion(question);
+    // 危機相談・医療上の結論は、卦・利用枠・AI呼び出しより先に止める。
+    const safetyInput = evaluateAiSafetyInput(question);
+    if (safetyInput.action === 'block') {
+      await recordAiSafetyEvent({
+        userId,
+        route: 'iching',
+        phase: 'input',
+        action: 'blocked',
+        categories: safetyInput.categories,
+        ruleIds: safetyInput.ruleIds,
+      });
+      return NextResponse.json({
+        error: 'safety redirect',
+        message: safetyInput.response,
+        safetyRedirect: true,
+      }, { status: 422 });
+    }
+    if (safetyInput.action === 'redact') {
+      await recordAiSafetyEvent({
+        userId,
+        route: 'iching',
+        phase: 'input',
+        action: 'redacted',
+        categories: safetyInput.categories,
+        ruleIds: safetyInput.ruleIds,
+      });
+    }
+
+    const normalized = normalizeQuestion(safetyInput.sanitizedText);
     if (!normalized) return NextResponse.json({ error: '問いを入力してください' }, { status: 400 });
     const qHash = hashQuestion(normalized);
 
@@ -205,8 +222,8 @@ export async function POST(request: Request) {
     // 1) 卦を立てる
     const cast = castIching(seed);
 
-    // 2) 高リスク検出
-    const riskFlags = detectRisk(normalized);
+    // 2) 高リスク領域を解釈側にも伝える（危機・医療予後は上で停止済み）
+    const riskFlags = safetyInput.categories;
 
     // 3) LLM解釈（プロフィールは最大3項目だけ）
     const profileHints = pickRelevantProfile(access.user);
@@ -218,19 +235,30 @@ export async function POST(request: Request) {
       profileHints,
       riskFlags,
     });
+    const safetyOutput = reviewAiGeneratedValue(interp);
+    if (safetyOutput.flagged) {
+      await recordAiSafetyEvent({
+        userId,
+        route: 'iching',
+        phase: 'output',
+        action: 'output_rewritten',
+        categories: safetyInput.categories,
+        ruleIds: safetyOutput.ruleIds,
+      });
+    }
 
     // 4) 保存
     const saved = await prisma.ichingReading.create({
       data: {
         userId,
-        question,
+        question: normalized,
         questionNormalized: normalized,
         questionHash: qHash,
         lineValues: JSON.stringify(cast.values),
         primaryNum: cast.primary.num,
         transformedNum: cast.transformed?.num ?? null,
         changingLines: JSON.stringify(cast.changingLines),
-        interpretation: JSON.stringify({ ...interp, riskFlags }),
+        interpretation: JSON.stringify({ ...safetyOutput.value, riskFlags }),
         dataVersion: cast.dataVersion,
         profileVersion: access.user.id, // 後でフリーズ版IDに置換可
         seed: cast.seed ?? null,

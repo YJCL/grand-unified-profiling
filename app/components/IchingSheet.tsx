@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { X, Sparkles, HelpCircle, History, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -165,6 +166,10 @@ export function IchingSheet({
               rows={3}
               className="w-full mb-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-amber-300/40 resize-none font-serif-jp"
             />
+            <p className="mb-2 text-[10px] leading-relaxed text-white/40">
+              解釈文の生成にはAIを使用します。氏名・住所・電話番号・病歴など、本人を特定できる情報は入力しないでください。
+              <Link href="/safety" target="_blank" className="ml-1 text-amber-200/70 underline underline-offset-2">AI利用と安全性</Link>
+            </p>
             <div className="flex items-center justify-between text-[10px] text-white/30 mb-3">
               <span>同じ問いを短時間に何度も立てることは推奨していません</span>
               <span>{question.length}/400</span>

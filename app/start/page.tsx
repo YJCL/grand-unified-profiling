@@ -345,6 +345,11 @@ function Conversation({ char, profileType, userId, onReselect }: { char: Charact
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
+        if (err.safetyResponse) {
+          setMessages((m) => [...m, { from: 'orb', text: err.safetyResponse }]);
+          setPhase('chat');
+          return;
+        }
         throw new Error(err.detail ? `${res.status}: ${err.detail}` : `HTTP ${res.status}`);
       }
       const r: AnalysisResult = await res.json();
@@ -569,6 +574,10 @@ function Composer({ turn, draft, setDraft, onAnswer }: { turn: Turn; draft: stri
       <div className="orba-registration-composer-row is-concern">
         <textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={2} placeholder="気になっていること…"
           className="orba-registration-input orba-registration-textarea" />
+        <p className="orba-registration-ai-note">
+          文章生成にはAIを使用します。氏名・住所・電話番号・病歴など、本人を特定できる情報は入力しないでください。
+          <a href="/safety" target="_blank" rel="noreferrer">AI利用と安全性</a>
+        </p>
         <div className="orba-registration-composer-actions">
           <button disabled={!draft.trim()} onClick={() => onAnswer(draft, draft)} className={sendBtn}>送る</button>
           <button onClick={() => onAnswer('', '特にない')} className="orba-registration-skip btn-ghost">特にない</button>

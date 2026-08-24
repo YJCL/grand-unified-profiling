@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUp, BookOpen, ChevronLeft, PenSquare, Sparkles } from 'lucide-react';
 import { IchingSheet } from '@/app/components/IchingSheet';
@@ -90,7 +91,10 @@ function ChatPageInner() {
         try {
             const res = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, message: userMsg.content }) });
             const data = await res.json().catch(() => ({}));
-            setMessages((p) => [...p, { id: Date.now() + 'ai', role: 'assistant', content: res.ok ? data.response : (data.message || 'ごめん、うまく繋がらなかった…もう一度試してみて。') }]);
+            const responseText = res.ok
+                ? `${data.response}${data.personalDataRedacted ? '\n\n※入力に含まれた連絡先形式は、AIへ送る前に伏せました。' : ''}`
+                : (data.message || 'ごめん、うまく繋がらなかった…もう一度試してみて。');
+            setMessages((p) => [...p, { id: Date.now() + 'ai', role: 'assistant', content: responseText }]);
             // 無料相談の上限に当たった瞬間＝最良のアップセル機会。先行登録へ誘導する。
             if (!res.ok && data.limitReached) {
                 track('paywall_view', { source: 'chat_limit' });
@@ -241,6 +245,10 @@ function ChatPageInner() {
                             <ArrowUp aria-hidden="true" />
                         </button>
                     </form>
+                    <p className="orba-dialogue-composer__safety">
+                        文章生成にはAIを使用します。氏名・住所・電話番号・病歴など、本人を特定できる情報は入力しないでください。
+                        <Link href="/safety">AI利用と安全性</Link>
+                    </p>
                 </div>
             </div>
 

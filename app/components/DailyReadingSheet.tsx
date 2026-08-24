@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowRight, BookOpen, Crown, Loader2, Ticket, X } from 'lucide-react';
 import type { DailyReadingContent } from '@/types';
@@ -117,11 +118,19 @@ export function DailyReadingSheet({
               ))}
             </div>
             <blockquote>{reading.closing}</blockquote>
+            <p className="orba-daily-reading__ai-note is-paper">
+              この鑑定文はAIを用いて生成しています。重要な判断は、現実の情報や専門家の助言も確認してください。
+              <Link href="/safety" target="_blank">AI利用と安全性</Link>
+            </p>
           </article>
         ) : (
           <div className="orba-daily-reading__intro">
             <h3>今日を、ひとつの読み物に。</h3>
             <p>プロフィールと今日の星・暦を重ね、仕事、人との間、心の内側、動くタイミングまで丁寧に読み解きます。</p>
+            <p className="orba-daily-reading__ai-note">
+              占術計算はプログラムで行い、鑑定文の生成にAIを使用します。結果は未来や成果を保証するものではありません。
+              <Link href="/safety" target="_blank">AI利用と安全性</Link>
+            </p>
 
             {status?.included ? (
               <div className="orba-daily-reading__access is-included">

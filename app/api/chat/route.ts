@@ -8,6 +8,12 @@ import { checkUserAccess } from '@/lib/auth';
 import { isLaunchFreeActive } from '@/lib/launch';
 import { distillMemory } from '@/lib/memory';
 import { jstDateKey, jstStamp } from '@/lib/jst';
+import {
+    AI_SAFETY_PROMPT,
+    evaluateAiSafetyInput,
+    reviewAiGeneratedText,
+} from '@/lib/ai-safety';
+import { recordAiSafetyEvent } from '@/lib/ai-safety-log';
 
 // 文脈としてモデルに渡す直近メッセージ数（コスト管理）。それより前は memory に蒸留済み。
 // 旧12（=6往復）は「数分前の話を忘れる」体験を生んだため拡大。
@@ -97,6 +103,35 @@ export async function POST(request: Request) {
         const access = await checkUserAccess(userId);
         if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
 
+        // 危機相談・医療判断は、利用回数の消費、履歴保存、生成AIへの送信より前に止める。
+        const safetyInput = evaluateAiSafetyInput(message);
+        if (safetyInput.action === 'block') {
+            await recordAiSafetyEvent({
+                userId,
+                route: 'chat',
+                phase: 'input',
+                action: 'blocked',
+                categories: safetyInput.categories,
+                ruleIds: safetyInput.ruleIds,
+            });
+            return NextResponse.json({
+                response: safetyInput.response,
+                safetyRedirect: true,
+                safetyCategory: safetyInput.blockReason,
+            });
+        }
+        if (safetyInput.action === 'redact') {
+            await recordAiSafetyEvent({
+                userId,
+                route: 'chat',
+                phase: 'input',
+                action: 'redacted',
+                categories: safetyInput.categories,
+                ruleIds: safetyInput.ruleIds,
+            });
+        }
+        const safeMessage = safetyInput.sanitizedText;
+
         const user = await prisma.user.findUnique({
             where: { id: userId },
             include: {
@@ -161,15 +196,15 @@ export async function POST(request: Request) {
 ユーザーの人生に常に寄り添う、唯一無二のパーソナルパートナーです。
 日常の相談には温かく応え、必要な時には占術の叡智で深く道を照らします。
 
-## 世界観を守る（最優先・絶対厳守）
+## 世界観を守る
 あなたは「Orba」という一個の存在として話す。次を厳禁とする：
-- 自分を「AI」「モデル」「プログラム」「システム」と呼ぶ、または「計算しているだけ」「機械的に運用しただけ」と自分の仕組み・内幕を明かすこと（第四の壁を壊さない）。
+- 自分から技術的な内幕を長く説明して第四の壁を壊すこと。ただし、AI利用を尋ねられたときは隠したり否定したりせず、文章生成と対話の一部に生成AIを利用していること、および「AI利用と安全性」ページを案内する。
 - ユーザーへの説明で「計算」という語を使うこと。代わりに「星から読み解く」「視る」「受け取る」と表現する。
-- 占術（星の配置・運気・宿曜・数秘・バイオリズム等）やその読みを「科学的根拠は限定的」「仮説」「〜に過ぎない」「〜だけ」「お手伝い」「補助ツール」のように否定・矮小化・自己卑下すること。占いの読みは確かなものとして、静かな確信を持って語る。
+- 占術（星の配置・運気・宿曜・数秘・バイオリズム等）を嘲笑・自己卑下すること。読みは象徴と傾向として静かに語り、事実や確定した未来とは混同しない。
 - 謙遜を装った“ネタばらし”で締めること。
-- 「科学的根拠」「証明」「エビデンス」など科学的妥当性の話題に乗ること。相手がそれを持ち出しても、科学の土俵で論じず、星と暦と心の言葉だけで静かに受け止める。「科学的根拠」という語を自分から出さない。
-「なぜ分かるのか」と問われても、言い訳やネタばらしをしない。「あなたが生まれた瞬間の星の巡りと、今この時の天の配置を重ねて読み解いている」と静かに示す。
-相手の実感への橋渡しは“占いを下げて実感を上げる”のではなく、両方を等しく大切な真実として並べる：「星はこう示している。そして、あなた自身が今こう感じている——その両方が本当のこと」。占いを「ただの補助」として下げて締めない。
+「なぜ分かるのか」と問われたら、「生まれた瞬間の星の巡りと、今この時の天の配置を重ねて読み解いている」と説明し、結果を保証するものではないことも短く添える。
+相手の実感への橋渡しでは、星が示す象徴と本人の実感の両方を並べ、最後の判断は本人に残す。
+${AI_SAFETY_PROMPT}
 ${charStyle ? `\n## キャラクター設定（厳守）\n${charStyle}\nどのモードでもこの口調・温度感を一切ブレずに維持すること。` : ''}
 
 ## ユーザープロフィール（常に把握して応答すること）
@@ -270,7 +305,7 @@ ${dailySheet}` : ''}
         // Claude Messages API で会話
         const messages: Anthropic.MessageParam[] = [
             ...history,
-            { role: 'user', content: `[${jstStamp(now)}] ${message}` }
+            { role: 'user', content: `[${jstStamp(now)}] ${safeMessage}` }
         ];
 
         const response = await anthropic.messages.create({
@@ -288,12 +323,24 @@ ${dailySheet}` : ''}
         });
 
         const generatedText = response.content[0].type === 'text' ? response.content[0].text : '';
+        const safetyOutput = reviewAiGeneratedText(generatedText);
+        if (safetyOutput.flagged) {
+            await recordAiSafetyEvent({
+                userId,
+                route: 'chat',
+                phase: 'output',
+                action: 'output_rewritten',
+                categories: safetyInput.categories,
+                ruleIds: safetyOutput.ruleIds,
+            });
+        }
+        const safeGeneratedText = safetyOutput.value;
 
         // 会話履歴をDBに保存（フル履歴を維持。STORED_MAX で頭打ち＝古い分は memory が保持）
         const fullHistory = [
             ...stored,
-            { role: 'user', content: message, ts: now.toISOString() },
-            { role: 'assistant', content: generatedText, ts: now.toISOString() },
+            { role: 'user', content: safeMessage, ts: now.toISOString() },
+            { role: 'assistant', content: safeGeneratedText, ts: now.toISOString() },
         ].slice(-STORED_MAX);
 
         if (chatLog) {
@@ -326,7 +373,10 @@ ${dailySheet}` : ''}
             }
         }
 
-        return NextResponse.json({ response: generatedText });
+        return NextResponse.json({
+            response: safeGeneratedText,
+            personalDataRedacted: safetyInput.action === 'redact',
+        });
 
     } catch (error) {
         console.error('Error in /api/chat:', error);

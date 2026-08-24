@@ -117,6 +117,7 @@ export function FoundingMemberModal({ onClose }: { userEmail?: string | null; on
               <input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} className="mt-0.5 accent-amber-300" />
               <span>
                 18歳以上で、<Link href="/legal/terms" className="text-amber-100 underline">利用規約</Link>・
+                <Link href="/safety" className="text-amber-100 underline">AI利用と安全性</Link>・
                 <Link href="/legal/cancellation" className="text-amber-100 underline">キャンセルポリシー</Link>・
                 <Link href="/legal/tokushoho" className="text-amber-100 underline">特商法表記</Link>を確認しました。
               </span>

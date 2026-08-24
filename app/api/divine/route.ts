@@ -6,6 +6,12 @@ import { buildGrandProfile } from '@/lib/engine/profile';
 import { summarizeProfile } from '@/lib/engine/summarize';
 import { characterToneBlock } from '@/lib/character';
 import { prisma } from '@/lib/prisma';
+import {
+    AI_SAFETY_PROMPT,
+    evaluateAiSafetyInput,
+    reviewAiGeneratedValue,
+} from '@/lib/ai-safety';
+import { recordAiSafetyEvent } from '@/lib/ai-safety-log';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -23,6 +29,33 @@ export async function POST(request: Request) {
         if (!process.env.ANTHROPIC_API_KEY) {
             return NextResponse.json({ error: 'ANTHROPIC_API_KEY is not set' }, { status: 500 });
         }
+
+        const safetyInput = evaluateAiSafetyInput(userProfile.currentWorry || '');
+        if (safetyInput.action === 'block') {
+            await recordAiSafetyEvent({
+                userId,
+                route: 'profile_reading',
+                phase: 'input',
+                action: 'blocked',
+                categories: safetyInput.categories,
+                ruleIds: safetyInput.ruleIds,
+            });
+            return NextResponse.json({
+                error: 'safety redirect',
+                safetyResponse: safetyInput.response,
+            }, { status: 422 });
+        }
+        if (safetyInput.action === 'redact') {
+            await recordAiSafetyEvent({
+                userId,
+                route: 'profile_reading',
+                phase: 'input',
+                action: 'redacted',
+                categories: safetyInput.categories,
+                ruleIds: safetyInput.ruleIds,
+            });
+        }
+        const safeWorry = safetyInput.sanitizedText;
 
         // フリーズ済みの象徴データを先読み（あれば後で上書きする）
         let frozenSignature: unknown = null;
@@ -77,10 +110,11 @@ ${characterToneBlock(userProfile.characterType)}
 - 断片を羅列せず、各体系が示す共通点と矛盾を**統合**し、その人だけの一本筋の通った像を描く。
 - 矛盾時の優先順位: 行動指針→ヒューマンデザインのタイプ＆権威を最優先 / 性格→エニアグラムの動機を核にMBTIを表層の武器として解釈 / タイミング→東洋の年運月運×西洋トランジット。
 - ネガティブな断定的予言は禁止。必ず「活かし方・対処」とセットで。
-- 出力テキストは必ず ${langName} で書く。deliver_reading ツールで結果を返すこと。`;
+- 出力テキストは必ず ${langName} で書く。deliver_reading ツールで結果を返すこと。
+${AI_SAFETY_PROMPT}`;
 
         const userMessage = `## 相談者
-名前: ${userProfile.name} / 性別: ${userProfile.gender || '不明'} / 現在の悩み: ${userProfile.currentWorry || '特になし'}
+名前: ${userProfile.name} / 性別: ${userProfile.gender || '不明'} / 現在の悩み: ${safeWorry || '特になし'}
 ${psychoText ? '自己申告: ' + psychoText : ''}
 
 ${factSheet}
@@ -213,7 +247,18 @@ ${answersText ? '## 心理テスト傾向（補助）\n' + answersText : ''}
         const out = toolUse.input as Record<string, unknown>;
         if (frozenSignature) out.signature = frozenSignature;
         if (frozenCompass)   out.compass   = frozenCompass;
-        return NextResponse.json(out);
+        const safetyOutput = reviewAiGeneratedValue(out);
+        if (safetyOutput.flagged) {
+            await recordAiSafetyEvent({
+                userId,
+                route: 'profile_reading',
+                phase: 'output',
+                action: 'output_rewritten',
+                categories: safetyInput.categories,
+                ruleIds: safetyOutput.ruleIds,
+            });
+        }
+        return NextResponse.json(safetyOutput.value);
 
     } catch (error) {
         console.error('Error generating fortune:', error);

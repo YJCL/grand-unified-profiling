@@ -9,6 +9,8 @@ import { summarizeDaily, summarizeProfile } from '@/lib/engine/summarize';
 import { characterToneBlock } from '@/lib/character';
 import { jstDateKey, jstDateLabel } from '@/lib/jst';
 import type { DailyContent, DailyLogEnvelope, DailyReadingContent } from '@/types';
+import { AI_SAFETY_PROMPT, reviewAiGeneratedValue } from '@/lib/ai-safety';
+import { recordAiSafetyEvent } from '@/lib/ai-safety-log';
 
 export const maxDuration = 60;
 
@@ -81,7 +83,8 @@ export async function POST(request: Request) {
       max_tokens: 1800,
       system: `あなたはOrba。複数の占術データと今日の運気を重ね、ユーザーのための「今日の鑑定」を読む。
 ${characterToneBlock(current.user.characterType)}
-断定や恐怖を煽る表現を避け、現実の選択肢を狭めない。医療・法律・投資などの重大判断は専門家と現実情報を優先する。与えられたデータだけを根拠にし、構造化ツールで返す。`,
+断定や恐怖を煽る表現を避け、現実の選択肢を狭めない。医療・法律・投資などの重大判断は専門家と現実情報を優先する。与えられたデータだけを根拠にし、構造化ツールで返す。
+${AI_SAFETY_PROMPT}`,
       tools: [{
         name: 'deliver_daily_reading',
         description: '今日の鑑定を構造化して返す',
@@ -106,7 +109,18 @@ ${characterToneBlock(current.user.characterType)}
     });
     const block = response.content.find((item) => item.type === 'tool_use');
     if (!block || block.type !== 'tool_use') throw new Error('structured reading missing');
-    const reading: DailyReadingContent = { date: current.date, ...(block.input as Omit<DailyReadingContent, 'date'>) };
+    const rawReading: DailyReadingContent = { date: current.date, ...(block.input as Omit<DailyReadingContent, 'date'>) };
+    const safetyOutput = reviewAiGeneratedValue(rawReading);
+    if (safetyOutput.flagged) {
+      await recordAiSafetyEvent({
+        userId,
+        route: 'daily_reading',
+        phase: 'output',
+        action: 'output_rewritten',
+        ruleIds: safetyOutput.ruleIds,
+      });
+    }
+    const reading = safetyOutput.value;
 
     const saved = await prisma.$transaction(async (tx) => {
       const user = await tx.user.findUnique({ where: { id: userId } });

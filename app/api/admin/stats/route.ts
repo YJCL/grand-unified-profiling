@@ -15,6 +15,7 @@ export async function GET() {
     totalUsers, registeredUsers, premiumUsers, usersWithBirth, pushSubs, signups7d,
     grouped,
     activeRows,
+    safetyRows,
   ] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({ where: { passwordHash: { not: null } } }),
@@ -31,6 +32,12 @@ export async function GET() {
       FROM "Event"
       WHERE "createdAt" >= ${d30}
     `,
+    prisma.event.findMany({
+      where: { name: 'ai_safety_event', createdAt: { gte: d30 } },
+      select: { props: true, createdAt: true },
+      orderBy: { createdAt: 'desc' },
+      take: 1000,
+    }),
   ]);
 
   const ev = (name: string) => grouped.find((g) => g.name === name)?._count._all ?? 0;
@@ -44,6 +51,20 @@ export async function GET() {
   const dau = Number(activeRows[0]?.dau ?? 0);
   const wau = Number(activeRows[0]?.wau ?? 0);
   const mau = Number(activeRows[0]?.mau ?? 0);
+  const safety = safetyRows.map((row) => {
+    try {
+      const props = JSON.parse(row.props || '{}') as {
+        route?: string; phase?: string; action?: string; categories?: string[]; ruleIds?: string[];
+      };
+      return { ...props, createdAt: row.createdAt.toISOString() };
+    } catch {
+      return { createdAt: row.createdAt.toISOString() };
+    }
+  });
+  const safetyCategoryCounts = safety.flatMap((item) => item.categories || []).reduce<Record<string, number>>((acc, category) => {
+    acc[category] = (acc[category] || 0) + 1;
+    return acc;
+  }, {});
 
   const pct = (num: number, den: number) => (den > 0 ? Math.round((num / den) * 1000) / 10 : 0);
 
@@ -73,6 +94,11 @@ export async function GET() {
       purchase: purchase30,
       clickRate: pct(paywallClick30, paywallView30),      // paywall表示→開いた
       intentRate: pct(founding30, paywallView30),          // 課金欲＝paywall表示→先行登録
+    },
+    aiSafety30d: {
+      total: ev('ai_safety_event'),
+      categories: safetyCategoryCounts,
+      recent: safety.slice(0, 12),
     },
   });
 }
