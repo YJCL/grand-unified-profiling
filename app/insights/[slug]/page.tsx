@@ -39,6 +39,9 @@ export default async function InsightArticlePage({ params }: PageProps) {
 
   const currentIndex = insights.findIndex((item) => item.slug === slug);
   const nextInsight = insights[(currentIndex + 1) % insights.length];
+  const relatedInsights = (insight.relatedSlugs ?? [])
+    .map((relatedSlug) => getInsight(relatedSlug))
+    .filter((relatedInsight): relatedInsight is NonNullable<typeof relatedInsight> => Boolean(relatedInsight));
   const title = insight.title.replace("\n", " ");
   const articleUrl = `https://orba.life/insights/${insight.slug}`;
   const jsonLd = {
@@ -102,6 +105,21 @@ export default async function InsightArticlePage({ params }: PageProps) {
                 {section.points && <ul>{section.points.map((point) => <li key={point}>{point}</li>)}</ul>}
               </section>
             ))}
+            {relatedInsights.length > 0 && (
+              <nav className="orba-article__related" aria-label="関連記事">
+                <p>RELATED FIELD NOTES</p>
+                <h2>もう一つの角度から読む</h2>
+                <div>
+                  {relatedInsights.map((relatedInsight) => (
+                    <Link key={relatedInsight.slug} href={`/insights/${relatedInsight.slug}`}>
+                      <span>{relatedInsight.category}</span>
+                      {relatedInsight.title.replace("\n", " ")}
+                      <ArrowRight size={15} />
+                    </Link>
+                  ))}
+                </div>
+              </nav>
+            )}
             <div className="orba-article__note">
               <strong>Orbaの考え方</strong>
               <p>占術や診断は、医療・法律・投資・転職などの重要な判断を代行するものではありません。自分の経験を見直し、選択肢を整理するための補助線として利用してください。</p>
@@ -120,7 +138,7 @@ export default async function InsightArticlePage({ params }: PageProps) {
         <p>YOUR OWN PROFILE</p>
         <h2>今度は、あなた自身の言葉で。</h2>
         <span>無料プロファイリングから、自分の輪郭を少しずつ確かめられます。</span>
-        <Link href="/start">Orbaをはじめる <ArrowRight size={15} /></Link>
+        <Link href={insight.ctaHref ?? "/start"}>{insight.ctaLabel ?? "Orbaをはじめる"} <ArrowRight size={15} /></Link>
       </section>
     </main>
   );

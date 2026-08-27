@@ -533,6 +533,58 @@
   color: var(--orba-paper-gold);
 }
 
+.orba-article__related {
+  margin: 0 0 82px;
+  padding: 34px 0 6px;
+  border-top: 1px solid #d8d0c2;
+}
+
+.orba-article__related > p {
+  margin: 0;
+  color: var(--orba-paper-gold);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+}
+
+.orba-article__related h2 {
+  margin: 16px 0 27px;
+}
+
+.orba-article__related > div {
+  display: grid;
+  gap: 1px;
+  background: #d8d0c2;
+  border: 1px solid #d8d0c2;
+}
+
+.orba-article__related a {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 18px;
+  padding: 19px 21px;
+  color: #29242d;
+  background: var(--orba-paper);
+  font-family: var(--font-serif), serif;
+  font-size: 15px;
+  line-height: 1.6;
+  text-decoration: none;
+}
+
+.orba-article__related a span {
+  grid-column: 1 / -1;
+  color: #8b7e66;
+  font-family: var(--font-sans), sans-serif;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.orba-article__related a:hover {
+  background: #f5f0e7;
+}
+
 .orba-article__note {
   padding: 29px 31px;
   border-left: 2px solid var(--orba-paper-gold);
