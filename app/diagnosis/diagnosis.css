@@ -1,12 +1,15 @@
 .orba-mini-diagnosis {
   --diagnosis-gold: #f4c060;
+  --diagnosis-gold-bright: #ffd47e;
   --diagnosis-night: #070713;
+  --diagnosis-night-raised: #111126;
   --diagnosis-paper: #fbf8f0;
+  --diagnosis-ink: #262331;
   min-height: 100svh;
   overflow-x: hidden;
   color: var(--diagnosis-paper);
   background:
-    radial-gradient(circle at 82% 12%, rgba(102, 72, 164, 0.16), transparent 30rem),
+    radial-gradient(circle at 82% 12%, rgba(102, 72, 164, 0.17), transparent 31rem),
     var(--diagnosis-night);
 }
 
@@ -17,7 +20,8 @@
 }
 
 .orba-mini-diagnosis a:focus-visible,
-.orba-mini-diagnosis button:focus-visible {
+.orba-mini-diagnosis button:focus-visible,
+.orba-mini-diagnosis textarea:focus-visible {
   outline: 2px solid var(--diagnosis-gold);
   outline-offset: 4px;
 }
@@ -40,7 +44,7 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: rgba(251, 248, 240, 0.66);
+  color: rgba(251, 248, 240, 0.72);
   font-size: 11px;
 }
 
@@ -48,9 +52,9 @@
   width: min(1440px, 100%);
   min-height: calc(100svh - 72px);
   margin: 0 auto;
-  padding: clamp(70px, 8vw, 124px) clamp(22px, 8vw, 124px) clamp(80px, 9vw, 135px);
+  padding: clamp(70px, 7vw, 112px) clamp(22px, 8vw, 124px) clamp(80px, 9vw, 135px);
   display: grid;
-  grid-template-columns: minmax(0, 0.92fr) minmax(430px, 1.08fr);
+  grid-template-columns: minmax(0, 0.94fr) minmax(430px, 1.06fr);
   align-items: center;
   gap: clamp(58px, 8vw, 130px);
 }
@@ -67,26 +71,27 @@
 
 .orba-mini-diagnosis__intro-copy h1 {
   max-width: 13ch;
-  font-size: clamp(46px, 5.4vw, 76px);
-  line-height: 1.45;
+  font-size: clamp(48px, 5.35vw, 74px);
+  line-height: 1.42;
+  text-wrap: balance;
 }
 
 .orba-mini-diagnosis__intro-copy > p {
-  max-width: 50ch;
-  margin: 30px 0 0;
-  color: rgba(251, 248, 240, 0.67);
-  font-size: 14px;
+  max-width: 39ch;
+  margin: 28px 0 0;
+  color: rgba(251, 248, 240, 0.72);
+  font-size: 15px;
   line-height: 2;
 }
 
 .orba-mini-diagnosis__primary {
-  min-height: 48px;
-  margin-top: 36px;
-  padding: 0 20px;
+  min-height: 50px;
+  margin-top: 34px;
+  padding: 0 22px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 9px;
+  gap: 10px;
   color: #211708;
   background: var(--diagnosis-gold);
   border: 0;
@@ -100,14 +105,14 @@
 
 .orba-mini-diagnosis__primary:hover {
   color: #211708;
-  background: #ffd47e;
+  background: var(--diagnosis-gold-bright);
   transform: translateY(-1px);
 }
 
 .orba-mini-diagnosis__intro-copy > span {
   display: block;
   margin-top: 13px;
-  color: rgba(251, 248, 240, 0.5);
+  color: rgba(251, 248, 240, 0.56);
   font-size: 11px;
 }
 
@@ -137,11 +142,12 @@
 .orba-signal-instrument::after {
   inset: 7%;
   border: 1px dashed rgba(255, 255, 255, 0.15);
+  animation: orba-instrument-orbit 84s linear infinite reverse;
 }
 
 .orba-signal-instrument__core {
   position: absolute;
-  inset: 38%;
+  inset: 37%;
   z-index: 3;
   display: grid;
   place-content: center;
@@ -157,14 +163,14 @@
 
 .orba-signal-instrument__core strong {
   font-family: var(--font-serif), serif;
-  font-size: clamp(44px, 6vw, 76px);
+  font-size: clamp(44px, 6vw, 74px);
   font-weight: 500;
   line-height: 1;
 }
 
 .orba-signal-instrument__core span {
   margin-top: 8px;
-  color: rgba(251, 248, 240, 0.57);
+  color: rgba(251, 248, 240, 0.6);
   font-size: 8px;
   letter-spacing: 0.16em;
 }
@@ -172,7 +178,7 @@
 .orba-signal-instrument__orbit {
   position: absolute;
   inset: 29% 2%;
-  border: 1px solid rgba(244, 192, 96, 0.52);
+  border: 1px solid rgba(244, 192, 96, 0.5);
   border-radius: 50%;
   transform: rotate(-17deg);
 }
@@ -192,8 +198,8 @@
 .orba-signal-instrument__orbit span {
   position: absolute;
   padding: 7px 10px;
-  color: rgba(251, 248, 240, 0.7);
-  background: rgba(7, 7, 19, 0.86);
+  color: rgba(251, 248, 240, 0.75);
+  background: rgba(7, 7, 19, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 9px;
   letter-spacing: 0.08em;
@@ -206,82 +212,127 @@
 .orba-signal-instrument .orbit-two span { left: -42%; top: 18%; transform: rotate(-62deg); }
 .orba-signal-instrument .orbit-three { inset: 20% 15%; transform: rotate(23deg); border-color: rgba(255, 255, 255, 0.19); }
 .orba-signal-instrument .orbit-three span { right: -7%; bottom: 4%; transform: rotate(-23deg); }
+.orba-signal-instrument .orbit-four { inset: 32% 5%; transform: rotate(-41deg); border-color: rgba(79, 195, 207, 0.24); }
+.orba-signal-instrument .orbit-four span { left: 13%; bottom: -2%; transform: rotate(41deg); }
 
 .orba-mini-diagnosis__question {
-  width: min(950px, calc(100% - 44px));
+  width: min(1120px, calc(100% - 44px));
   min-height: calc(100svh - 72px);
   margin: 0 auto;
-  padding: clamp(55px, 8vw, 100px) 0 90px;
+  padding: clamp(46px, 6vw, 78px) 0 70px;
   display: flex;
   flex-direction: column;
 }
 
 .orba-mini-diagnosis__progress {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr;
   align-items: center;
-  gap: 20px;
+  gap: 24px;
 }
 
 .orba-mini-diagnosis__progress > span {
-  flex: none;
-  color: rgba(251, 248, 240, 0.55);
-  font-size: 10px;
-  letter-spacing: 0.1em;
+  color: rgba(251, 248, 240, 0.64);
+  font-size: 11px;
 }
 
-.orba-mini-diagnosis__progress > div {
-  height: 1px;
-  flex: 1;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.12);
+.orba-mini-diagnosis__progress ol {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 9px;
+  list-style: none;
 }
 
-.orba-mini-diagnosis__progress i {
-  width: 100%;
-  height: 100%;
-  display: block;
+.orba-mini-diagnosis__progress li {
+  height: 2px;
+  background: rgba(255, 255, 255, 0.13);
+  transition: background-color 320ms ease, box-shadow 320ms ease;
+}
+
+.orba-mini-diagnosis__progress li.is-done,
+.orba-mini-diagnosis__progress li.is-current {
   background: var(--diagnosis-gold);
-  transform-origin: left center;
-  transition: transform 500ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.orba-mini-diagnosis__progress li.is-current {
+  box-shadow: 0 0 12px rgba(244, 192, 96, 0.42);
+}
+
+.orba-mini-diagnosis__question-stage {
+  min-height: 610px;
+  margin: auto 0;
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(36px, 7vw, 98px);
+}
+
+.orba-mini-diagnosis__question-number {
+  align-self: stretch;
+  padding: 92px 0 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: rgba(251, 248, 240, 0.3);
+}
+
+.orba-mini-diagnosis__question-number span {
+  font-family: var(--font-serif), serif;
+  font-size: 58px;
+  line-height: 1;
+}
+
+.orba-mini-diagnosis__question-number i {
+  width: 1px;
+  flex: 1;
+  margin-top: 24px;
+  display: block;
+  background: linear-gradient(var(--diagnosis-gold), rgba(244, 192, 96, 0));
 }
 
 .orba-mini-diagnosis__question-body {
-  margin: auto 0;
   animation: orba-question-arrive 440ms cubic-bezier(0.23, 1, 0.32, 1) both;
 }
 
 .orba-mini-diagnosis__question h1 {
-  max-width: 17ch;
-  font-size: clamp(38px, 5vw, 64px);
-  line-height: 1.48;
+  max-width: 22ch;
+  font-size: clamp(38px, 4.5vw, 58px);
+  line-height: 1.45;
+  text-wrap: balance;
 }
 
 .orba-mini-diagnosis__question-body > p {
-  margin: 22px 0 0;
-  color: rgba(251, 248, 240, 0.62);
+  margin: 18px 0 0;
+  color: rgba(251, 248, 240, 0.66);
   font-size: 13px;
   line-height: 1.9;
 }
 
 .orba-mini-diagnosis__options {
-  margin-top: 42px;
+  margin-top: 38px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   border-top: 1px solid rgba(255, 255, 255, 0.14);
+  border-left: 1px solid rgba(255, 255, 255, 0.14);
 }
 
 .orba-mini-diagnosis__options button {
-  width: 100%;
-  min-height: 72px;
-  padding: 14px 4px;
-  display: flex;
+  min-height: 100px;
+  padding: 18px 20px;
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
   align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  color: rgba(251, 248, 240, 0.8);
+  gap: 13px;
+  color: rgba(251, 248, 240, 0.83);
   background: transparent;
   border: 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
   border-bottom: 1px solid rgba(255, 255, 255, 0.14);
   font-family: inherit;
   font-size: 14px;
+  line-height: 1.7;
   text-align: left;
   cursor: pointer;
   transition: color 180ms ease, background-color 180ms ease;
@@ -289,11 +340,16 @@
 
 .orba-mini-diagnosis__options button:hover {
   color: var(--diagnosis-paper);
-  background: rgba(244, 192, 96, 0.06);
+  background: rgba(244, 192, 96, 0.07);
 }
 
-.orba-mini-diagnosis__options svg {
-  flex: none;
+.orba-mini-diagnosis__options button b {
+  color: var(--diagnosis-gold);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.orba-mini-diagnosis__options button svg {
   color: var(--diagnosis-gold);
 }
 
@@ -303,7 +359,7 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: rgba(251, 248, 240, 0.55);
+  color: rgba(251, 248, 240, 0.61);
   background: transparent;
   border: 0;
   font-family: inherit;
@@ -316,20 +372,20 @@
 }
 
 .orba-mini-diagnosis.is-result .orba-mini-diagnosis__header {
-  color: var(--orba-ink);
+  color: var(--diagnosis-ink);
   background: var(--diagnosis-night);
 }
 
 .orba-mini-diagnosis__result {
   min-height: calc(100svh - 72px);
-  padding: clamp(65px, 8vw, 118px) clamp(22px, 8vw, 124px);
+  padding: clamp(62px, 7vw, 108px) clamp(22px, 7vw, 112px);
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(330px, 0.85fr);
+  grid-template-columns: minmax(0, 1.08fr) minmax(390px, 0.92fr);
   align-items: start;
-  gap: clamp(55px, 8vw, 120px);
-  color: var(--orba-ink);
+  gap: clamp(56px, 7vw, 108px);
+  color: var(--diagnosis-ink);
   background:
-    linear-gradient(90deg, rgba(167, 124, 36, 0.07), transparent 1px) 0 0 / 12.5% 100%,
+    linear-gradient(90deg, rgba(167, 124, 36, 0.06), transparent 1px) 0 0 / 12.5% 100%,
     var(--diagnosis-paper);
 }
 
@@ -338,34 +394,92 @@
 }
 
 .orba-mini-diagnosis__result h1 {
-  margin-top: 0;
-  font-size: clamp(48px, 5vw, 68px);
+  font-size: clamp(46px, 4.8vw, 66px);
   line-height: 1.35;
-  white-space: nowrap;
+  text-wrap: balance;
 }
 
 .orba-mini-diagnosis__result-lead {
-  max-width: 54ch;
-  margin: 27px 0 0;
-  color: var(--orba-quiet);
-  font-size: 14px;
+  max-width: 43ch;
+  margin: 24px 0 0;
+  color: #625d69;
+  font-size: 15px;
   line-height: 2;
 }
 
+.orba-mini-diagnosis__secondary {
+  margin: 28px 0 0;
+  padding: 16px 0;
+  color: #5e5867;
+  border-top: 1px solid #d8d0c2;
+  border-bottom: 1px solid #d8d0c2;
+  font-size: 12px;
+  line-height: 1.9;
+}
+
+.orba-mini-diagnosis__secondary strong {
+  color: var(--diagnosis-ink);
+  font-family: var(--font-serif), serif;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.orba-mini-diagnosis__balance {
+  margin-top: 34px;
+  padding: 24px 0 8px;
+  border-top: 1px solid #d8d0c2;
+}
+
+.orba-mini-diagnosis__balance > p {
+  margin: 0 0 18px;
+  color: #6b6571;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.orba-mini-diagnosis__balance > div {
+  min-height: 34px;
+  display: grid;
+  grid-template-columns: minmax(132px, 180px) minmax(90px, 1fr) 40px;
+  align-items: center;
+  gap: 14px;
+  font-size: 11px;
+}
+
+.orba-mini-diagnosis__balance i {
+  height: 2px;
+  display: block;
+  background: #dfd8cc;
+}
+
+.orba-mini-diagnosis__balance i b {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #a77c24;
+  transform-origin: left;
+}
+
+.orba-mini-diagnosis__balance em {
+  color: #77707e;
+  font-style: normal;
+  text-align: right;
+}
+
 .orba-mini-diagnosis__result dl {
-  margin: 48px 0 0;
+  margin: 42px 0 0;
 }
 
 .orba-mini-diagnosis__result dl > div {
-  padding: 22px 0;
+  padding: 21px 0;
   display: grid;
-  grid-template-columns: 130px 1fr;
+  grid-template-columns: 132px 1fr;
   gap: 24px;
   border-top: 1px solid #d8d0c2;
 }
 
 .orba-mini-diagnosis__result dt {
-  color: var(--orba-paper-gold);
+  color: #8a6418;
   font-size: 10px;
   font-weight: 700;
 }
@@ -373,58 +487,146 @@
 .orba-mini-diagnosis__result dd {
   margin: 0;
   font-family: var(--font-serif), serif;
-  font-size: 18px;
-  line-height: 1.8;
+  font-size: 17px;
+  line-height: 1.85;
 }
 
 .orba-mini-diagnosis__caveat {
-  margin: 26px 0 0;
+  margin: 25px 0 0;
   color: #655f6c;
   font-size: 11px;
   line-height: 1.9;
 }
 
 .orba-mini-diagnosis__result-actions {
-  padding: clamp(30px, 4vw, 48px);
+  overflow: hidden;
   color: var(--diagnosis-paper);
-  background: #111126;
+  background: var(--diagnosis-night-raised);
   border-radius: 16px;
-  box-shadow: 0 22px 60px rgba(25, 18, 42, 0.18);
+  box-shadow: 0 24px 64px rgba(25, 18, 42, 0.22);
+}
+
+.orba-mini-diagnosis__deepening,
+.orba-mini-diagnosis__share-panel {
+  padding: clamp(28px, 3.6vw, 44px);
+}
+
+.orba-mini-diagnosis__share-panel {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .orba-mini-diagnosis__result-actions h2 {
-  font-size: clamp(26px, 3vw, 38px);
+  font-size: clamp(25px, 2.7vw, 36px);
   line-height: 1.55;
+  text-wrap: balance;
 }
 
-.orba-mini-diagnosis__result-actions > p {
-  margin: 20px 0 0;
-  color: rgba(251, 248, 240, 0.67);
+.orba-mini-diagnosis__result-actions p {
+  margin: 17px 0 0;
+  color: rgba(251, 248, 240, 0.72);
   font-size: 12px;
   line-height: 1.95;
 }
 
-.orba-mini-diagnosis__result-actions .orba-mini-diagnosis__primary {
+.orba-mini-diagnosis__deepening .orba-mini-diagnosis__primary {
   width: 100%;
 }
 
+.orba-mini-diagnosis__share-preview {
+  margin-top: 24px;
+  overflow: hidden;
+  background: #070713;
+  border-radius: 12px;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.26);
+}
+
+.orba-mini-diagnosis__share-preview img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.orba-mini-diagnosis__share-panel label {
+  margin-top: 24px;
+  display: block;
+  color: rgba(251, 248, 240, 0.67);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.orba-mini-diagnosis__share-panel textarea {
+  width: 100%;
+  margin-top: 10px;
+  padding: 14px 15px;
+  resize: none;
+  color: rgba(251, 248, 240, 0.82);
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9px;
+  font: 400 11px/1.75 var(--font-noto), sans-serif;
+}
+
 .orba-mini-diagnosis__share {
-  margin-top: 32px;
-  padding-top: 22px;
+  margin-top: 18px;
   display: grid;
-  gap: 4px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .orba-mini-diagnosis__share button,
-.orba-mini-diagnosis__share a,
-.orba-mini-diagnosis__retry {
-  min-height: 44px;
-  padding: 0 4px;
+.orba-mini-diagnosis__share a {
+  min-height: 46px;
+  padding: 0 13px;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 9px;
-  color: rgba(251, 248, 240, 0.69);
+  color: rgba(251, 248, 240, 0.82);
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  transition: color 180ms ease, background-color 180ms ease, border-color 180ms ease;
+}
+
+.orba-mini-diagnosis__share a:first-child {
+  color: #211708;
+  background: var(--diagnosis-gold);
+  border-color: var(--diagnosis-gold);
+  font-weight: 700;
+}
+
+.orba-mini-diagnosis__share button:last-child {
+  grid-column: 1 / -1;
+}
+
+.orba-mini-diagnosis__share button:hover,
+.orba-mini-diagnosis__share a:hover {
+  color: var(--diagnosis-paper);
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+.orba-mini-diagnosis__share a:first-child:hover {
+  color: #211708;
+  background: var(--diagnosis-gold-bright);
+  border-color: var(--diagnosis-gold-bright);
+}
+
+.orba-share-x {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.orba-mini-diagnosis__retry {
+  min-height: 48px;
+  margin: 0 40px 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(251, 248, 240, 0.66);
   background: transparent;
   border: 0;
   font-family: inherit;
@@ -432,14 +634,8 @@
   cursor: pointer;
 }
 
-.orba-mini-diagnosis__share button:hover,
-.orba-mini-diagnosis__share a:hover,
 .orba-mini-diagnosis__retry:hover {
   color: var(--diagnosis-paper);
-}
-
-.orba-mini-diagnosis__retry {
-  margin-top: 16px;
 }
 
 .orba-mini-diagnosis__footer {
@@ -448,7 +644,7 @@
   display: flex;
   align-items: center;
   gap: 32px;
-  color: rgba(251, 248, 240, 0.62);
+  color: rgba(251, 248, 240, 0.66);
   background: #05050d;
 }
 
@@ -469,16 +665,20 @@
   min-height: 44px;
   display: inline-flex;
   align-items: center;
-  color: rgba(251, 248, 240, 0.62);
+  color: rgba(251, 248, 240, 0.66);
   font-size: 10px;
 }
 
 @keyframes orba-question-arrive {
-  from { opacity: 0.45; clip-path: inset(0 0 18% 0); transform: translateY(14px); }
+  from { opacity: 0.5; clip-path: inset(0 0 14% 0); transform: translateY(12px); }
   to { opacity: 1; clip-path: inset(0); transform: translateY(0); }
 }
 
-@media (max-width: 900px) {
+@keyframes orba-instrument-orbit {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 960px) {
   .orba-mini-diagnosis__intro,
   .orba-mini-diagnosis__result {
     grid-template-columns: 1fr;
@@ -490,6 +690,34 @@
 
   .orba-signal-instrument {
     width: min(560px, 100%);
+  }
+
+  .orba-mini-diagnosis__result-actions {
+    width: min(620px, 100%);
+  }
+}
+
+@media (max-width: 700px) {
+  .orba-mini-diagnosis__question-stage {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .orba-mini-diagnosis__question-number {
+    padding: 30px 0 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .orba-mini-diagnosis__question-number span {
+    font-size: 38px;
+  }
+
+  .orba-mini-diagnosis__question-number i {
+    width: auto;
+    height: 1px;
+    margin: 0;
   }
 }
 
@@ -509,27 +737,27 @@
 
   .orba-mini-diagnosis__intro {
     min-height: calc(100svh - 62px);
-    padding: 64px 20px 48px;
-    gap: 24px;
+    padding: 56px 20px 48px;
+    gap: 28px;
   }
 
   .orba-mini-diagnosis__intro-copy h1 {
-    font-size: 42px;
+    font-size: 40px;
   }
 
   .orba-mini-diagnosis__intro-copy > p {
-    margin-top: 22px;
-    font-size: 13px;
+    margin-top: 20px;
+    font-size: 14px;
   }
 
   .orba-mini-diagnosis__primary {
     width: 100%;
-    min-height: 50px;
+    min-height: 52px;
   }
 
   .orba-signal-instrument {
-    width: calc(100% + 30px);
-    margin-inline: -15px;
+    width: calc(100% + 26px);
+    margin-inline: -13px;
   }
 
   .orba-signal-instrument__orbit span {
@@ -537,43 +765,90 @@
   }
 
   .orba-mini-diagnosis__question {
-    width: calc(100% - 40px);
+    width: calc(100% - 36px);
     min-height: calc(100svh - 62px);
-    padding: 38px 0 55px;
+    padding: 28px 0 46px;
+  }
+
+  .orba-mini-diagnosis__progress {
+    grid-template-columns: 1fr;
+    gap: 11px;
+  }
+
+  .orba-mini-diagnosis__progress ol {
+    gap: 5px;
+  }
+
+  .orba-mini-diagnosis__question-stage {
+    min-height: 620px;
+    margin: 0;
   }
 
   .orba-mini-diagnosis__question h1 {
-    font-size: 36px;
+    font-size: 33px;
+  }
+
+  .orba-mini-diagnosis__question-body > p {
+    margin-top: 14px;
+    font-size: 12px;
   }
 
   .orba-mini-diagnosis__options {
-    margin-top: 28px;
+    margin-top: 25px;
+    grid-template-columns: 1fr;
   }
 
   .orba-mini-diagnosis__options button {
-    min-height: 78px;
+    min-height: 73px;
+    padding: 12px 13px;
     font-size: 13px;
   }
 
   .orba-mini-diagnosis__result {
     min-height: auto;
-    padding: 66px 20px;
-    gap: 50px;
+    padding: 58px 20px 68px;
+    gap: 46px;
     background: var(--diagnosis-paper);
   }
 
   .orba-mini-diagnosis__result h1 {
-    font-size: 42px;
-    white-space: normal;
+    font-size: 40px;
+  }
+
+  .orba-mini-diagnosis__result-lead {
+    font-size: 14px;
+  }
+
+  .orba-mini-diagnosis__balance > div {
+    grid-template-columns: 122px 1fr 34px;
+    gap: 9px;
+    font-size: 10px;
   }
 
   .orba-mini-diagnosis__result dl > div {
     grid-template-columns: 1fr;
-    gap: 9px;
+    gap: 8px;
   }
 
-  .orba-mini-diagnosis__result-actions {
-    padding: 28px 24px;
+  .orba-mini-diagnosis__result dd {
+    font-size: 16px;
+  }
+
+  .orba-mini-diagnosis__deepening,
+  .orba-mini-diagnosis__share-panel {
+    padding: 28px 22px;
+  }
+
+  .orba-mini-diagnosis__share {
+    grid-template-columns: 1fr;
+  }
+
+  .orba-mini-diagnosis__share button:last-child {
+    grid-column: auto;
+  }
+
+  .orba-mini-diagnosis__retry {
+    margin-inline: 22px;
   }
 
   .orba-mini-diagnosis__footer {

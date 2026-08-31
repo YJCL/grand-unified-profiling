@@ -57,9 +57,9 @@ export default async function InsightArticlePage({ params }: PageProps) {
     ? `/diagnosis/strengths?utm_source=orba_insights&utm_medium=owned_content&utm_campaign=${campaign}&utm_content=${insight.slug}`
     : `/start?utm_source=orba_insights&utm_medium=owned_content&utm_campaign=${campaign}&utm_content=${insight.slug}`;
   const ctaLabel = insight.slug === "strengths-are-hard-to-see"
-    ? "3問で、強みが使われる条件を見る"
+    ? "10問で、強みの使われ方を見る"
     : insight.slug === "career-fit-is-role-and-environment"
-      ? "3問で、力が出やすい条件を見る"
+      ? "10問で、力が出やすい条件を見る"
       : insight.slug === "unknown-birth-time"
         ? "出生時間なしで分かる範囲から始める"
         : insight.slug === "when-readings-disagree"
