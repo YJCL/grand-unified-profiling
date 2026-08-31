@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { X } from 'lucide-react';
+import { track } from '@/lib/analytics';
 
 type Mode = 'login' | 'register';
 
@@ -25,9 +26,6 @@ export function AuthModal({
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +39,7 @@ export function AuthModal({
       if (!res.ok) { setError(data.error || 'エラーが発生しました'); setLoading(false); return; }
       // ログイン中の identity を localStorage に反映
       localStorage.setItem('guf_user_id', data.id);
+      if (mode === 'register') track('registration_complete', { source: userId ? 'profile_handoff' : 'direct_registration' });
       onSuccess({ id: data.id, email: data.email });
     } catch {
       setError('通信に失敗しました');
@@ -48,7 +47,7 @@ export function AuthModal({
     }
   };
 
-  if (!mounted) return null;
+  if (typeof document === 'undefined') return null;
 
   return createPortal(
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}

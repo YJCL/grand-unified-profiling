@@ -318,6 +318,7 @@ function Conversation({ char, profileType, userId, onReselect }: { char: Charact
     setData(newData);
     setDraft('');
     setMessages((m) => [...m, { from: 'user', text: display || '（スキップ）' }]);
+    if (turnIndex === 0) track('first_question', { source: 'full_profile', characterType: char });
 
     // 少し「書き込み中」の間をおいてから相棒が返す
     const ni = turnIndex + 1;
@@ -611,7 +612,7 @@ function HomeInner() {
   }, [phase]);
 
   useEffect(() => {
-    track('landing_view');
+    track('start_view');
     const init = async () => {
       let id = localStorage.getItem('guf_user_id');
       if (isNewProfile) {
@@ -639,7 +640,7 @@ function HomeInner() {
       <AnimatePresence mode="wait">
         {phase === 'select' && (
           <OrbSelect key="select" isNewProfile={isNewProfile}
-            onSelect={(t) => { track('onboarding_start', { characterType: t }); setChar(t); setPhase('chat'); }} />
+            onSelect={(t) => { track('partner_selected', { characterType: t }); track('onboarding_start', { characterType: t }); setChar(t); setPhase('chat'); }} />
         )}
         {phase !== 'select' && char && (
           <Conversation

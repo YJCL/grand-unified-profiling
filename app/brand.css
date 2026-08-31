@@ -234,6 +234,7 @@
   padding: 0 17px;
   border-bottom: 0;
   font-size: 12px;
+  color: #211708;
 }
 
 .orba-lp__flow {
@@ -413,12 +414,15 @@
 }
 .orba-lp__plus-legal {
   margin: 15px 0 0;
-  color: rgba(251, 248, 240, 0.3);
-  font-size: 9px;
+  color: rgba(251, 248, 240, 0.64);
+  font-size: 11px;
   line-height: 1.8;
 }
 .orba-lp__plus-legal a {
-  color: rgba(251, 248, 240, 0.55);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: rgba(251, 248, 240, 0.82);
   text-decoration: underline;
   text-underline-offset: 3px;
 }

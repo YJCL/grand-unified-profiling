@@ -13,6 +13,7 @@ import { CelestialInstrument } from "./components/CelestialInstrument";
 import { LandingAccountActions } from "./components/LandingAccountActions";
 import { OrbaMark } from "./components/OrbaMark";
 import { isBillingEnabled, PREMIUM_PRICE_LABEL } from "@/lib/launch";
+import { AnalyticsBeacon, TrackedLink } from "./components/AnalyticsBeacon";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -33,6 +34,7 @@ export default function LandingPage() {
   const billingEnabled = isBillingEnabled();
   return (
     <main className="orba-lp" id="top">
+      <AnalyticsBeacon event="home_view" />
       <header className="orba-lp__header">
         <a href="#top">
           <OrbaMark />
@@ -58,9 +60,9 @@ export default function LandingPage() {
             複数の知恵と、あなた自身の言葉をひとつに。Orbaは、迷いの中に静かな輪郭をつくるパーソナルパートナーです。
           </p>
           <div className="orba-lp__actions">
-            <Link className="orba-lp__trial-cta" href="/start">
+            <TrackedLink className="orba-lp__trial-cta" href="/start" event="home_cta_click" eventProps={{ placement: 'hero' }}>
               無料プロフィールを作る <ArrowRight size={16} />
-            </Link>
+            </TrackedLink>
             <a href="#about">
               もう少し知る <ArrowDown size={15} />
             </a>
@@ -194,9 +196,9 @@ export default function LandingPage() {
               ? 'Plusは、無料プロフィールを作成して本登録した後にお申し込みいただけます。'
               : '現在、決済会社による最終確認中です。受付開始までは無料プランをご利用いただけます。'}
           </p>
-          <Link className="orba-lp__trial-cta" href="/start">
+          <TrackedLink className="orba-lp__trial-cta" href="/start" event="home_cta_click" eventProps={{ placement: 'plus' }}>
             無料プロフィールから始める <ArrowRight size={16} />
-          </Link>
+          </TrackedLink>
           <p className="orba-lp__plus-legal">
             お申し込み前に、<Link href="/legal/terms">利用規約</Link>・<Link href="/safety">AI利用と安全性</Link>・<Link href="/legal/cancellation">キャンセルポリシー</Link>・<Link href="/legal/tokushoho">特商法表記</Link>をご確認いただけます。
           </p>
@@ -232,9 +234,9 @@ export default function LandingPage() {
           <br />
           少しだけ聞かせてください。
         </h2>
-        <Link className="orba-lp__trial-cta" href="/start">
+        <TrackedLink className="orba-lp__trial-cta" href="/start" event="home_cta_click" eventProps={{ placement: 'final' }}>
           まずは無料でプロフィールを作る <ArrowRight size={16} />
-        </Link>
+        </TrackedLink>
       </section>
 
       <footer className="orba-lp__footer">

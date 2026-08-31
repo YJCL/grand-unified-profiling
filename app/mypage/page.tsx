@@ -279,7 +279,7 @@ function ShareRow({ diagnosisId, characterType, summary, userId, isPremium, onTi
     const label = (characterType && CHARACTER_META[characterType as CharacterType]?.label) || 'パートナーオーブ';
     const url = typeof window !== 'undefined' ? `${window.location.origin}/s/${diagnosisId}` : `/s/${diagnosisId}`;
     const oneLiner = summary || `私のパートナーオーブは「${label}」`;
-    const text = `“${oneLiner}”\n— Orbaが視た私 🔮 あなたも30秒で →`;
+    const text = `“${oneLiner}”\n— Orbaが視た私。あなたも約2分で →`;
 
     const earn = async () => {
         if (isPremium) return;

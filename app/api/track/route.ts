@@ -4,6 +4,23 @@ import { prisma } from '@/lib/prisma';
 // 計測する正当なイベント名（ジャンク混入を防ぐ allowlist）
 const ALLOWED = new Set([
   'landing_view',     // トップ/イントロ表示
+  'home_view',
+  'home_cta_click',
+  'article_view',
+  'article_cta_click',
+  'diagnosis_view',
+  'diagnosis_start',
+  'diagnosis_answer',
+  'diagnosis_complete',
+  'diagnosis_to_start',
+  'result_save',
+  'share_click',
+  'share_landing_view',
+  'share_landing_cta_click',
+  'start_view',
+  'partner_selected',
+  'first_question',
+  'registration_complete',
   'onboarding_start', // オンボーディング開始
   'reading_complete', // 初回鑑定が生成された（オンボ完了）
   'app_open',         // マイページ表示＝アクティブ

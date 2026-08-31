@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { AnimatePresence } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { AuthModal } from './AuthModal';
+import { track } from '@/lib/analytics';
 
 type AuthMode = 'login' | 'register';
 
@@ -24,7 +25,7 @@ export function LandingAccountActions() {
         <button type="button" className="orba-lp__register" onClick={() => open('register')}>
           新規登録
         </button>
-        <Link className="orba-lp__trial" href="/start">
+        <Link className="orba-lp__trial" href="/start" onClick={() => track('home_cta_click', { placement: 'header' })}>
           無料で試す
           <ArrowRight size={14} aria-hidden="true" />
         </Link>

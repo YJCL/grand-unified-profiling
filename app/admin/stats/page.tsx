@@ -6,7 +6,12 @@ type Stats = {
   generatedAt: string;
   users: { total: number; registered: number; premium: number; withReading: number; signups7d: number; pushSubs: number };
   active: { dau: number; wau: number; mau: number };
-  funnel30d: { landing: number; onboardingStart: number; readingComplete: number; startRate: number; completeRate: number };
+  funnel30d: {
+    homeView: number; articleView: number; articleCta: number; diagnosisView: number; diagnosisStart: number;
+    diagnosisComplete: number; diagnosisToStart: number; startView: number; partnerSelected: number;
+    firstQuestion: number; readingComplete: number; articleCtaRate: number; diagnosisStartRate: number;
+    diagnosisCompleteRate: number; diagnosisToStartRate: number; partnerRate: number; questionRate: number; readingRate: number;
+  };
   monetization30d: { paywallView: number; paywallClick: number; foundingInterest: number; purchase: number; clickRate: number; intentRate: number };
   aiSafety30d: {
     total: number;
@@ -72,9 +77,17 @@ function Dashboard() {
       </Section>
 
       <Section title="獲得ファネル（30日）">
-        <Stat label="訪問 landing" value={s.funnel30d.landing} />
-        <Stat label="オンボ開始" value={s.funnel30d.onboardingStart} sub={`訪問→開始 ${s.funnel30d.startRate}%`} />
-        <Stat label="鑑定完了" value={s.funnel30d.readingComplete} sub={`開始→完了 ${s.funnel30d.completeRate}%`} />
+        <Stat label="トップ閲覧" value={s.funnel30d.homeView} />
+        <Stat label="記事閲覧" value={s.funnel30d.articleView} />
+        <Stat label="記事CTA" value={s.funnel30d.articleCta} sub={`記事→CTA ${s.funnel30d.articleCtaRate}%`} />
+        <Stat label="ミニ診断閲覧" value={s.funnel30d.diagnosisView} />
+        <Stat label="ミニ診断開始" value={s.funnel30d.diagnosisStart} sub={`閲覧→開始 ${s.funnel30d.diagnosisStartRate}%`} />
+        <Stat label="ミニ診断完了" value={s.funnel30d.diagnosisComplete} sub={`開始→完了 ${s.funnel30d.diagnosisCompleteRate}%`} />
+        <Stat label="ミニ診断→本編" value={s.funnel30d.diagnosisToStart} sub={`完了→本編 ${s.funnel30d.diagnosisToStartRate}%`} />
+        <Stat label="本編 /start" value={s.funnel30d.startView} />
+        <Stat label="相棒選択" value={s.funnel30d.partnerSelected} sub={`本編→選択 ${s.funnel30d.partnerRate}%`} />
+        <Stat label="最初の回答" value={s.funnel30d.firstQuestion} sub={`選択→回答 ${s.funnel30d.questionRate}%`} />
+        <Stat label="初回鑑定完了" value={s.funnel30d.readingComplete} sub={`回答→完了 ${s.funnel30d.readingRate}%`} />
       </Section>
 
       <Section title="課金（30日）">

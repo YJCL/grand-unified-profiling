@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { OrbaMark } from "../../components/OrbaMark";
+import { AnalyticsBeacon, TrackedLink } from "../../components/AnalyticsBeacon";
 import { getInsight, insights } from "../../data/insights";
 
 type PageProps = { params: Promise<{ slug: string }> };
@@ -44,6 +45,26 @@ export default async function InsightArticlePage({ params }: PageProps) {
     .filter((relatedInsight): relatedInsight is NonNullable<typeof relatedInsight> => Boolean(relatedInsight));
   const title = insight.title.replace("\n", " ");
   const articleUrl = `https://orba.life/insights/${insight.slug}`;
+  const diagnosisSlugs = new Set(["strengths-are-hard-to-see", "career-fit-is-role-and-environment"]);
+  const campaign = insight.category === "自己理解"
+    ? "self_understanding_cluster"
+    : insight.category === "適職・働き方"
+      ? "career_fit_cluster"
+      : insight.category === "複数占術"
+        ? "reading_synthesis_cluster"
+        : "method_trust_cluster";
+  const ctaHref = diagnosisSlugs.has(insight.slug)
+    ? `/diagnosis/strengths?utm_source=orba_insights&utm_medium=owned_content&utm_campaign=${campaign}&utm_content=${insight.slug}`
+    : `/start?utm_source=orba_insights&utm_medium=owned_content&utm_campaign=${campaign}&utm_content=${insight.slug}`;
+  const ctaLabel = insight.slug === "strengths-are-hard-to-see"
+    ? "3問で、強みが使われる条件を見る"
+    : insight.slug === "career-fit-is-role-and-environment"
+      ? "3問で、力が出やすい条件を見る"
+      : insight.slug === "unknown-birth-time"
+        ? "出生時間なしで分かる範囲から始める"
+        : insight.slug === "when-readings-disagree"
+          ? "複数の視点を、自分の言葉と重ねる"
+          : insight.ctaLabel ?? "無料プロファイリングを試す";
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -67,6 +88,7 @@ export default async function InsightArticlePage({ params }: PageProps) {
 
   return (
     <main className="orba-article">
+      <AnalyticsBeacon event="article_view" props={{ articleSlug: insight.slug, cluster: campaign }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
 
@@ -124,6 +146,11 @@ export default async function InsightArticlePage({ params }: PageProps) {
               <strong>Orbaの考え方</strong>
               <p>占術や診断は、医療・法律・投資・転職などの重要な判断を代行するものではありません。自分の経験を見直し、選択肢を整理するための補助線として利用してください。</p>
             </div>
+            <div className="orba-article__editorial">
+              <strong>この記事の制作について</strong>
+              <p>Orba運営が、サービスで採用している計算方法と安全方針に基づいて編集しています。確定できない情報は断定せず、本人の経験と照らして使える形を目指しています。</p>
+              <div><Link href="/insights/how-orba-uses-ai">AIと計算の役割</Link><Link href="/safety">AI利用と安全性</Link></div>
+            </div>
           </div>
         </div>
       </article>
@@ -138,7 +165,13 @@ export default async function InsightArticlePage({ params }: PageProps) {
         <p>YOUR OWN PROFILE</p>
         <h2>今度は、あなた自身の言葉で。</h2>
         <span>無料プロファイリングから、自分の輪郭を少しずつ確かめられます。</span>
-        <Link href={insight.ctaHref ?? "/start"}>{insight.ctaLabel ?? "Orbaをはじめる"} <ArrowRight size={15} /></Link>
+        <TrackedLink
+          href={ctaHref}
+          event="article_cta_click"
+          eventProps={{ articleSlug: insight.slug, cluster: campaign, destination: diagnosisSlugs.has(insight.slug) ? 'mini_diagnosis' : 'start' }}
+        >
+          {ctaLabel} <ArrowRight size={15} />
+        </TrackedLink>
       </section>
     </main>
   );

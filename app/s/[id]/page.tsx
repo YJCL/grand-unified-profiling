@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     if (!s) return { title: 'Orba' };
     const label = ORB_LABEL[s.type];
     const title = s.summary ? `${s.summary} | Orba` : `私のパートナーオーブは「${label}」 | Orba`;
-    const desc = `${label}が視た私。あなただけのオーブも30秒で見つけよう。`;
+    const desc = `${label}が視た私。あなただけのオーブも約2分で見つけよう。`;
     return {
         title,
         description: desc,

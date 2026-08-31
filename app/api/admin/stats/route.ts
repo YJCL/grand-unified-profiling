@@ -14,6 +14,7 @@ export async function GET() {
   const [
     totalUsers, registeredUsers, premiumUsers, usersWithBirth, pushSubs, signups7d,
     grouped,
+    distinctEventRows,
     activeRows,
     safetyRows,
   ] = await Promise.all([
@@ -24,6 +25,12 @@ export async function GET() {
     prisma.pushSubscription.count(),
     prisma.user.count({ where: { createdAt: { gte: d7 } } }),
     prisma.event.groupBy({ by: ['name'], where: { createdAt: { gte: d30 } }, _count: { _all: true } }),
+    prisma.$queryRaw<{ name: string; count: bigint }[]>`
+      SELECT "name", COUNT(DISTINCT COALESCE("userId", "anonId")) AS count
+      FROM "Event"
+      WHERE "createdAt" >= ${d30}
+      GROUP BY "name"
+    `,
     prisma.$queryRaw<{ dau: bigint; wau: bigint; mau: bigint }[]>`
       SELECT
         COUNT(DISTINCT CASE WHEN "createdAt" >= ${d1} THEN COALESCE("userId", "anonId") END) AS dau,
@@ -41,9 +48,18 @@ export async function GET() {
   ]);
 
   const ev = (name: string) => grouped.find((g) => g.name === name)?._count._all ?? 0;
-  const landing30 = ev('landing_view');
-  const onbStart30 = ev('onboarding_start');
-  const reading30 = ev('reading_complete');
+  const distinct = (name: string) => Number(distinctEventRows.find((row) => row.name === name)?.count ?? 0);
+  const home30 = distinct('home_view');
+  const article30 = distinct('article_view');
+  const articleCta30 = distinct('article_cta_click');
+  const diagnosisView30 = distinct('diagnosis_view');
+  const diagnosisStart30 = distinct('diagnosis_start');
+  const diagnosisComplete30 = distinct('diagnosis_complete');
+  const diagnosisToStart30 = distinct('diagnosis_to_start') + distinct('share_landing_cta_click');
+  const startView30 = distinct('start_view');
+  const partnerSelected30 = distinct('partner_selected');
+  const firstQuestion30 = distinct('first_question');
+  const reading30 = distinct('reading_complete');
   const paywallView30 = ev('paywall_view');
   const paywallClick30 = ev('paywall_click');
   const founding30 = ev('founding_interest');
@@ -80,12 +96,24 @@ export async function GET() {
     },
     active: { dau, wau, mau },
     funnel30d: {
-      landing: landing30,
-      onboardingStart: onbStart30,
+      homeView: home30,
+      articleView: article30,
+      articleCta: articleCta30,
+      diagnosisView: diagnosisView30,
+      diagnosisStart: diagnosisStart30,
+      diagnosisComplete: diagnosisComplete30,
+      diagnosisToStart: diagnosisToStart30,
+      startView: startView30,
+      partnerSelected: partnerSelected30,
+      firstQuestion: firstQuestion30,
       readingComplete: reading30,
-      // 転換率
-      startRate: pct(onbStart30, landing30),       // 訪問→オンボ開始
-      completeRate: pct(reading30, onbStart30),     // オンボ開始→鑑定完了
+      articleCtaRate: pct(articleCta30, article30),
+      diagnosisStartRate: pct(diagnosisStart30, diagnosisView30),
+      diagnosisCompleteRate: pct(diagnosisComplete30, diagnosisStart30),
+      diagnosisToStartRate: pct(diagnosisToStart30, diagnosisComplete30),
+      partnerRate: pct(partnerSelected30, startView30),
+      questionRate: pct(firstQuestion30, partnerSelected30),
+      readingRate: pct(reading30, firstQuestion30),
     },
     monetization30d: {
       paywallView: paywallView30,
