@@ -1,14 +1,10 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkUserAccess } from '@/lib/auth';
+import { randomBytes } from 'crypto';
 
 function generateCode(): string {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let code = '';
-    for (let i = 0; i < 6; i++) {
-        code += chars[Math.floor(Math.random() * chars.length)];
-    }
-    return code;
+    return randomBytes(16).toString('hex').toUpperCase();
 }
 
 // POST /api/transfer { userId } → { code }
@@ -35,8 +31,8 @@ export async function POST(request: Request) {
         await prisma.transferCode.create({ data: { code, userId, expiresAt } });
 
         return NextResponse.json({ code });
-    } catch (error) {
-        console.error('Error creating transfer code:', error);
+    } catch {
+        console.error('Error creating transfer code:');
         return NextResponse.json({ error: 'Failed to create transfer code' }, { status: 500 });
     }
 }
@@ -46,6 +42,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const code = searchParams.get('code')?.toUpperCase();
     if (!code) return NextResponse.json({ error: 'code required' }, { status: 400 });
+    if (!/^[A-F0-9]{32}$/u.test(code)) return NextResponse.json({ error: '所有者の端末で新しい共有コードを発行してください。旧形式のコードは利用できません。' }, { status: 410 });
 
     try {
         const transfer = await prisma.transferCode.findUnique({ where: { code } });
@@ -73,8 +70,8 @@ export async function GET(request: Request) {
             enneagram: user.enneagram,
             latestDiagnosis: user.diagnoses[0]?.data ?? null,
         });
-    } catch (error) {
-        console.error('Error redeeming transfer code:', error);
+    } catch {
+        console.error('Error redeeming transfer code:');
         return NextResponse.json({ error: 'Failed to redeem code' }, { status: 500 });
     }
 }
@@ -84,6 +81,7 @@ export async function DELETE(request: Request) {
     const { searchParams } = new URL(request.url);
     const code = searchParams.get('code')?.toUpperCase();
     if (!code) return NextResponse.json({ error: 'code required' }, { status: 400 });
+    if (!/^[A-F0-9]{32}$/u.test(code)) return NextResponse.json({ error: 'invalid code' }, { status: 400 });
 
     try {
         await prisma.transferCode.delete({ where: { code } });

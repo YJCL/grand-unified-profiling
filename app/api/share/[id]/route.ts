@@ -8,20 +8,19 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     try {
         const diag = await prisma.diagnosis.findUnique({
             where: { id },
-            include: { user: { select: { characterType: true } } },
+            select: { user: { select: { characterType: true } } },
         });
         if (!diag) return NextResponse.json({ error: 'not found' }, { status: 404 });
 
-        const r = JSON.parse(diag.data) as { summary?: string; coreNature?: string; dailyTheme?: string };
-        const summary = r.summary || (r.coreNature ? r.coreNature.split(/[。．]/)[0] : '');
+        // Public sharing exposes the selected orb only, never private generated reading text.
         return NextResponse.json({
             characterType: diag.user.characterType || 'sage',
-            summary,
-            coreNature: r.coreNature ?? '',
-            dailyTheme: r.dailyTheme ?? '',
+            summary: '',
+            coreNature: '',
+            dailyTheme: '',
         });
-    } catch (error) {
-        console.error('share fetch error:', error);
+    } catch {
+        console.error('share fetch failed');
         return NextResponse.json({ error: 'error' }, { status: 500 });
     }
 }

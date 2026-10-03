@@ -1,11 +1,12 @@
 import { prisma } from '@/lib/prisma';
 import type { AiSafetyCategory } from '@/lib/ai-safety';
+import { AI_SAFETY_POLICY_VERSION } from '@/lib/ai-safety';
 
 export async function recordAiSafetyEvent(opts: {
   userId?: string | null;
-  route: 'chat' | 'iching' | 'daily' | 'daily_reading' | 'profile_reading';
-  phase: 'input' | 'output';
-  action: 'blocked' | 'redacted' | 'output_rewritten';
+  route: 'chat' | 'iching' | 'daily' | 'daily_reading' | 'profile_reading' | 'memory';
+  phase: 'input' | 'output' | 'context';
+  action: 'blocked' | 'redacted' | 'output_rewritten' | 'context_sanitized';
   categories?: AiSafetyCategory[];
   ruleIds: string[];
 }): Promise<void> {
@@ -21,12 +22,12 @@ export async function recordAiSafetyEvent(opts: {
           action: opts.action,
           categories: opts.categories ?? [],
           ruleIds: opts.ruleIds,
-          policyVersion: '2026-08-24',
+          policyVersion: AI_SAFETY_POLICY_VERSION,
         }),
       },
     });
-  } catch (error) {
+  } catch {
     // 安全案内そのものをログ障害で止めない。
-    console.error('[ai-safety] failed to record event', error);
+    console.error('[ai-safety] failed to record event');
   }
 }

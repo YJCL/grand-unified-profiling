@@ -1,0 +1,10 @@
+{
+  "name": "fast-glob",
+  "version": "3.3.1-orba.1",
+  "private": true,
+  "description": "Scoped globSync adapter for Next.js lint root-directory discovery",
+  "main": "index.cjs",
+  "dependencies": {
+    "tinyglobby": "0.2.17"
+  }
+}

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- Node CommonJS utility. */
 
 const fs = require('fs');
 const path = require('path');

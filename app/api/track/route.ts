@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { hasProfileSession } from '@/lib/auth';
+import { minimizeAnalyticsProps } from '@/lib/analytics-privacy';
 
 // 計測する正当なイベント名（ジャンク混入を防ぐ allowlist）
 const ALLOWED = new Set([
@@ -40,9 +42,9 @@ export async function POST(request: Request) {
     await prisma.event.create({
       data: {
         name,
-        anonId: typeof anonId === 'string' ? anonId.slice(0, 64) : null,
-        userId: typeof userId === 'string' ? userId.slice(0, 64) : null,
-        props: props != null ? JSON.stringify(props).slice(0, 2000) : null,
+        anonId: typeof anonId === 'string' && /^[a-zA-Z0-9-]{1,64}$/u.test(anonId) ? anonId : null,
+        userId: typeof userId === 'string' && await hasProfileSession(userId) ? userId : null,
+        props: JSON.stringify(minimizeAnalyticsProps(props)),
       },
     });
     return NextResponse.json({ ok: true });

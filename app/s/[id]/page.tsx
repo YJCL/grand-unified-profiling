@@ -13,12 +13,10 @@ const VALID = (t: string): CharacterType => (t in ORB_LABEL ? (t as CharacterTyp
 async function getShare(id: string) {
     const diag = await prisma.diagnosis.findUnique({
         where: { id },
-        include: { user: { select: { characterType: true } } },
+        select: { user: { select: { characterType: true } } },
     }).catch(() => null);
     if (!diag) return null;
-    const r = JSON.parse(diag.data) as { summary?: string; coreNature?: string; dailyTheme?: string };
-    const summary = r.summary || (r.coreNature ? r.coreNature.split(/[。．]/)[0] : '');
-    return { type: VALID(diag.user.characterType || 'sage'), summary, coreNature: r.coreNature ?? '', dailyTheme: r.dailyTheme ?? '' };
+    return { type: VALID(diag.user.characterType || 'sage'), summary: '', coreNature: '', dailyTheme: '' };
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -54,7 +52,7 @@ export default async function SharePage({ params }: { params: Promise<{ id: stri
                         {s.summary && (
                             <h1 className="text-2xl md:text-3xl mb-2 font-serif-jp leading-relaxed">&ldquo;{s.summary}&rdquo;</h1>
                         )}
-                        <p className="text-white/50 text-sm font-serif-jp mb-6">{ORB_LABEL[s.type]}が視た、ある人の魂</p>
+                        <p className="text-white/50 text-sm font-serif-jp mb-6">ある人が選んだ、{ORB_LABEL[s.type]}</p>
                         {s.coreNature && (
                             <div className="card p-6 mb-8 text-left">
                                 <p className="text-amber-200/70 text-xs tracking-widest mb-2 font-serif-jp">魂のプロファイリング</p>

@@ -7,7 +7,10 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "test:ai-safety": "node --test scripts/test-ai-safety.mjs",
+    "postinstall": "prisma generate",
+    "test:security": "node --test scripts/test-security-boundaries.mjs",
+    "test:lint-glob": "node --test scripts/test-lint-glob.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.111.0",
@@ -25,9 +28,13 @@
     "web-push": "^3.6.7"
   },
   "overrides": {
-    "postcss": "^8.5.10"
+    "postcss": "^8.5.10",
+    "@next/eslint-plugin-next": {
+      "fast-glob": "$fast-glob"
+    }
   },
   "devDependencies": {
+    "fast-glob": "file:tools/next-lint-glob",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

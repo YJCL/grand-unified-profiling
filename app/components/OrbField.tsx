@@ -10,9 +10,7 @@ import { useMemo } from 'react';
 // 6つのパートナー色相を散りばめる
 const HUES = [46, 8, 322, 250, 190, 150];
 
-export function OrbField({ count = 24, className = '' }: { count?: number; className?: string }) {
-  // 決定論的擬似乱数（SSRとクライアントで一致させる）
-  const orbs = useMemo(() => {
+function makeOrbs(count: number) {
     let seed = 20240607;
     const rnd = () => {
       seed = (seed * 1103515245 + 12345) & 0x7fffffff;
@@ -34,6 +32,13 @@ export function OrbField({ count = 24, className = '' }: { count?: number; class
         blur: rnd() < 0.5 ? 0.5 : 1.5,
       };
     });
+
+}
+
+export function OrbField({ count = 24, className = '' }: { count?: number; className?: string }) {
+  // 決定論的擬似乱数（SSRとクライアントで一致させる）
+  const orbs = useMemo(() => {
+    return makeOrbs(count);
   }, [count]);
 
   return (

@@ -12,6 +12,9 @@ import {
     AI_SAFETY_PROMPT,
     evaluateAiSafetyInput,
     reviewAiGeneratedText,
+    reviewAiStoredContext,
+    reviewAiConversationHistory,
+    reviewAiStoredValue,
 } from '@/lib/ai-safety';
 import { recordAiSafetyEvent } from '@/lib/ai-safety-log';
 
@@ -52,8 +55,8 @@ export async function GET(request: Request) {
         if (!log) return NextResponse.json({ messages: [] });
         const messages = JSON.parse(log.messages) as { role: string; content: string }[];
         return NextResponse.json({ messages });
-    } catch (error) {
-        console.error('Error fetching chat history:', error);
+    } catch {
+        console.error('Error fetching chat history');
         return NextResponse.json({ messages: [] });
     }
 }
@@ -72,15 +75,15 @@ export async function DELETE(request: Request) {
             try {
                 const msgs = JSON.parse(log.messages) as { role: string; content: string; ts?: string }[];
                 if (msgs.length > 0) {
-                    const mem = await distillMemory({ currentMemory: access.user.memory || '', recent: msgs.slice(-16), userName: access.user.name });
+                    const mem = await distillMemory({ currentMemory: access.user.memory || '', recent: msgs.slice(-16), userName: access.user.name, userId });
                     if (mem) await prisma.user.update({ where: { id: userId! }, data: { memory: mem } });
                 }
             } catch { /* 蒸留失敗は無視して削除は続行 */ }
         }
         await prisma.chatLog.deleteMany({ where: { userId: userId! } });
         return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error('Error clearing chat:', error);
+    } catch {
+        console.error('Error clearing chat');
         return NextResponse.json({ error: 'Failed to clear chat' }, { status: 500 });
     }
 }
@@ -173,6 +176,13 @@ export async function POST(request: Request) {
         });
 
         const latestDiagnosis = user.diagnoses[0];
+        const safeMemory = reviewAiStoredContext(user.memory || '');
+        const safeName = reviewAiStoredContext(user.name || '未設定');
+        const safeDiagnosis = latestDiagnosis ? reviewAiStoredValue(JSON.parse(latestDiagnosis.data)) : null;
+        const contextRuleIds = [...new Set([...safeMemory.ruleIds, ...safeName.ruleIds, ...(safeDiagnosis?.ruleIds || [])])];
+        if (contextRuleIds.length > 0) {
+            await recordAiSafetyEvent({ userId, route: 'chat', phase: 'context', action: 'context_sanitized', ruleIds: contextRuleIds });
+        }
 
         const characterGuide: Record<string, string> = {
             fairy:  '口調:「〜だよ」「〜かな？」柔らかくふわっと。無邪気で明るく、時々深い洞察をそっと添える。',
@@ -208,12 +218,10 @@ ${AI_SAFETY_PROMPT}
 ${charStyle ? `\n## キャラクター設定（厳守）\n${charStyle}\nどのモードでもこの口調・温度感を一切ブレずに維持すること。` : ''}
 
 ## ユーザープロフィール（常に把握して応答すること）
-名前: ${user.name || '未設定'}
-生年月日: ${user.birthDate || '未設定'}${user.birthTime ? ' ' + user.birthTime : ''}
-出生地: ${user.birthPlace || '未設定'}
-性別: ${user.gender || '未設定'}
-${latestDiagnosis ? (() => {
-    const r = JSON.parse(latestDiagnosis.data);
+名前: ${safeName.value}
+出生情報はサーバー側で占術データへ変換している。生年月日、出生時刻、出生地、性別の原情報はこの対話用プロンプトへ含めない。
+${safeDiagnosis ? (() => {
+    const r = safeDiagnosis.value;
     const sig = r.signature ? `
 ## あなたの色と数（さりげなく会話に織り込めるもの）
 キーカラー: ${r.signature.colors?.find((c: { role: string }) => c.role === 'KEY')?.name}（${r.signature.colors?.find((c: { role: string }) => c.role === 'KEY')?.hex}）
@@ -230,13 +238,13 @@ ${latestDiagnosis ? (() => {
 行動戦略: ${r.strategy}
 現在の運気: ${r.timing}${sig}${cmp}`;
 })() : ''}
-${user.memory ? `
-## ${user.name || 'この人'}について覚えていること（背景知識。使い方のルール厳守）
+${safeMemory.value ? `
+## ${safeName.value}について覚えていること（背景知識。使い方のルール厳守）
 これは過去の会話の記憶。「毎回使うべき情報」ではなく「知っている前提」として静かに持っておくもの。
 - 活かすのは、ユーザー自身がその話題に触れたとき、または今の相談内容に直接関係するときだけ。
 - ★ユーザーが触れていない過去の話題を、こちらから持ち出さない。「そういえば〇〇はどうなった？」「前に言っていた〜だね」のような自発的な蒸し返しは禁止。聞かれてもいない近況確認は、気遣いではなく監視に感じられる。
 - 記憶にある予定・宣言（「〜しに行く」「〜するつもり」）は発言された時点のもの。日付が過ぎていれば既に済んだ・状況が変わった可能性が高い。現在も予定が続いている前提で語らない。
-${user.memory}` : ''}
+${safeMemory.value}` : ''}
 
 ## 記憶の欠落への振る舞い（重要）
 相手のほうから「前に話したこと」に触れたのに、上の記憶や直近の会話に見当たらない場合——「え？」「初めて聞きました」「そんな話ありましたっけ」という反応は絶対にしない（相手の記憶を否定することになり、信頼が壊れる）。知っている前提の自然な相槌で受けて、会話の流れの中で詳細を引き出す。あなたは長い付き合いのパートナーであり、初対面のような反応をしない。※これは相手が持ち出したときの受け方であり、こちらから過去の話題を確認しに行く理由にはしない。
@@ -284,7 +292,11 @@ ${dailySheet}` : ''}
         // ユーザー発言には発言時刻を前置し、モデルが「経過時間」を認識できるようにする。
         // （履歴が数日にまたがっても連続した会話に見えてしまう＝日付を引きずる原因だった）
         const contextWindow = isPaid ? CONTEXT_WINDOW_PAID : CONTEXT_WINDOW_FREE;
-        const history = stored.slice(-contextWindow).map(m => ({
+        const safeHistory = reviewAiConversationHistory(stored.slice(-contextWindow));
+        if (safeHistory.ruleIds.length > 0) {
+            await recordAiSafetyEvent({ userId, route: 'chat', phase: 'context', action: 'context_sanitized', ruleIds: safeHistory.ruleIds });
+        }
+        const history = safeHistory.value.map(m => ({
             role: (m.role === 'assistant' ? 'assistant' : 'user') as 'user' | 'assistant',
             content: m.role !== 'assistant' && m.ts
                 ? `[${jstStamp(new Date(m.ts))}] ${m.content}`
@@ -367,6 +379,7 @@ ${dailySheet}` : ''}
                 currentMemory: user.memory || '',
                 recent: fullHistory.slice(-16),
                 userName: user.name,
+                userId,
             });
             if (mem) {
                 await prisma.user.update({ where: { id: userId }, data: { memory: mem } });
@@ -378,8 +391,8 @@ ${dailySheet}` : ''}
             personalDataRedacted: safetyInput.action === 'redact',
         });
 
-    } catch (error) {
-        console.error('Error in /api/chat:', error);
+    } catch {
+        console.error('Error in /api/chat');
         return NextResponse.json({ error: 'Failed to process chat' }, { status: 500 });
     }
 }

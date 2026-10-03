@@ -14,7 +14,7 @@ async function testUserCreate() {
         try {
             const json = JSON.parse(text);
             console.log('Success. User ID:', json.id);
-        } catch (e) {
+        } catch {
             console.error('Failed to parse JSON.');
             console.log('Raw response:', text.substring(0, 500));
         }

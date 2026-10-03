@@ -5,6 +5,8 @@
 //  - fire-and-forget（失敗してもアプリに影響させない）
 // ─────────────────────────────────────────────────────────────
 
+import { minimizeAnalyticsProps } from '@/lib/analytics-privacy';
+
 const ANON_KEY = 'guf_anon_id';
 const ATTRIBUTION_KEY = 'orba_first_touch';
 
@@ -45,32 +47,24 @@ export type EventName =
   | 'founding_interest'
   | 'purchase';
 
-type Attribution = {
-  firstPath: string;
-  firstReferrer?: string;
-  firstSeenAt: string;
-  utmSource?: string;
-  utmMedium?: string;
-  utmCampaign?: string;
-  utmContent?: string;
-};
+type Attribution = Record<string, string | number>;
 
 function getAttribution(): Attribution | undefined {
   if (typeof window === 'undefined') return undefined;
   try {
     const current = new URLSearchParams(window.location.search);
     const stored = localStorage.getItem(ATTRIBUTION_KEY);
-    if (stored) return JSON.parse(stored) as Attribution;
+    if (stored) {
+      const safe = minimizeAnalyticsProps(JSON.parse(stored));
+      localStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(safe));
+      return safe;
+    }
 
-    const attribution: Attribution = {
-      firstPath: `${window.location.pathname}${window.location.search}`.slice(0, 500),
-      firstReferrer: document.referrer ? document.referrer.slice(0, 500) : undefined,
-      firstSeenAt: new Date().toISOString(),
+    const attribution: Attribution = minimizeAnalyticsProps({
+      firstPath: window.location.pathname,
       utmSource: current.get('utm_source') || undefined,
       utmMedium: current.get('utm_medium') || undefined,
-      utmCampaign: current.get('utm_campaign') || undefined,
-      utmContent: current.get('utm_content') || undefined,
-    };
+    });
     localStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(attribution));
     return attribution;
   } catch {
@@ -81,15 +75,12 @@ function getAttribution(): Attribution | undefined {
 export function track(name: EventName, props?: Record<string, unknown>): void {
   if (typeof window === 'undefined') return;
   try {
+    const safeProps = minimizeAnalyticsProps({ ...getAttribution(), pagePath: window.location.pathname, ...props });
     const body = JSON.stringify({
       name,
       anonId: getAnonId(),
       userId: localStorage.getItem('guf_user_id') || undefined,
-      props: {
-        ...getAttribution(),
-        pagePath: `${window.location.pathname}${window.location.search}`.slice(0, 500),
-        ...props,
-      },
+      props: safeProps,
     });
     // keepalive: ページ遷移中でも送信を完了させる
     fetch('/api/track', {
@@ -99,7 +90,7 @@ export function track(name: EventName, props?: Record<string, unknown>): void {
       keepalive: true,
     }).catch(() => {});
     const gtag = (window as Window & { gtag?: (...args: unknown[]) => void }).gtag;
-    gtag?.('event', name, props || {});
+    gtag?.('event', name, safeProps);
   } catch {
     /* 計測失敗は無視 */
   }
