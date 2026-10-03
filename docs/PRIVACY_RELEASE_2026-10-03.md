@@ -24,4 +24,12 @@ No payment configuration or paid transactions are part of this release.
 
 ## Dependency gate
 
-The existing lockfile had critical Next.js and high-severity dependency advisories. Compatible lockfile updates select Next.js 16.3.8 and sharp 0.35.5; runtime-only `npm audit --omit=dev --audit-level=high` reports zero vulnerabilities. The full audit still fails on development-only braces 3.0.3 and its ESLint dependency chain (GHSA-vfj7-8cjw-p6xm, no upstream patched version at review time). Do not use `npm audit fix --force`, downgrade Next.js, remove the audit gate, or describe the full CI as passing. Verification and full dependency audit run as separate mandatory jobs so the unchanged audit failure does not conceal other validation results. Production rollout remains pending this blocker.
+The existing lockfile had critical Next.js and high-severity dependency advisories. Compatible lockfile updates select Next.js 16.3.8 and sharp 0.35.5.
+
+The remaining development-only chain was `eslint-config-next -> @next/eslint-plugin-next -> fast-glob -> micromatch -> braces`. GHSA-vfj7-8cjw-p6xm has no upstream braces patch at review time: deeply nested attacker-controlled brace patterns can exhaust the recursive AST walker and terminate its Node process. In this project that input came from the lint configuration's `settings.next.rootDir`, not a production HTTP request. It was still removed rather than accepting an audit exception.
+
+The installed Next lint plugin imports fast-glob in exactly one helper, `dist/utils/get-root-dirs.js`, using only `globSync(pattern, { onlyDirectories: true })`. A scoped npm override replaces that dependency with `tools/next-lint-glob`, which delegates to tinyglobby 0.2.17 (fdir/picomatch, without micromatch/braces). The adapter preserves absolute Windows/POSIX paths, relative paths and directory-only results, disables tinyglobby's recursive expansion of literal directories, and removes trailing separators to match the old caller contract. It intentionally rejects unsupported options and does not claim to implement the complete fast-glob API. No Next lint rule is removed or disabled.
+
+`test:lint-glob` exercises the actual Next consumer and its internal-link rule with fictional directory fixtures, including wildcard/brace/array/Windows root settings. It also fails if a future Next update adds another unverified fast-glob caller. Both full and runtime dependency audits remain mandatory, without an advisory allowlist. Audit and application verification run as separate jobs for clear results.
+
+Sources: https://github.com/advisories/GHSA-vfj7-8cjw-p6xm ; https://github.com/vercel/next.js/blob/canary/packages/eslint-plugin-next/src/utils/get-root-dirs.ts ; https://github.com/SuperchupuDev/tinyglobby

@@ -37,6 +37,7 @@ jobs:
       - run: npm run lint
       - run: npm run test:ai-safety
       - run: npm run test:security
+      - run: npm run test:lint-glob
       - run: npx tsc --noEmit
       - run: npm run build
         env:
