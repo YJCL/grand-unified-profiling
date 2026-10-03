@@ -9,6 +9,8 @@
 // ─────────────────────────────────────────────────────────────
 
 // 例: NEXT_PUBLIC_LAUNCH_FREE_UNTIL=2026-09-30
+import { NEW_RECEPTION_OPEN } from './service-policy';
+
 const FREE_UNTIL_RAW = process.env.NEXT_PUBLIC_LAUNCH_FREE_UNTIL || '';
 
 // 正式版でのプレミアム想定価格（計測後に調整可・公開明記用）
@@ -17,7 +19,7 @@ export const PREMIUM_PRICE_LABEL = '¥1,480 / 月（税込）';
 // 審査・Webhook疎通・本番テストが完了するまで false のままにする。
 // NEXT_PUBLIC_BILLING_ENABLED=true のデプロイで購入導線を有効化する。
 export function isBillingEnabled(): boolean {
-  return process.env.NEXT_PUBLIC_BILLING_ENABLED === 'true';
+  return NEW_RECEPTION_OPEN && process.env.NEXT_PUBLIC_BILLING_ENABLED === 'true';
 }
 
 export function launchFreeUntil(): Date | null {

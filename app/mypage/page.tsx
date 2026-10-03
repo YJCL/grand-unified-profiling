@@ -4,11 +4,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import {
-    Sparkles, MessageSquare, CalendarDays, User,
+    MessageSquare, CalendarDays, User,
     Zap, Shield, Target, RefreshCw, GripVertical,
-    Settings, Crown, Moon, Plus, X, Copy, Check, Clock, Share2, Sun, LogOut, UserPlus, Ticket
+    Settings, Crown, Moon, X, Copy, Check, Clock, Share2, Sun, LogOut, UserPlus, Ticket
 } from 'lucide-react';
 import { useTheme } from '@/app/components/ThemeProvider';
+import { jstDateKey } from '@/lib/jst';
 import { cn } from '@/lib/utils';
 import { type AnalysisResult, type DailyContent } from '@/types';
 import { CharacterAvatar, CHARACTER_META, type CharacterType } from '@/app/components/CharacterAvatar';
@@ -18,8 +19,12 @@ import { ProfileSessionRecovery } from '@/app/components/ProfileSessionRecovery'
 import { NotificationToggle } from '@/app/components/NotificationToggle';
 import { track } from '@/lib/analytics';
 import { FoundingMemberModal } from '@/app/components/FoundingMemberModal';
+import { DailyReadingSheet } from '@/app/components/DailyReadingSheet';
+import { IchingSheet } from '@/app/components/IchingSheet';
+import { CalculationVersionNote } from '@/app/components/CalculationVersionNote';
+import { BirthDetailsEditor } from '@/app/components/BirthDetailsEditor';
 import { OrbaAppNav } from '@/app/components/OrbaAppNav';
-import { isBillingEnabled, isLaunchFreeActive, launchFreeUntilLabel, PREMIUM_PRICE_LABEL } from '@/lib/launch';
+import { isLaunchFreeActive, launchFreeUntilLabel, PREMIUM_PRICE_LABEL } from '@/lib/launch';
 
 function copyToClipboard(text: string): Promise<void> {
     if (navigator.clipboard?.writeText) {
@@ -71,14 +76,15 @@ type UserData = {
 // ── Widget Components ──────────────────────────────────────────
 
 function DailyWidget({ userId }: { userId: string }) {
+    const [dailyError, setDailyError] = useState('');
     const [daily, setDaily] = useState<DailyContent | null>(null);
     const [loading, setLoading] = useState(true);
-    const today = new Date().toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short' });
+    const today = new Date().toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short', timeZone: 'Asia/Tokyo' });
     const isAttack = daily?.timing?.includes('攻め');
 
     useEffect(() => {
         fetch(`/api/daily?userId=${userId}`)
-            .then(r => r.ok ? r.json() : null)
+            .then(async r => { const d = await r.json(); if (!r.ok) { setDailyError(d.error || '鑑定を読み込めませんでした。'); return null; } return d; })
             .then(d => { setDaily(d); setLoading(false); })
             .catch(() => setLoading(false));
     }, [userId]);
@@ -86,7 +92,8 @@ function DailyWidget({ userId }: { userId: string }) {
     const refresh = async () => {
         setLoading(true); setDaily(null);
         const r = await fetch(`/api/daily?userId=${userId}&t=${Date.now()}`);
-        if (r.ok) setDaily(await r.json());
+        const data = await r.json().catch(() => ({}));
+        if (r.ok) { setDaily(data); setDailyError(''); } else setDailyError(data.error || '鑑定を読み込めませんでした。');
         setLoading(false);
     };
 
@@ -119,6 +126,7 @@ function DailyWidget({ userId }: { userId: string }) {
                 </div>
             ) : daily ? (
                 <div className="space-y-3">
+                    <CalculationVersionNote calculation={daily.calculation} />
                     <p className="text-sm text-white/70 leading-relaxed">{daily.guidance}</p>
                     <div className="grid grid-cols-2 gap-2">
                         <div className="p-3 bg-white/3 rounded-xl border border-white/5">
@@ -137,7 +145,7 @@ function DailyWidget({ userId }: { userId: string }) {
                     </p>
                 </div>
             ) : (
-                <p className="text-sm text-white/30">鑑定後に表示されます。</p>
+                <p className="text-sm text-white/60" role="status">{dailyError || "鑑定後に表示されます。"}</p>
             )}
         </div>
     );
@@ -145,15 +153,17 @@ function DailyWidget({ userId }: { userId: string }) {
 
 function CalendarWidget({ userId }: { userId: string }) {
     const router = useRouter();
+    const [scoreError, setScoreError] = useState('');
     const [scores, setScores] = useState<{ date: string; score: number; phase: string }[]>([]);
 
     useEffect(() => {
         fetch(`/api/fortune-score?userId=${userId}&range=14`)
-            .then(r => r.json()).then(setScores).catch(() => {});
+            .then(async r => { const data = await r.json(); if (!r.ok || !Array.isArray(data)) { setScoreError(data.error || '暦を読み込めませんでした。'); return; } setScores(data); setScoreError(''); }).catch(() => setScoreError('暦を読み込めませんでした。'));
     }, [userId]);
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = jstDateKey();
     const days = scores.slice(0, 7);
+    if (scoreError) return <p role="alert" className="text-sm text-white/65">{scoreError}</p>;
 
     return (
         <div className="space-y-3">
@@ -183,42 +193,20 @@ function CalendarWidget({ userId }: { userId: string }) {
     );
 }
 
-const CHAT_EXAMPLES = [
-    '今の仕事を続けるべきか迷っている',
-    '次の決断のタイミングは？',
-    '気になる人との相性を見てほしい',
-];
-
-function ChatWidget() {
+function ReadingWidget({ userId, onTicketChange }: { userId: string; onTicketChange: (tickets: number) => void }) {
     const router = useRouter();
-    return (
-        <div className="flex flex-col items-center gap-4 py-2">
-            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/20 flex items-center justify-center">
-                <Sparkles className="w-6 h-6 text-indigo-300" />
-            </div>
-            <div className="text-center">
-                <p className="text-sm text-white/70 leading-relaxed">
-                    今日どんなことを話しますか？<br />
-                    <span className="text-white/30 text-xs">「鑑定して」で本格占いモードへ</span>
-                </p>
-            </div>
-            <button onClick={() => router.push('/chat')}
-                className="w-full py-3 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 hover:from-indigo-500/30 hover:to-purple-500/30 border border-indigo-500/25 text-white font-bold tracking-widest uppercase text-sm rounded-xl transition-all">
-                <span className="flex items-center justify-center gap-2">
-                    <MessageSquare className="w-4 h-4" /> 相談する
-                </span>
-            </button>
-            <div className="w-full space-y-1.5">
-                {CHAT_EXAMPLES.map((ex, i) => (
-                    <button key={i}
-                        onClick={() => router.push(`/chat?prefill=${encodeURIComponent(ex)}`)}
-                        className="w-full text-left text-[10px] text-white/25 hover:text-white/70 px-3 py-1.5 border border-white/5 hover:border-white/20 rounded-lg transition-all truncate">
-                        &ldquo;{ex}&rdquo;
-                    </button>
-                ))}
-            </div>
-        </div>
-    );
+    const [dailyOpen, setDailyOpen] = useState(false);
+    const [ichingOpen, setIchingOpen] = useState(false);
+    const [noticeOpen, setNoticeOpen] = useState(false);
+    return <div className="space-y-3">
+      <p className="text-sm text-white/65">チャット機能は終了しました。鑑定と易は引き続き使えます。</p>
+      <button className="btn-gold w-full py-3" onClick={() => setDailyOpen(true)}>今日の鑑定</button>
+      <button className="btn-ghost w-full py-3" onClick={() => setIchingOpen(true)}>易を立てる・履歴を見る</button>
+      <button className="text-xs underline text-white/50" onClick={() => router.push('/chat')}>これまでの会話履歴</button>
+      {dailyOpen && <DailyReadingSheet userId={userId} onClose={() => setDailyOpen(false)} onUpgrade={() => setNoticeOpen(true)} onTicketChange={onTicketChange} />}
+      {ichingOpen && <IchingSheet userId={userId} onClose={() => setIchingOpen(false)} onUpgrade={() => setNoticeOpen(true)} />}
+      {noticeOpen && <FoundingMemberModal onClose={() => setNoticeOpen(false)} />}
+    </div>;
 }
 
 function TransferCodePanel({ userId }: { userId: string }) {
@@ -312,7 +300,7 @@ function ShareRow({ diagnosisId, characterType, summary, userId, isPremium, onTi
     );
 }
 
-function ProfileWidget({ userData, now }: { userData: UserData; now: number }) {
+function ProfileWidget({ userData }: { userData: UserData; now: number }) {
     const latestDiagnosis = userData.diagnoses[0];
     const result: AnalysisResult | null = latestDiagnosis ? JSON.parse(latestDiagnosis.data) : null;
     const charEmoji: Record<string, string> = {
@@ -320,9 +308,6 @@ function ProfileWidget({ userData, now }: { userData: UserData; now: number }) {
     };
 
     const isFriend = userData.profileType === 'friend';
-    const daysLeft = userData.expiresAt
-        ? Math.max(0, Math.ceil((new Date(userData.expiresAt).getTime() - now) / 86400000))
-        : null;
 
     return (
         <div className="space-y-4">
@@ -344,26 +329,12 @@ function ProfileWidget({ userData, now }: { userData: UserData; now: number }) {
                 </div>
             </div>
 
-            {isFriend && daysLeft !== null && (
-                <div className={cn('flex items-center gap-2 p-2.5 rounded-lg text-xs',
-                    daysLeft <= 7 ? 'bg-red-500/10 border border-red-500/20 text-red-400' : 'bg-white/5 border border-white/10 text-white/40'
-                )}>
-                    <Clock className="w-3 h-3 flex-none" />
-                    <span>{daysLeft > 0 ? `あと${daysLeft}日で削除されます` : '本日削除予定'}</span>
-                </div>
-            )}
-
             <div className="grid grid-cols-2 gap-2 text-center">
-                <div className="p-2 bg-white/3 rounded-lg">
-                    <p className="text-[9px] text-white/25 uppercase tracking-widest mb-0.5">Birth</p>
-                    <p className="text-xs text-white/60 font-mono">{userData.birthDate || '—'}</p>
-                </div>
-                <div className="p-2 bg-white/3 rounded-lg">
-                    <p className="text-[9px] text-white/25 uppercase tracking-widest mb-0.5">Place</p>
-                    <p className="text-xs text-white/60 truncate">{userData.birthPlace || '—'}</p>
-                </div>
+                <div className="p-2 bg-white/3 rounded-lg"><p className="text-[9px] text-white/25 uppercase tracking-widest mb-0.5">Birth</p><p className="text-xs text-white/60 font-mono">{userData.birthDate || '—'}</p></div>
+                <div className="p-2 bg-white/3 rounded-lg"><p className="text-[9px] text-white/25 uppercase tracking-widest mb-0.5">Place</p><p className="text-xs text-white/60 truncate">{userData.birthPlace || '—'}</p></div>
             </div>
-
+            <BirthDetailsEditor userId={userData.id} birthDate={userData.birthDate} birthTime={userData.birthTime} birthPlace={userData.birthPlace} />
+            {result && <CalculationVersionNote calculation={result.calculation} />}
             {result && (
                 <div className="p-3 bg-white/3 rounded-xl border border-white/5">
                     <p className="text-[9px] text-white/25 uppercase tracking-widest mb-1.5">Latest Reading</p>
@@ -441,7 +412,7 @@ function ProfileWidget({ userData, now }: { userData: UserData; now: number }) {
 const WIDGET_META: Record<WidgetId, { label: string; icon: React.ReactNode }> = {
     daily:    { label: '今日の運勢', icon: <Moon className="w-4 h-4" /> },
     calendar: { label: '運気カレンダー', icon: <CalendarDays className="w-4 h-4" /> },
-    chat:     { label: 'チャット相談', icon: <MessageSquare className="w-4 h-4" /> },
+    chat:     { label: '鑑定と易', icon: <MessageSquare className="w-4 h-4" /> },
     profile:  { label: 'マイプロフィール', icon: <User className="w-4 h-4" /> },
 };
 
@@ -528,7 +499,7 @@ export default function MyPage() {
     const [genCodeLoading, setGenCodeLoading] = useState(false);
     const [genCodeCopied, setGenCodeCopied] = useState(false);
     const [showAuth, setShowAuth] = useState(false);
-    const [showRegistrationNudge, setShowRegistrationNudge] = useState(false);
+
     const [showWelcome, setShowWelcome] = useState(false);
     const [tickets, setTickets] = useState(0);
     const [bonusMsg, setBonusMsg] = useState('');
@@ -595,28 +566,10 @@ export default function MyPage() {
             const data = await loadProfile(id);
             if (!data) { setLoading(false); return; }
 
-            // Check/enforce friend expiry
-            if (data.profileType === 'friend' && data.expiresAt && new Date(data.expiresAt) < new Date()) {
-                await fetch(`/api/user?id=${id}`, { method: 'DELETE' });
-                // Remove from profiles
-                const stored = JSON.parse(localStorage.getItem('guf_profiles') || '[]') as ProfileTab[];
-                const updated = stored.filter(p => p.id !== id);
-                localStorage.setItem('guf_profiles', JSON.stringify(updated));
-                if (updated.length > 0) {
-                    localStorage.setItem('guf_user_id', updated[0].id);
-                    window.location.reload();
-                } else {
-                    localStorage.removeItem('guf_user_id');
-                    router.push('/start');
-                }
-                return;
-            }
-
+            // Preserve all existing profiles; expiry does not delete accounts automatically.
             setUserData(data);
             setProfileTime(Date.now());
-            if (!data.email && localStorage.getItem('orba_registration_nudge_dismissed') !== '1') {
-                setShowRegistrationNudge(true);
-            }
+
             setActiveId(id);
             setTickets(data.tickets ?? 0);
             track('app_open');
@@ -735,7 +688,7 @@ export default function MyPage() {
                     ? <CalendarWidget userId={userData.id} />
                     : <p className="text-sm text-white/30">鑑定後に表示されます。</p>;
             case 'chat':
-                return <ChatWidget />;
+                return <ReadingWidget userId={userData.id} onTicketChange={setTickets} />;
             case 'profile':
                 return <div id="profile"><ProfileWidget userData={userData} now={profileTime} /></div>;
         }
@@ -778,13 +731,6 @@ export default function MyPage() {
                                 )}
                             </button>
                         ))}
-                        {/* + 新規プロファイル */}
-                        <button
-                            onClick={() => router.push('/start?newProfile=1')}
-                            className="flex items-center gap-0.5 px-2 py-1 rounded-full text-white/25 hover:text-white/60 transition-colors"
-                        >
-                            <Plus className="w-3.5 h-3.5" />
-                        </button>
                     </div>
                     {isDevicePremium && (
                         <span className="flex items-center gap-1 text-[9px] text-yellow-400/70 font-bold uppercase tracking-widest flex-none">
@@ -818,12 +764,7 @@ export default function MyPage() {
                             className="p-1.5 text-white/20 hover:text-white/60 transition-colors">
                             <LogOut className="w-3.5 h-3.5" />
                         </button>
-                    ) : (
-                        <button onClick={() => setShowAuth(true)}
-                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[10px] font-bold text-amber-200/90 border border-amber-300/30 bg-amber-400/10 hover:bg-amber-400/20 transition-all whitespace-nowrap">
-                            <UserPlus className="w-3 h-3" /> 本登録
-                        </button>
-                    )}
+                    ) : null}
                     <button onClick={() => setEditMode(e => !e)}
                         className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all',
                             editMode ? 'bg-yellow-400/15 text-yellow-400 border border-yellow-400/30' : 'text-white/30 hover:text-white/60'
@@ -842,39 +783,6 @@ export default function MyPage() {
                     <p>今日の流れと、いま役立つ言葉を置いています。</p>
                 </section>
                 <AnimatePresence>
-                    {showRegistrationNudge && !userData.email && (
-                        <motion.aside
-                            initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-                            className="mb-4 card p-4 border border-amber-300/25 bg-amber-300/[0.05]"
-                            aria-label="プロフィールの保存案内"
-                        >
-                            <div className="flex items-start gap-3">
-                                <UserPlus className="w-4 h-4 mt-0.5 text-amber-200/80 flex-none" />
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-serif-jp text-white">この続きも、残しておけます。</p>
-                                    <p className="mt-1 text-[11px] leading-relaxed text-white/45">無料登録すると、今のプロフィールを引き継いで、別の端末でも続きから使えます。</p>
-                                    <div className="mt-3 flex flex-wrap items-center gap-3">
-                                        <button onClick={() => setShowAuth(true)}
-                                            className="px-3 py-2 rounded-full text-[11px] font-bold text-[#211708] bg-amber-200 hover:bg-amber-100 transition-colors">
-                                            無料で保存する
-                                        </button>
-                                        <button onClick={() => {
-                                            localStorage.setItem('orba_registration_nudge_dismissed', '1');
-                                            setShowRegistrationNudge(false);
-                                        }} className="text-[11px] text-white/35 hover:text-white/65 transition-colors">
-                                            今はこのまま使う
-                                        </button>
-                                    </div>
-                                </div>
-                                <button onClick={() => {
-                                    localStorage.setItem('orba_registration_nudge_dismissed', '1');
-                                    setShowRegistrationNudge(false);
-                                }} aria-label="保存案内を閉じる" className="text-white/25 hover:text-white/60">
-                                    <X className="w-4 h-4" />
-                                </button>
-                            </div>
-                        </motion.aside>
-                    )}
                     {bonusMsg && (
                         <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
                             className="mb-4 card p-3 flex items-center gap-2 border border-amber-300/30 text-sm font-serif-jp text-amber-100">
@@ -889,7 +797,7 @@ export default function MyPage() {
                             <Crown className="w-5 h-5 text-amber-300 flex-none" />
                             <div className="flex-1">
                                 <p className="text-sm font-serif-jp text-white">プレミアムへようこそ ✨</p>
-                                <p className="text-[11px] text-white/50">ご登録ありがとうございます。すべての機能をお使いいただけます。</p>
+                                <p className="text-[11px] text-white/50">ご登録ありがとうございます。既存の鑑定・暦・易をお使いいただけます。</p>
                             </div>
                             <button onClick={() => setShowWelcome(false)} className="text-white/30 hover:text-white/70"><X className="w-4 h-4" /></button>
                         </motion.div>
@@ -927,7 +835,7 @@ export default function MyPage() {
                         <div className="flex items-center gap-2">
                             <Crown className="w-4 h-4 text-yellow-400" />
                             <span className="text-sm font-bold text-white">Premium</span>
-                            <span className="text-xs text-white/30">すべての機能が使えます</span>
+                            <span className="text-xs text-white/30">既存の鑑定・暦・易を利用できます</span>
                         </div>
                         <button
                             onClick={async () => {
@@ -947,7 +855,7 @@ export default function MyPage() {
                     <div className="flex items-center gap-3">
                         <div className="flex-1 min-w-0">
                             <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                                🎁 ローンチ記念・全機能を無料開放中
+                                🎁 既存の非チャット機能を無料開放中
                             </p>
                             <p className="text-[10px] text-white/40">
                                 {launchFreeUntilLabel() ? `${launchFreeUntilLabel()}まで無料。` : ''}正式版は{PREMIUM_PRICE_LABEL}予定
@@ -964,16 +872,16 @@ export default function MyPage() {
                     <div className="flex items-center gap-3">
                         <div className="flex-1">
                             <p className="text-xs font-bold text-white flex items-center gap-2">
-                                プレミアムにアップグレード
+                                新規有料申込みは受付停止
                                 <span className="inline-flex items-center gap-1 text-[10px] font-normal text-amber-300/90"><Ticket className="w-3 h-3" /> 鑑定チケット ×{tickets}</span>
                             </p>
-                            <p className="text-[10px] text-white/40">高品質チャット1日50回・今日の鑑定・易・運気カレンダー60日分</p>
+                            <p className="text-[10px] text-white/40">既存の利用条件に応じて鑑定・易・暦を利用できます</p>
                         </div>
                         <button
                             onClick={() => { track('paywall_click'); setShowFounding(true); }}
                             className="flex-none px-4 py-2 bg-gradient-to-r from-amber-300 to-amber-400 text-black text-xs font-bold rounded-full whitespace-nowrap hover:brightness-105 transition-all"
                         >
-                            {isBillingEnabled() ? 'Orba Plusを始める' : '先行登録'}
+                            受付状況
                         </button>
                     </div>
                 )}
@@ -1019,7 +927,7 @@ export default function MyPage() {
                                         <p className="text-sm text-white/50">未登録（この端末のみ）</p>
                                         <button onClick={() => { setShowAccount(false); setShowAuth(true); }}
                                             className="flex-none flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-bold text-amber-200/90 border border-amber-300/30 bg-amber-400/10 hover:bg-amber-400/20 transition-all">
-                                            <UserPlus className="w-3 h-3" /> 本登録
+                                            <UserPlus className="w-3 h-3" /> 既存アカウントでログイン
                                         </button>
                                     </div>
                                 )}

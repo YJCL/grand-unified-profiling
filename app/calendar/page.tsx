@@ -1,4 +1,6 @@
 'use client';
+import { jstDateKey } from '@/lib/jst';
+import { ORBA_CALCULATION_VERSION } from '@/lib/engine/version';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -28,10 +30,11 @@ export default function CalendarPage() {
     const router = useRouter();
     const [userId, setUserId] = useState<string | null>(null);
     const [birthDate, setBirthDate] = useState<string | null>(null);
+    const [scoreError, setScoreError] = useState('');
     const [scores, setScores] = useState<DayScore[]>([]);
     const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
     const [selected, setSelected] = useState<DayScore | null>(null);
-    const [today] = useState(() => new Date().toISOString().split('T')[0]);
+    const [today] = useState(() => jstDateKey());
     const [weekOffset, setWeekOffset] = useState(0);
 
     useEffect(() => {
@@ -51,17 +54,16 @@ export default function CalendarPage() {
     useEffect(() => {
         if (!userId) return;
         fetch(`/api/fortune-score?userId=${userId}&range=60`)
-            .then(r => r.json())
-            .then(setScores);
+            .then(async r => { const data = await r.json(); if (!r.ok || !Array.isArray(data)) { setScoreError(data.error || '暦を読み込めませんでした。'); return; } setScores(data); setScoreError(''); }).catch(() => setScoreError('暦を読み込めませんでした。'));
     }, [userId]);
 
     // 週表示用: 今週 + weekOffset
     const getWeekDays = () => {
-        const base = new Date(today);
-        base.setDate(base.getDate() - base.getDay() + weekOffset * 7);
+        const base = new Date(today + 'T00:00:00Z');
+        base.setUTCDate(base.getUTCDate() - base.getUTCDay() + weekOffset * 7);
         return Array.from({ length: 7 }, (_, i) => {
             const d = new Date(base);
-            d.setDate(base.getDate() + i);
+            d.setUTCDate(base.getUTCDate() + i);
             return d.toISOString().split('T')[0];
         });
     };
@@ -69,10 +71,10 @@ export default function CalendarPage() {
     // 月表示用
     const getMonthDays = () => {
         const base = new Date(today);
-        const year = base.getFullYear();
-        const month = base.getMonth();
-        const firstDay = new Date(year, month, 1).getDay();
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const year = base.getUTCFullYear();
+        const month = base.getUTCMonth();
+        const firstDay = new Date(Date.UTC(year, month, 1)).getUTCDay();
+        const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
         const days: (string | null)[] = Array(firstDay).fill(null);
         for (let d = 1; d <= daysInMonth; d++) {
             days.push(`${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`);
@@ -86,6 +88,7 @@ export default function CalendarPage() {
 
     const todayScore = getScore(today);
 
+    if (scoreError) return <div className="orba-service-page hig-shell"><OrbaAppNav /><main className="max-w-lg mx-auto p-8 text-white"><h1>暦を計算できませんでした</h1><p role="alert">{scoreError}</p><button className="btn-gold mt-4 px-4 py-2" onClick={() => router.push("/mypage")}>マイページに戻る</button></main></div>;
     if (!birthDate) return (
         <div className="min-h-screen bg-mesh flex items-center justify-center">
             <div className="w-10 h-10 rounded-full border-2 border-dashed border-yellow-400/50 animate-spin" />
@@ -104,6 +107,7 @@ export default function CalendarPage() {
                         <ChevronLeft className="w-4 h-4" /> 戻る
                     </button>
                     <h1 className="text-base font-serif-jp text-white/80">運気カレンダー</h1>
+                    <p className="text-xs text-white/50">現在の計算版：{ORBA_CALCULATION_VERSION}。保存済み鑑定は変更していません。</p>
                     <div className="w-12" />
                 </header>
 

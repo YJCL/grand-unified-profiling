@@ -13,6 +13,8 @@ import { OrbaMark } from '@/app/components/OrbaMark';
 import { AuthModal } from '@/app/components/AuthModal';
 import { FoundingMemberModal } from '@/app/components/FoundingMemberModal';
 import { track } from '@/lib/analytics';
+import { ReceptionClosed } from '@/app/components/ReceptionClosed';
+import { TransferRestore } from '@/app/components/TransferRestore';
 import { ProfileSessionRecovery } from '@/app/components/ProfileSessionRecovery';
 import { isLaunchFreeActive, launchFreeUntilLabel, PREMIUM_PRICE_LABEL } from '@/lib/launch';
 
@@ -26,7 +28,7 @@ const REGISTRATION_STEPS: Array<{ turn: Turn; label: string; note: string }> = [
   { turn: 'birth', label: '生まれた日', note: '星の配置を確かめる' },
   { turn: 'time', label: '生まれた時刻', note: '不明でも進めます' },
   { turn: 'place', label: '生まれた場所', note: '都市名だけで大丈夫' },
-  { turn: 'concern', label: 'いまのテーマ', note: '最初の対話の手がかり' },
+  { turn: 'concern', label: 'いまのテーマ', note: '最初の鑑定のテーマ' },
 ];
 // ターン名 → 収集データのキー（'birth'→'birthDate' 等のズレを吸収）
 const TURN_KEY: Record<Turn, 'name' | 'gender' | 'birthDate' | 'birthTime' | 'birthPlace' | 'currentWorry'> = {
@@ -133,36 +135,8 @@ function OrbSelect({ onSelect, isNewProfile }: { onSelect: (t: CharacterType) =>
   const router = useRouter();
   const types = Object.keys(CHARACTER_META) as CharacterType[];
   const [selected, setSelected] = useState<CharacterType | null>(null);
-  const [showCode, setShowCode] = useState(false);
-  const [code, setCode] = useState('');
-  const [codeErr, setCodeErr] = useState('');
-  const [codeLoading, setCodeLoading] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
 
-  const redeem = async () => {
-    if (code.length !== 32) return;
-    setCodeLoading(true); setCodeErr('');
-    try {
-      const res = await fetch(`/api/transfer?code=${code.toUpperCase()}`);
-      if (!res.ok) { setCodeErr('無効または期限切れのコードです'); setCodeLoading(false); return; }
-      const d = await res.json();
-      const ur = await fetch('/api/user', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: d.name, birthDate: d.birthDate, birthTime: d.birthTime, birthPlace: d.birthPlace, gender: d.gender, language: d.language, characterType: d.characterType, mbti: d.mbti, enneagram: d.enneagram, profileType: 'self' }),
-      });
-      const nu = await ur.json();
-      if (d.latestDiagnosis) {
-        await fetch('/api/diagnosis', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: nu.id, data: JSON.parse(d.latestDiagnosis) }) });
-      }
-      await fetch(`/api/transfer?code=${code.toUpperCase()}`, { method: 'DELETE' });
-      const stored = JSON.parse(localStorage.getItem('guf_profiles') || '[]');
-      stored.push({ id: nu.id, name: d.name, profileType: 'self' });
-      localStorage.setItem('guf_profiles', JSON.stringify(stored));
-      localStorage.setItem('guf_user_id', nu.id);
-      router.push('/mypage');
-    } catch { setCodeErr('エラーが発生しました'); }
-    setCodeLoading(false);
-  };
 
   return (
     <motion.section
@@ -244,7 +218,7 @@ function OrbSelect({ onSelect, isNewProfile }: { onSelect: (t: CharacterType) =>
             onClick={() => selected && onSelect(selected)}
             className="orba-partner-preview__confirm btn-gold"
           >
-            {selected ? `${CHARACTER_META[selected].label}と話してみる` : 'オーブを選んでください'}
+            {selected ? `${CHARACTER_META[selected].label}で鑑定を始める` : 'オーブを選んでください'}
             <ArrowRight aria-hidden="true" />
           </button>
           <p className="orba-partner-preview__note">選んだ相棒は、あとからいつでも変更できます。</p>
@@ -252,21 +226,7 @@ function OrbSelect({ onSelect, isNewProfile }: { onSelect: (t: CharacterType) =>
       </div>
 
       <div className="orba-partner-select__utility">
-        {!showCode ? (
-          <button onClick={() => setShowCode(true)}>
-            引き継ぎコードをお持ちの方
-          </button>
-        ) : (
-          <div className="orba-partner-select__code">
-            <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase().replace(/\s/gu, '').slice(0, 32))} placeholder="共有コードを貼り付け"
-              aria-label="共有コード" />
-            {codeErr && <p role="alert">{codeErr}</p>}
-            <div>
-              <button onClick={() => { setShowCode(false); setCodeErr(''); }}>キャンセル</button>
-              <button onClick={redeem} disabled={code.length < 6 || codeLoading} className="btn-gold">{codeLoading ? '確認中…' : '引き継ぐ'}</button>
-            </div>
-          </div>
-        )}
+        <TransferRestore />
         {isNewProfile && (
           <button onClick={() => router.push('/mypage')}>ダッシュボードに戻る</button>
         )}
@@ -352,7 +312,12 @@ function Conversation({ char, profileType, userId, onReselect }: { char: Charact
           setPhase('chat');
           return;
         }
-        throw new Error(err.detail ? `${res.status}: ${err.detail}` : `HTTP ${res.status}`);
+        if (err.code) {
+          setMessages(m => [...m, { from: 'orb', text: err.error || '出生データを確認してください。' }]);
+          setTurnIndex(err.code === 'invalid_date' ? TURNS.indexOf('birth') : TURNS.indexOf('time'));
+          setPhase('chat'); return;
+        }
+        throw new Error('鑑定を生成できませんでした。');
       }
       const r: AnalysisResult = await res.json();
       setResult(r);
@@ -367,23 +332,17 @@ function Conversation({ char, profileType, userId, onReselect }: { char: Charact
 
   const handleSave = async () => {
     setIsSaving(true);
-    let id: string | null = userId;
+    const id: string | null = userId;
     try {
-      if (!id) {
-        const r = await fetch('/api/user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
-        if (r.ok) { id = (await r.json()).id; if (id) localStorage.setItem('guf_user_id', id); }
-      }
+
       if (!id) { setIsSaving(false); return; }
       const expiresAt = profileType === 'friend' ? new Date(Date.now() + 30 * 864e5).toISOString() : null;
       await fetch('/api/user', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, name: data.name, birthDate: data.birthDate, birthTime: data.birthTime, birthPlace: data.birthPlace, gender: data.gender, language: 'ja', characterType: char, profileType, expiresAt }),
       });
-      let res = await fetch('/api/diagnosis', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: id, data: result }) });
-      if (res.status === 404) {
-        const nr = await fetch('/api/user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: data.name, birthDate: data.birthDate, birthTime: data.birthTime, birthPlace: data.birthPlace, gender: data.gender, language: 'ja', characterType: char }) });
-        if (nr.ok) { id = (await nr.json()).id; if (id) { localStorage.setItem('guf_user_id', id); res = await fetch('/api/diagnosis', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: id, data: result }) }); } }
-      }
+      const res = await fetch('/api/diagnosis', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: id, data: result }) });
+
       if (res.ok) {
         const stored = JSON.parse(localStorage.getItem('guf_profiles') || '[]') as Array<{ id: string; name: string | null; profileType: string; expiresAt?: string | null }>;
         const entry = { id: id!, name: data.name, profileType, expiresAt };
@@ -599,12 +558,15 @@ function Composer({ turn, draft, setDraft, onAnswer }: { turn: Turn; draft: stri
 
 // ── ルート ────────────────────────────────────────────────
 function HomeInner() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const isNewProfile = searchParams.get('newProfile') === '1';
   const [phase, setPhase] = useState<Phase>('select');
   const [char, setChar] = useState<CharacterType | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [ownershipRequired, setOwnershipRequired] = useState(false);
+  const [receptionClosed, setReceptionClosed] = useState(false);
+  const [checked, setChecked] = useState(false);
   const [profileType] = useState<ProfileType>('self');
 
   useEffect(() => {
@@ -616,28 +578,24 @@ function HomeInner() {
   useEffect(() => {
     track('start_view');
     const init = async () => {
-      let id = localStorage.getItem('guf_user_id');
-      if (isNewProfile) {
-        try { const r = await fetch('/api/user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) }); setUserId((await r.json()).id); } catch {}
-        return;
-      }
-      if (id) {
-        try {
-          const check = await fetch(`/api/user?id=${id}`);
-          if (check.ok) { const u = await check.json(); if (u.birthDate) { window.location.href = '/mypage'; return; } }
-          else if (check.status === 403) { setOwnershipRequired(true); return; }
-          else { localStorage.removeItem('guf_user_id'); id = null; }
-        } catch {}
-      }
-      if (!id) {
-        try { const r = await fetch('/api/user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) }); id = (await r.json()).id; if (id) localStorage.setItem('guf_user_id', id); } catch {}
-      }
-      setUserId(id);
+      const id = localStorage.getItem('guf_user_id');
+      if (isNewProfile || !id) { setReceptionClosed(true); setChecked(true); return; }
+      try {
+        const check = await fetch('/api/user?id=' + encodeURIComponent(id));
+        if (check.status === 403 || check.status === 401) { setOwnershipRequired(true); return; }
+        if (!check.ok) { setReceptionClosed(true); return; }
+        const u = await check.json();
+        if (u.birthDate) { router.replace('/mypage'); return; }
+        setUserId(id);
+      } catch { setReceptionClosed(true); }
+      finally { setChecked(true); }
     };
     init();
-  }, [isNewProfile]);
+  }, [isNewProfile, router]);
 
   if (ownershipRequired) return <ProfileSessionRecovery />;
+  if (receptionClosed) return <ReceptionClosed />;
+  if (!checked) return <main className="min-h-screen bg-mesh grid place-items-center text-white" role="status">所有者を確認しています。</main>;
 
   return (
     <main className="service-start-shell hig-shell relative min-h-screen w-full bg-mesh overflow-x-hidden text-white">

@@ -10,6 +10,7 @@ export default function SafetyPage() {
     <main className="min-h-screen bg-mesh text-white">
       <div className="mx-auto max-w-2xl px-6 py-14">
         <h1 className="text-2xl mb-2">AI利用と安全性</h1>
+        <p className="mb-5 text-sm text-amber-100">新規受付とチャット機能は終了しました。既存の鑑定・暦・易と保存履歴は引き続き利用できます。非チャットの鑑定文・易の解釈にはAIを使用します。</p>
         <p className="text-xs text-white/55 mb-10">最終更新日：2026年8月24日</p>
 
         <div className="space-y-9 text-sm leading-relaxed text-white/80 font-serif-jp">

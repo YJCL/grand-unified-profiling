@@ -1,5 +1,7 @@
 import { createHmac, randomUUID, timingSafeEqual } from 'crypto';
 
+import { NEW_RECEPTION_OPEN } from './service-policy';
+
 const API_BASE = process.env.KOMOJU_API_BASE_URL || 'https://komoju.com/api/v1';
 
 export const ORBA_PLUS_AMOUNT = 1480;
@@ -65,6 +67,7 @@ export async function createCustomerSession(input: {
   email: string;
   returnUrl: string;
 }): Promise<KomojuSession> {
+  if (!NEW_RECEPTION_OPEN) throw new Error('New purchase reception is closed');
   return komojuRequest<KomojuSession>(
     '/sessions',
     {
@@ -93,6 +96,7 @@ export function createSubscription(input: {
   userId: string;
   checkoutSessionId: string;
 }): Promise<KomojuSubscription> {
+  if (!NEW_RECEPTION_OPEN) throw new Error('New purchase reception is closed');
   return komojuRequest<KomojuSubscription>(
     '/subscriptions',
     {

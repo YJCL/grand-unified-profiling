@@ -1,3 +1,5 @@
+import type { CalculationMetadata } from '@/lib/engine/calculation-meta';
+
 export type Language = 'ja' | 'en' | 'es';
 
 export type Question = {
@@ -54,6 +56,7 @@ export type Compass = {
 };
 
 export type AnalysisResult = {
+  calculation?: CalculationMetadata;
   summary?: string;   // シェア用の一言キャッチ
   coreNature: string; // 魂の本質
   strategy: string;   // 行動戦略
@@ -67,6 +70,7 @@ export type AnalysisResult = {
 };
 
 export type DailyContent = {
+  calculation?: CalculationMetadata;
   theme: string;
   guidance: string;
   timing: string;
@@ -75,6 +79,7 @@ export type DailyContent = {
 };
 
 export type DailyReadingContent = {
+  calculation?: CalculationMetadata;
   date: string;
   title: string;
   opening: string;

@@ -1,3 +1,5 @@
+import { calculationMetadata } from '@/lib/engine/calculation-meta';
+import { BirthInputError, birthInputIssue } from '@/lib/engine/birth-input';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import Anthropic from '@anthropic-ai/sdk';
@@ -102,7 +104,7 @@ ${AI_SAFETY_PROMPT}`;
                 ruleIds: safetyOutput.ruleIds,
             });
         }
-        const parsed = safetyOutput.value;
+        const parsed = { ...safetyOutput.value, calculation: calculationMetadata(profile) };
         const data = JSON.stringify({ ...envelope, daily: parsed } satisfies DailyLogEnvelope);
         await prisma.dailyLog.upsert({
             where: { userId_date: { userId, date: today } },
@@ -111,7 +113,8 @@ ${AI_SAFETY_PROMPT}`;
         });
         return NextResponse.json(parsed);
 
-    } catch {
+    } catch (error) {
+    if (error instanceof BirthInputError) return NextResponse.json(birthInputIssue(error.code), { status: 422 });
         console.error('Error in /api/daily:');
         return NextResponse.json({ error: 'Failed to generate daily content' }, { status: 500 });
     }

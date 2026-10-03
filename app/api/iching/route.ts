@@ -1,3 +1,4 @@
+import { BirthInputError, birthInputIssue } from '@/lib/engine/birth-input';
 // ─────────────────────────────────────────────────────────────
 //  易占い API
 //    POST: 新しい卦を立てる
@@ -267,7 +268,8 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(formatReading(saved));
-  } catch {
+  } catch (error) {
+    if (error instanceof BirthInputError) return NextResponse.json(birthInputIssue(error.code), { status: 422 });
     console.error('iching POST error:');
     return NextResponse.json({ error: '易を立てる処理に失敗しました' }, { status: 500 });
   }
