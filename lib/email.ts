@@ -9,7 +9,7 @@ const FROM = process.env.EMAIL_FROM || 'Orba <noreply@orba.life>';
 export async function sendEmail(opts: { to: string; subject: string; html: string; replyTo?: string }): Promise<{ ok: boolean; skipped?: boolean }> {
   const key = process.env.RESEND_API_KEY;
   if (!key) {
-    console.warn('[email] RESEND_API_KEY 未設定のため送信スキップ:', opts.subject, '→', opts.to);
+    console.warn('[email] delivery skipped: not configured');
     return { ok: false, skipped: true };
   }
   try {
@@ -25,12 +25,12 @@ export async function sendEmail(opts: { to: string; subject: string; html: strin
       }),
     });
     if (!res.ok) {
-      console.error('[email] 送信失敗:', res.status, await res.text().catch(() => ''));
+      console.error('[email] delivery failed', res.status);
       return { ok: false };
     }
     return { ok: true };
-  } catch (e) {
-    console.error('[email] 送信エラー:', e);
+  } catch {
+    console.error('[email] delivery failed');
     return { ok: false };
   }
 }

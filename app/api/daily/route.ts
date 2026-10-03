@@ -111,8 +111,8 @@ ${AI_SAFETY_PROMPT}`;
         });
         return NextResponse.json(parsed);
 
-    } catch (error) {
-        console.error('Error in /api/daily:', error);
+    } catch {
+        console.error('Error in /api/daily:');
         return NextResponse.json({ error: 'Failed to generate daily content' }, { status: 500 });
     }
 }

@@ -35,8 +35,8 @@ async function run(request: Request) {
       if (!profile) { skipped++; continue; }
       const daily = computeDailyState(profile, today);
       payload = dailyTeaser(user.characterType, daily);
-    } catch (err) {
-      console.warn('daily compute failed for', user.id, (err as Error)?.message);
+    } catch {
+      console.warn('daily compute failed');
       skipped++;
       continue;
     }

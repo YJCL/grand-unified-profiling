@@ -28,8 +28,8 @@ export async function POST(request: Request) {
       if (await sendPush(s, payload)) sent++;
     }
     return NextResponse.json({ sent });
-  } catch (error) {
-    console.error('push test error:', error);
+  } catch {
+    console.error('push test error:');
     return NextResponse.json({ error: 'error' }, { status: 500 });
   }
 }

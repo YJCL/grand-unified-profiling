@@ -49,8 +49,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '送信できませんでした。時間をおいて再度お試しください。' }, { status: 503 });
     }
     return NextResponse.json({ ok: true });
-  } catch (error) {
-    console.error('[contact] error', error);
+  } catch {
+    console.error('[contact] error');
     return NextResponse.json({ error: '送信できませんでした。時間をおいて再度お試しください。' }, { status: 500 });
   }
 }

@@ -63,8 +63,8 @@ export async function GET(request: Request) {
       }).catch(() => undefined);
     }
     return mypage(isActive ? 'success' : 'pending');
-  } catch (error) {
-    console.error('[billing/complete] error', error);
+  } catch {
+    console.error('[billing/complete] error');
     return mypage('error');
   }
 }

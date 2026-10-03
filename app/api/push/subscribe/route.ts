@@ -24,8 +24,8 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ ok: true });
-  } catch (error) {
-    console.error('push subscribe error:', error);
+  } catch {
+    console.error('push subscribe error:');
     return NextResponse.json({ error: 'error' }, { status: 500 });
   }
 }

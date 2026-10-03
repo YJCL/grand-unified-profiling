@@ -48,8 +48,8 @@ export async function GET(request: Request) {
         // 過去1/4・未来3/4の範囲
         const scores = computeScoreRange(profile, -Math.floor(range / 4), range);
         return NextResponse.json(scores);
-    } catch (error) {
-        console.error('Error in /api/fortune-score:', error);
+    } catch {
+        console.error('Error in /api/fortune-score:');
         return NextResponse.json({ error: 'Failed to compute scores' }, { status: 500 });
     }
 }

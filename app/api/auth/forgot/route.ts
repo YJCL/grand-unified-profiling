@@ -25,8 +25,8 @@ export async function POST(request: Request) {
         }
 
         return NextResponse.json({ ok: true });
-    } catch (error) {
-        console.error('forgot error:', error);
+    } catch {
+        console.error('forgot error:');
         // エラーでも成功扱い（情報を漏らさない）
         return NextResponse.json({ ok: true });
     }

@@ -266,9 +266,9 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(formatReading(saved));
-  } catch (error) {
-    console.error('iching POST error:', error);
-    return NextResponse.json({ error: '易を立てる処理に失敗しました', detail: error instanceof Error ? error.message : String(error) }, { status: 500 });
+  } catch {
+    console.error('iching POST error:');
+    return NextResponse.json({ error: '易を立てる処理に失敗しました' }, { status: 500 });
   }
 }
 
@@ -301,8 +301,8 @@ export async function GET(request: Request) {
       changingLines: JSON.parse(r.changingLines),
       createdAt: r.createdAt,
     })) });
-  } catch (error) {
-    console.error('iching GET error:', error);
+  } catch {
+    console.error('iching GET error:');
     return NextResponse.json({ error: 'fetch failed' }, { status: 500 });
   }
 }

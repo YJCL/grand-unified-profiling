@@ -12,8 +12,8 @@ export async function POST(request: Request) {
 
     await prisma.pushSubscription.deleteMany({ where: { endpoint, userId: access.user.id } });
     return NextResponse.json({ ok: true });
-  } catch (error) {
-    console.error('push unsubscribe error:', error);
+  } catch {
+    console.error('push unsubscribe error:');
     return NextResponse.json({ error: 'error' }, { status: 500 });
   }
 }
