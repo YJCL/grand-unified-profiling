@@ -168,7 +168,7 @@ test('ambiguous birth input is rejected before changing an existing profile', as
     '@/lib/engine/profile': { buildProfileFromUser: () => { throw new input.BirthInputError('ambiguous_local_time'); } },
   });
   const result = await route.POST({ json: async () => ({ id: 'fictional-owner', birthTime: '01:30' }) });
-  assert.equal(result.status, 422); assert.equal(result.body.code, 'ambiguous_local_time'); assert.match(result.body.error, /未入力/);
+  assert.equal(result.status, 422); assert.equal(result.body.code, 'ambiguous_local_time'); assert.match(result.body.error, /時刻を不明/);
 });
 test('chat history remains unchanged and accessible only after owner authorization', async () => {
   const messages = [{ role: 'user', content: 'fictional-history' }, { role: 'assistant', content: 'fictional-saved-answer' }];
@@ -255,8 +255,8 @@ test('cached legacy daily content is returned verbatim without model use, recalc
 });
 test('DST errors provide fixed actionable guidance without echoing private data', () => {
   const { birthInputIssue } = load('lib/engine/birth-input.ts', {});
-  assert.match(birthInputIssue('ambiguous_local_time').error, /UTCオフセット/);
-  assert.match(birthInputIssue('nonexistent_local_time').error, /存在しません/);
+  assert.match(birthInputIssue('ambiguous_local_time').error, /出生記録を確認/);
+  assert.match(birthInputIssue('nonexistent_local_time').error, /出生記録を確認/);
   assert.doesNotMatch(JSON.stringify(birthInputIssue('fictional-private-input')), /fictional-private/);
 });
 test('analytics drops reset tokens, contact details, diagnosis answers and free text', () => {

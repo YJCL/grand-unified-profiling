@@ -21,6 +21,7 @@ function load(name) {
       if (id.startsWith('./')) return load(id.slice(2));
       if (['astronomy-engine','city-timezones','crypto'].includes(id)) return nativeRequire(id);
       if (id === '@/data/iching/hexagrams.json') return JSON.parse(fs.readFileSync(path.join(root,'data/iching/hexagrams.json'),'utf8'));
+      if (id === '@/data/geo/japan-municipalities.json') return JSON.parse(fs.readFileSync(path.join(root,'data/geo/japan-municipalities.json'),'utf8'));
       throw new Error('Offline engine test blocked a dependency');
     },
   });
@@ -198,6 +199,46 @@ test('Saved transformed hexagram and changing lines survive restoration without 
 });
 test('Only newly computed profile and daily facts receive the new calculation version',()=>{
   const p=profile.buildGrandProfile({birthDate:'2000-01-01'});
-  assert.equal(p.meta.calculationVersion,'2026-10-03-v2');
+  assert.equal(p.meta.calculationVersion,'2026-10-03-v3');
   assert.equal(load('daily').computeDailyState(p,new Date('2024-03-01T00:00:00Z')).calculationVersion,p.meta.calculationVersion);
+});
+
+test('Japanese municipality inputs resolve locally, including Kesennuma and other prefectures',()=>{
+  for (const place of ['宮城県気仙沼市','気仙沼市','気仙沼','日本, 宮城県気仙沼市','神奈川県横浜市','北海道札幌市','沖縄県那覇市','長野県松本市','Kesennuma, Japan']) {
+    const p=profile.buildGrandProfile({birthDate:'2000-01-07',birthTime:'12:00',birthPlace:place});
+    assert.equal(p.meta.timeZone,'Asia/Tokyo',place);
+    assert.equal(p.meta.tzOffsetMinutes,540,place);
+    assert.equal(p.westernAstrology.hasAscendant,true,place);
+    assert.equal(p.humanDesign.incomplete,false,place);
+    assert.equal(p.meta.calculationAssumptions.length,0,place);
+  }
+  const kesennuma=geo.geocodePlace('宮城県気仙沼市');
+  assert.ok(kesennuma.lat>38.7&&kesennuma.lat<39.1&&kesennuma.lon>141.3&&kesennuma.lon<141.8);
+});
+test('Country/prefecture-only and repeated Japanese names establish timezone without inventing coordinates',()=>{
+  for(const place of ['日本','Japan','宮城県','府中市']) {
+    const p=profile.buildGrandProfile({birthDate:'2000-01-07',birthTime:'12:00',birthPlace:place});
+    assert.equal(p.meta.timeZone,'Asia/Tokyo',place);
+    assert.equal(p.meta.locationConfidence,'timezone',place);
+    assert.equal(p.meta.lat,undefined,place);
+    assert.equal(p.westernAstrology.hasAscendant,false,place);
+    assert.ok(!p.meta.calculationAssumptions.some(s=>s.includes('タイムゾーンが不明')),place);
+  }
+});
+test('Foreign cities use their own zones, country qualifiers disambiguate, and unresolved foreign inputs cannot become JST',()=>{
+  for(const [place,zone] of [['New York','America/New_York'],['Paris, France','Europe/Paris'],['London, UK','Europe/London'],['Kochi, India','Asia/Kolkata'],['Kochi, Japan','Asia/Tokyo']]) {
+    assert.equal(geo.geocodePlace(place).iana,zone,place);
+    assert.notEqual(geo.geocodePlace(place).confidence,'fallback',place);
+  }
+  for(const place of ['Kochi','Springfield','Atlantis, USA','宮城県気仙沼市, USA','日本, USA','アメリカ 東京']) {
+    assert.equal(geo.geocodePlace(place).confidence,'fallback',place);
+    assert.throws(()=>profile.buildGrandProfile({birthDate:'2000-01-07',birthTime:'12:00',birthPlace:place}),e=>e.code==='unknown_place',place);
+  }
+});
+test('Corrected birthplace stops current uncertainty; historical metadata remains untouched',()=>{
+  const old={version:'2026-10-03-v2',assumptions:['出生地のタイムゾーンが不明のため日本標準時を仮定しています。']};
+  const before=JSON.stringify(old);
+  const current=profile.buildProfileFromUser({birthDate:'2000-01-07',birthTime:'12:00',birthPlace:'宮城県気仙沼市'});
+  assert.equal(current.meta.calculationAssumptions.length,0);
+  assert.equal(JSON.stringify(old),before);
 });

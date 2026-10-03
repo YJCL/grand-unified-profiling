@@ -196,3 +196,7 @@ The signature component is a WebGL sphere with moving FBM surface detail, direct
 - **Don't** scatter generic glass cards, rainbow gradients, or equal-weight feature tiles across the page.
 - **Don't** use deterministic, fear-based, or inflated claims.
 - **Don't** apply display-scale labels or tiny tracked text to long Japanese copy.
+
+## Product language
+
+Write around the user's purpose and the feature they can use. Do not promote AI production or place calculation versions, audit details, implementation notes, or routine operational announcements ahead of the product content. Keep those records internally. Replace retired feature cards and navigation with the retained functionality naturally. Preserve only necessary uncertainty and short actionable guidance in contextual help. Keep legally, contractually, or safety-required explanations in the appropriate terms/help pages and minimal input cautions. Never imply human authorship when content is generated.

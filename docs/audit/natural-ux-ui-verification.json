@@ -1,0 +1,103 @@
+{
+  "checkedAt": "2026-10-03T19:18:16.769Z",
+  "origin": "http://127.0.0.1:3314",
+  "mode": "isolated hidden headless browser; fictional API fixtures only; no production accounts/model calls",
+  "checks": {
+    "homeClosed": true,
+    "homeLogin": true,
+    "homeNatural": true,
+    "newProfileClosed": true,
+    "existingProfile": true,
+    "placeVisible": true,
+    "mainNatural": true,
+    "legacyWidgetOrder": true,
+    "noPrimaryChatLink": true,
+    "noFixedMembershipBand": true,
+    "birthCorrectionAvailable": true,
+    "explicitUnknownBirthTime": true,
+    "dailyReading": true,
+    "readingNatural": true,
+    "readingTitleInk": true,
+    "readingCloseAboveNavigation": true,
+    "ichingNatural": true,
+    "inputPrivacyCaution": true,
+    "safetyHelp": true,
+    "mobileNoHorizontalOverflow": true,
+    "secondaryHistoryAccess": true,
+    "subscriptionManagementRetained": true,
+    "historyRetained": true,
+    "noChatComposer": true,
+    "calendarNatural": true,
+    "safetyDisclosure": true,
+    "noChatMutation": true,
+    "noProfileOrModelWriteRequests": true,
+    "noBrowserRuntimeExceptions": true
+  },
+  "requests": [
+    {
+      "route": "/api/track",
+      "method": "POST"
+    },
+    {
+      "route": "/api/user",
+      "method": "GET"
+    },
+    {
+      "route": "/api/tickets/login-bonus",
+      "method": "POST"
+    },
+    {
+      "route": "/api/track",
+      "method": "POST"
+    },
+    {
+      "route": "/api/daily",
+      "method": "GET"
+    },
+    {
+      "route": "/api/fortune-score",
+      "method": "GET"
+    },
+    {
+      "route": "/api/daily-reading",
+      "method": "GET"
+    },
+    {
+      "route": "/api/iching",
+      "method": "GET"
+    },
+    {
+      "route": "/api/user",
+      "method": "GET"
+    },
+    {
+      "route": "/api/track",
+      "method": "POST"
+    },
+    {
+      "route": "/api/tickets/login-bonus",
+      "method": "POST"
+    },
+    {
+      "route": "/api/daily",
+      "method": "GET"
+    },
+    {
+      "route": "/api/fortune-score",
+      "method": "GET"
+    },
+    {
+      "route": "/api/chat",
+      "method": "GET"
+    },
+    {
+      "route": "/api/user",
+      "method": "GET"
+    },
+    {
+      "route": "/api/fortune-score",
+      "method": "GET"
+    }
+  ],
+  "errors": []
+}

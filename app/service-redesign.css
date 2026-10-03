@@ -421,7 +421,7 @@ body:has(.service-start-shell) {
 }
 
 .service-widget--calendar,
-.service-widget--chat,
+.service-widget--iching,
 .service-widget--profile {
   background: var(--service-surface-raised) !important;
   border-radius: 16px !important;

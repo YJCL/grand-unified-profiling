@@ -10,19 +10,23 @@ export default function SafetyPage() {
     <main className="min-h-screen bg-mesh text-white">
       <div className="mx-auto max-w-2xl px-6 py-14">
         <h1 className="text-2xl mb-2">AI利用と安全性</h1>
-        <p className="mb-5 text-sm text-amber-100">新規受付とチャット機能は終了しました。既存の鑑定・暦・易と保存履歴は引き続き利用できます。非チャットの鑑定文・易の解釈にはAIを使用します。</p>
-        <p className="text-xs text-white/55 mb-10">最終更新日：2026年8月24日</p>
+        <p className="text-xs text-white/55 mb-10">最終更新日：2026年10月3日</p>
 
         <div className="space-y-9 text-sm leading-relaxed text-white/80 font-serif-jp">
           <section>
             <h2 className="text-base text-amber-200 mb-2">AIを利用する範囲</h2>
-            <p>Orbaは、文章生成と対話の一部にAnthropic社の生成AIを利用しています。生年月日・出生情報等に基づく占術データの算出や、易の卦を立てる処理はプログラムで行い、生成AIはその結果を利用者の文脈に合わせて文章化するために使用します。</p>
+            <p>Orbaは、鑑定文と易の解釈文の生成にAnthropic社の生成AIを利用しています。生年月日・出生情報等に基づく占術データの算出や、易の卦を立てる処理はプログラムで行い、生成AIはその結果を利用者の文脈に合わせて文章化するために使用します。</p>
           </section>
 
           <section>
             <h2 className="text-base text-amber-200 mb-2">結果の位置づけ</h2>
-            <p>鑑定や対話は、娯楽と自己理解、選択肢の整理を目的としています。未来、健康、生死、合否、恋愛結果、金銭的利益などを断定または保証するものではありません。重要な判断では、現実の情報と有資格の専門家による助言を優先してください。</p>
+            <p>鑑定や易は、娯楽と自己理解、選択肢の整理を目的としています。未来、健康、生死、合否、恋愛結果、金銭的利益などを断定または保証するものではありません。重要な判断では、現実の情報と有資格の専門家による助言を優先してください。</p>
           </section>
+
+          <details className="text-xs text-white/60">
+            <summary className="cursor-pointer">出生地データの出典</summary>
+            <p className="mt-3">日本の市区町村名とおおよその位置には、<a className="underline" href="https://github.com/geolonia/japanese-addresses/tree/d016e03dc84feaca92fe8c20f4cf6926c19a4ac7" target="_blank" rel="noreferrer">Geolonia 住所データ</a>（<a className="underline" href="https://creativecommons.org/licenses/by/4.0/deed.ja" target="_blank" rel="noreferrer">CC BY 4.0</a>）を使用しています。町丁目の代表点を市区町村単位で平均したおおよその位置で、個別の住所や出生施設の位置ではありません。</p>
+          </details>
 
           <section>
             <h2 className="text-base text-amber-200 mb-2">入力と出力の安全対策</h2>

@@ -2,7 +2,7 @@
 
 // ─────────────────────────────────────────────────────────────
 //  易シート: 問いを書く → 卦を立てる → 結果を読む
-//  チャット画面の「易を立てる」ボタンから開く軽量モーダル。
+//  マイページの「易を立てる」ボタンから開く軽量モーダル。
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useCallback } from 'react';
@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { X, Sparkles, HelpCircle, History, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ModalPortal } from './ModalPortal';
 
 type Interpretation = {
   situation: string;
@@ -123,9 +124,10 @@ export function IchingSheet({
   };
 
   return (
+    <ModalPortal>
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-end md:items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
       onClick={onClose}
     >
       <motion.div
@@ -168,8 +170,8 @@ export function IchingSheet({
               className="w-full mb-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-amber-300/40 resize-none font-serif-jp"
             />
             <p className="mb-2 text-[10px] leading-relaxed text-white/40">
-              解釈文の生成にはAIを使用します。氏名・住所・電話番号・病歴など、本人を特定できる情報は入力しないでください。
-              <Link href="/safety" target="_blank" className="ml-1 text-amber-200/70 underline underline-offset-2">AI利用と安全性</Link>
+              氏名・住所・連絡先・病歴などは入力しないでください。
+              <Link href="/safety" target="_blank" className="ml-1 text-amber-200/70 underline underline-offset-2">利用上の注意</Link>
             </p>
             <div className="flex items-center justify-between text-[10px] text-white/30 mb-3">
               <span>同じ問いを短時間に何度も立てることは推奨していません</span>
@@ -196,6 +198,7 @@ export function IchingSheet({
         {reading && <ResultView reading={reading} onReset={() => { setReading(null); setQuestion(''); }} />}
       </motion.div>
     </motion.div>
+    </ModalPortal>
   );
 }
 
@@ -245,7 +248,6 @@ function ResultView({ reading, onReset }: { reading: Reading; onReset: () => voi
         <p className="text-sm text-white/90 font-serif-jp">{reading.question}</p>
       </div>
 
-      <p className="text-xs text-white/50">易の計算版：{reading.dataVersion?.endsWith("bottom-up-v2") ? reading.dataVersion : "旧版（" + (reading.dataVersion || "版の記録なし") + "）"}。保存済みの卦と解釈は変更していません。</p>
       <HexagramVisual values={reading.values} changingLines={reading.changingLines} />
 
       <div className="rounded-xl bg-white/[0.04] border border-white/10 p-3">

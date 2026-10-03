@@ -536,8 +536,8 @@ function Composer({ turn, draft, setDraft, onAnswer }: { turn: Turn; draft: stri
         <textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={2} placeholder="気になっていること…"
           className="orba-registration-input orba-registration-textarea" />
         <p className="orba-registration-ai-note">
-          文章生成にはAIを使用します。氏名・住所・電話番号・病歴など、本人を特定できる情報は入力しないでください。
-          <a href="/safety" target="_blank" rel="noreferrer">AI利用と安全性</a>
+          氏名・住所・連絡先・病歴などは入力しないでください。
+          <a href="/safety" target="_blank" rel="noreferrer">利用上の注意</a>
         </p>
         <div className="orba-registration-composer-actions">
           <button disabled={!draft.trim()} onClick={() => onAnswer(draft, draft)} className={sendBtn}>送る</button>

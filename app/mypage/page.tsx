@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import {
-    MessageSquare, CalendarDays, User,
+    Compass, CalendarDays, User,
     Zap, Shield, Target, RefreshCw, GripVertical,
     Settings, Crown, Moon, X, Copy, Check, Clock, Share2, Sun, LogOut, UserPlus, Ticket
 } from 'lucide-react';
@@ -21,10 +21,8 @@ import { track } from '@/lib/analytics';
 import { FoundingMemberModal } from '@/app/components/FoundingMemberModal';
 import { DailyReadingSheet } from '@/app/components/DailyReadingSheet';
 import { IchingSheet } from '@/app/components/IchingSheet';
-import { CalculationVersionNote } from '@/app/components/CalculationVersionNote';
 import { BirthDetailsEditor } from '@/app/components/BirthDetailsEditor';
 import { OrbaAppNav } from '@/app/components/OrbaAppNav';
-import { isLaunchFreeActive, launchFreeUntilLabel, PREMIUM_PRICE_LABEL } from '@/lib/launch';
 
 function copyToClipboard(text: string): Promise<void> {
     if (navigator.clipboard?.writeText) {
@@ -43,8 +41,14 @@ function copyToClipboard(text: string): Promise<void> {
     return Promise.resolve();
 }
 
-type WidgetId = 'daily' | 'calendar' | 'chat' | 'profile';
-const DEFAULT_ORDER: WidgetId[] = ['daily', 'calendar', 'chat', 'profile'];
+type WidgetId = 'daily' | 'calendar' | 'iching' | 'profile';
+const DEFAULT_ORDER: WidgetId[] = ['daily', 'calendar', 'iching', 'profile'];
+function restoreWidgetOrder(value: string): WidgetId[] {
+    const stored: unknown = JSON.parse(value);
+    if (!Array.isArray(stored)) return DEFAULT_ORDER;
+    const order = stored.map(id => id === 'chat' ? 'iching' : id).filter((id): id is WidgetId => DEFAULT_ORDER.includes(id as WidgetId));
+    return [...new Set([...order, ...DEFAULT_ORDER])];
+}
 
 type ProfileTab = {
     id: string;
@@ -75,7 +79,9 @@ type UserData = {
 
 // ── Widget Components ──────────────────────────────────────────
 
-function DailyWidget({ userId }: { userId: string }) {
+function DailyWidget({ userId, onTicketChange }: { userId: string; onTicketChange: (tickets: number) => void }) {
+    const [readingOpen, setReadingOpen] = useState(false);
+    const [noticeOpen, setNoticeOpen] = useState(false);
     const [dailyError, setDailyError] = useState('');
     const [daily, setDaily] = useState<DailyContent | null>(null);
     const [loading, setLoading] = useState(true);
@@ -126,7 +132,6 @@ function DailyWidget({ userId }: { userId: string }) {
                 </div>
             ) : daily ? (
                 <div className="space-y-3">
-                    <CalculationVersionNote calculation={daily.calculation} />
                     <p className="text-sm text-white/70 leading-relaxed">{daily.guidance}</p>
                     <div className="grid grid-cols-2 gap-2">
                         <div className="p-3 bg-white/3 rounded-xl border border-white/5">
@@ -147,6 +152,9 @@ function DailyWidget({ userId }: { userId: string }) {
             ) : (
                 <p className="text-sm text-white/60" role="status">{dailyError || "鑑定後に表示されます。"}</p>
             )}
+            <button className="btn-ghost w-full py-3" onClick={() => setReadingOpen(true)}>今日の鑑定を読む</button>
+            {readingOpen && <DailyReadingSheet userId={userId} onClose={() => setReadingOpen(false)} onUpgrade={() => setNoticeOpen(true)} onTicketChange={onTicketChange} />}
+            {noticeOpen && <FoundingMemberModal onClose={() => setNoticeOpen(false)} />}
         </div>
     );
 }
@@ -193,18 +201,13 @@ function CalendarWidget({ userId }: { userId: string }) {
     );
 }
 
-function ReadingWidget({ userId, onTicketChange }: { userId: string; onTicketChange: (tickets: number) => void }) {
-    const router = useRouter();
-    const [dailyOpen, setDailyOpen] = useState(false);
-    const [ichingOpen, setIchingOpen] = useState(false);
+function IchingWidget({ userId }: { userId: string }) {
+    const [open, setOpen] = useState(false);
     const [noticeOpen, setNoticeOpen] = useState(false);
-    return <div className="space-y-3">
-      <p className="text-sm text-white/65">チャット機能は終了しました。鑑定と易は引き続き使えます。</p>
-      <button className="btn-gold w-full py-3" onClick={() => setDailyOpen(true)}>今日の鑑定</button>
-      <button className="btn-ghost w-full py-3" onClick={() => setIchingOpen(true)}>易を立てる・履歴を見る</button>
-      <button className="text-xs underline text-white/50" onClick={() => router.push('/chat')}>これまでの会話履歴</button>
-      {dailyOpen && <DailyReadingSheet userId={userId} onClose={() => setDailyOpen(false)} onUpgrade={() => setNoticeOpen(true)} onTicketChange={onTicketChange} />}
-      {ichingOpen && <IchingSheet userId={userId} onClose={() => setIchingOpen(false)} onUpgrade={() => setNoticeOpen(true)} />}
+    return <div id="iching" className="space-y-3">
+      <p className="text-sm text-white/65">いまの問いをひとつ、易に尋ねてみる。</p>
+      <button className="btn-gold w-full py-3" onClick={() => setOpen(true)}>易を立てる</button>
+      {open && <IchingSheet userId={userId} onClose={() => setOpen(false)} onUpgrade={() => setNoticeOpen(true)} />}
       {noticeOpen && <FoundingMemberModal onClose={() => setNoticeOpen(false)} />}
     </div>;
 }
@@ -334,10 +337,9 @@ function ProfileWidget({ userData }: { userData: UserData; now: number }) {
                 <div className="p-2 bg-white/3 rounded-lg"><p className="text-[9px] text-white/25 uppercase tracking-widest mb-0.5">Place</p><p className="text-xs text-white/60 truncate">{userData.birthPlace || '—'}</p></div>
             </div>
             <BirthDetailsEditor userId={userData.id} birthDate={userData.birthDate} birthTime={userData.birthTime} birthPlace={userData.birthPlace} />
-            {result && <CalculationVersionNote calculation={result.calculation} />}
             {result && (
                 <div className="p-3 bg-white/3 rounded-xl border border-white/5">
-                    <p className="text-[9px] text-white/25 uppercase tracking-widest mb-1.5">Latest Reading</p>
+                    <p className="text-[9px] text-white/25 uppercase tracking-widest mb-1.5">保存した鑑定</p>
                     <p className="text-xs text-white/60 line-clamp-3 leading-relaxed">{result.coreNature}</p>
                     <p className="text-[10px] text-white/25 mt-1 font-mono">
                         {new Date(latestDiagnosis.createdAt).toLocaleDateString('ja-JP')}
@@ -412,7 +414,7 @@ function ProfileWidget({ userData }: { userData: UserData; now: number }) {
 const WIDGET_META: Record<WidgetId, { label: string; icon: React.ReactNode }> = {
     daily:    { label: '今日の運勢', icon: <Moon className="w-4 h-4" /> },
     calendar: { label: '運気カレンダー', icon: <CalendarDays className="w-4 h-4" /> },
-    chat:     { label: '鑑定と易', icon: <MessageSquare className="w-4 h-4" /> },
+    iching:   { label: '易', icon: <Compass className="w-4 h-4" /> },
     profile:  { label: 'マイプロフィール', icon: <User className="w-4 h-4" /> },
 };
 
@@ -500,10 +502,8 @@ export default function MyPage() {
     const [genCodeCopied, setGenCodeCopied] = useState(false);
     const [showAuth, setShowAuth] = useState(false);
 
-    const [showWelcome, setShowWelcome] = useState(false);
     const [tickets, setTickets] = useState(0);
     const [bonusMsg, setBonusMsg] = useState('');
-    const [showFounding, setShowFounding] = useState(false);
     const [showAccount, setShowAccount] = useState(false);
     const [orbSaving, setOrbSaving] = useState(false);
 
@@ -512,7 +512,6 @@ export default function MyPage() {
         if (typeof window === 'undefined') return;
         const billing = new URLSearchParams(window.location.search).get('billing');
         if (billing === 'success') {
-            setShowWelcome(true); // 閉じるまで表示（自動消去しない）
             window.history.replaceState({}, '', '/mypage');
         } else if (billing === 'pending') {
             alert('決済を確認しています。確認が完了するとOrba Plusが自動で反映されます。数分たっても反映されない場合はお問い合わせください。');
@@ -580,7 +579,7 @@ export default function MyPage() {
                 .then(d => { if (d.granted) { setTickets(d.tickets); setBonusMsg('週のログイン特典：鑑定チケットを1枚受け取りました。'); setTimeout(() => setBonusMsg(''), 6000); } })
                 .catch(() => {});
             if (data.widgetOrder) {
-                try { setOrder(JSON.parse(data.widgetOrder)); } catch {}
+                try { setOrder(restoreWidgetOrder(data.widgetOrder)); } catch {}
             }
 
             // Sync profiles from localStorage
@@ -613,7 +612,7 @@ export default function MyPage() {
         setActiveId(id);
         setUserData(data);
         if (data.widgetOrder) {
-            try { setOrder(JSON.parse(data.widgetOrder)); } catch { setOrder(DEFAULT_ORDER); }
+            try { setOrder(restoreWidgetOrder(data.widgetOrder)); } catch { setOrder(DEFAULT_ORDER); }
         } else {
             setOrder(DEFAULT_ORDER);
         }
@@ -682,13 +681,13 @@ export default function MyPage() {
     const renderWidget = (id: WidgetId) => {
         switch (id) {
             case 'daily':
-                return <DailyWidget userId={userData.id} />;
+                return <DailyWidget userId={userData.id} onTicketChange={setTickets} />;
             case 'calendar':
                 return userData.birthDate
                     ? <CalendarWidget userId={userData.id} />
                     : <p className="text-sm text-white/30">鑑定後に表示されます。</p>;
-            case 'chat':
-                return <ReadingWidget userId={userData.id} onTicketChange={setTickets} />;
+            case 'iching':
+                return <IchingWidget userId={userData.id} />;
             case 'profile':
                 return <div id="profile"><ProfileWidget userData={userData} now={profileTime} /></div>;
         }
@@ -789,19 +788,6 @@ export default function MyPage() {
                             <Ticket className="w-4 h-4 flex-none" /> {bonusMsg}
                         </motion.div>
                     )}
-                    {showWelcome && (
-                        <motion.div
-                            initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
-                            className="mb-4 card p-4 flex items-center gap-3 border border-amber-300/30"
-                        >
-                            <Crown className="w-5 h-5 text-amber-300 flex-none" />
-                            <div className="flex-1">
-                                <p className="text-sm font-serif-jp text-white">プレミアムへようこそ ✨</p>
-                                <p className="text-[11px] text-white/50">ご登録ありがとうございます。既存の鑑定・暦・易をお使いいただけます。</p>
-                            </div>
-                            <button onClick={() => setShowWelcome(false)} className="text-white/30 hover:text-white/70"><X className="w-4 h-4" /></button>
-                        </motion.div>
-                    )}
                 </AnimatePresence>
                 {!editMode && <div className="mb-3"><NotificationToggle userId={userData.id} /></div>}
                 {editMode && (
@@ -828,70 +814,8 @@ export default function MyPage() {
                 </Reorder.Group>
             </main>
 
-            {/* ── 下部サブスクバー ───────────────────────── */}
-            <div className="orba-membership-bar fixed bottom-0 left-0 right-0 z-30 bg-black/60 backdrop-blur-xl border-t border-white/5 px-4 py-3 [&>*]:max-w-2xl [&>*]:mx-auto">
-                {isDevicePremium ? (
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <Crown className="w-4 h-4 text-yellow-400" />
-                            <span className="text-sm font-bold text-white">Premium</span>
-                            <span className="text-xs text-white/30">既存の鑑定・暦・易を利用できます</span>
-                        </div>
-                        <button
-                            onClick={async () => {
-                                if (!confirm('Orba Plusを解約しますか？ 支払済み期間の終了までは引き続き利用できます。')) return;
-                                const res = await fetch('/api/billing/portal', { method: 'POST' });
-                                const data = await res.json().catch(() => ({}));
-                                if (res.ok && data.canceled) {
-                                    const until = data.effectiveUntil ? new Date(data.effectiveUntil).toLocaleDateString('ja-JP') : '現在の利用期間末';
-                                    alert(`解約を受け付けました。${until}までご利用いただけます。`);
-                                } else alert(data.error || '解約処理に失敗しました');
-                            }}
-                            className="text-[10px] text-white/30 hover:text-white/70 transition-colors uppercase tracking-widest">
-                            管理・解約
-                        </button>
-                    </div>
-                ) : isLaunchFreeActive() ? (
-                    <div className="flex items-center gap-3">
-                        <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                                🎁 既存の非チャット機能を無料開放中
-                            </p>
-                            <p className="text-[10px] text-white/40">
-                                {launchFreeUntilLabel() ? `${launchFreeUntilLabel()}まで無料。` : ''}正式版は{PREMIUM_PRICE_LABEL}予定
-                            </p>
-                        </div>
-                        <button
-                            onClick={() => { track('paywall_click'); setShowFounding(true); }}
-                            className="flex-none px-3 py-2 bg-white/10 text-white/80 text-xs font-bold rounded-full whitespace-nowrap hover:bg-white/15 transition-all"
-                        >
-                            詳しく
-                        </button>
-                    </div>
-                ) : (
-                    <div className="flex items-center gap-3">
-                        <div className="flex-1">
-                            <p className="text-xs font-bold text-white flex items-center gap-2">
-                                新規有料申込みは受付停止
-                                <span className="inline-flex items-center gap-1 text-[10px] font-normal text-amber-300/90"><Ticket className="w-3 h-3" /> 鑑定チケット ×{tickets}</span>
-                            </p>
-                            <p className="text-[10px] text-white/40">既存の利用条件に応じて鑑定・易・暦を利用できます</p>
-                        </div>
-                        <button
-                            onClick={() => { track('paywall_click'); setShowFounding(true); }}
-                            className="flex-none px-4 py-2 bg-gradient-to-r from-amber-300 to-amber-400 text-black text-xs font-bold rounded-full whitespace-nowrap hover:brightness-105 transition-all"
-                        >
-                            受付状況
-                        </button>
-                    </div>
-                )}
-            </div>
-
             {/* ── Modals ────────────────────────────────── */}
             <AnimatePresence>
-                {showFounding && (
-                    <FoundingMemberModal userEmail={userData.email} onClose={() => setShowFounding(false)} />
-                )}
                 {showAccount && (
                     <motion.div
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -933,7 +857,25 @@ export default function MyPage() {
                                 )}
                             </div>
 
-                            {/* 相棒のオーブを変える */}
+                                                         <div className="mb-5 space-y-3 text-xs text-white/65">
+                                 <p>鑑定チケット：{tickets}枚</p>
+                                 {isDevicePremium && (<button
+                            onClick={async () => {
+                                if (!confirm('Orba Plusを解約しますか？ 支払済み期間の終了までは引き続き利用できます。')) return;
+                                const res = await fetch('/api/billing/portal', { method: 'POST' });
+                                const data = await res.json().catch(() => ({}));
+                                if (res.ok && data.canceled) {
+                                    const until = data.effectiveUntil ? new Date(data.effectiveUntil).toLocaleDateString('ja-JP') : '現在の利用期間末';
+                                    alert(`解約を受け付けました。${until}までご利用いただけます。`);
+                                } else alert(data.error || '解約処理に失敗しました');
+                            }}
+                            className="text-[10px] text-white/30 hover:text-white/70 transition-colors uppercase tracking-widest">
+                            管理・解約
+                        </button>)}
+                                 <button className="block underline" onClick={() => router.push('/chat')}>保存した会話</button>
+                                 <a className="block underline" href="/safety">利用上の注意</a>
+                             </div>
+                             {/* 相棒のオーブを変える */}
                             <div>
                                 <p className="text-[10px] text-white/30 uppercase tracking-widest mb-2">相棒のオーブ（話し方）を変える</p>
                                 <div className="grid grid-cols-3 gap-2">
@@ -954,20 +896,6 @@ export default function MyPage() {
                                 <p className="mt-2 text-[10px] text-white/30">変えても鑑定結果（占いの中身）は同じ。話し方（口調）だけ変わります。</p>
                             </div>
 
-                            {!userData.isPremium && isLaunchFreeActive() && (
-                                <div className="mt-5 pt-5 border-t border-white/8">
-                                    <p className="text-[10px] text-white/30 uppercase tracking-widest mb-2">正式版のお知らせ</p>
-                                    <button
-                                        onClick={() => { setShowAccount(false); track('paywall_view', { source: 'settings' }); setShowFounding(true); }}
-                                        className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-amber-300/20 bg-amber-400/[0.06] hover:bg-amber-400/10 transition-all text-left">
-                                        <span className="min-w-0">
-                                            <span className="block text-[12px] text-white">正式版（{PREMIUM_PRICE_LABEL}予定）の開始をお知らせ</span>
-                                            <span className="block text-[10px] text-white/40">{launchFreeUntilLabel() ? `${launchFreeUntilLabel()}まで無料開放中` : '無料開放中'}</span>
-                                        </span>
-                                        <span className="flex-none text-amber-200/80 text-[11px] font-bold">受け取る ›</span>
-                                    </button>
-                                </div>
-                            )}
                         </motion.div>
                     </motion.div>
                 )}
