@@ -142,6 +142,7 @@ test('profile calculation failure never returns or logs private inputs or provid
     'next/server': { NextResponse: responseMock() },
     '@/data/questions': { QUESTIONS: [] },
     '@/lib/engine/profile': { buildGrandProfile: () => { throw new Error('fictional-sensitive-provider-detail'); } },
+    '@/lib/engine/birth-input': load('lib/engine/birth-input.ts', {}),
     '@/lib/engine/summarize': {}, '@/lib/character': {}, '@/lib/prisma': {}, '@/lib/auth': {},
     '@/lib/ai-safety': { evaluateAiSafetyInput: () => ({ action: 'allow', sanitizedText: '' }) },
     '@/lib/ai-safety-log': {},
@@ -150,6 +151,24 @@ test('profile calculation failure never returns or logs private inputs or provid
   assert.equal(res.status, 500);
   assert.equal(Object.hasOwn(res.body, 'detail'), false);
   assert.doesNotMatch(JSON.stringify(res.body) + emitted.join('\n'), /fictional-sensitive|fictional-birth|fictional-private/);
+});
+
+test('invalid birth data stops profile generation before a paid model call', async () => {
+  const { BirthInputError } = load('lib/engine/birth-input.ts', {});
+  let modelCalls = 0;
+  const route = load('app/api/divine/route.ts', {
+    '@anthropic-ai/sdk': class { messages = { create: async () => { modelCalls++; throw new Error('Must not call model'); } }; },
+    'next/server': { NextResponse: responseMock() }, '@/data/questions': { QUESTIONS: [] },
+    '@/lib/engine/profile': { buildGrandProfile: () => { throw new BirthInputError('invalid_date'); } },
+    '@/lib/engine/birth-input': { BirthInputError },
+    '@/lib/engine/summarize': {}, '@/lib/character': {}, '@/lib/prisma': {}, '@/lib/auth': {},
+    '@/lib/ai-safety': { evaluateAiSafetyInput: () => ({ action: 'allow', sanitizedText: '' }) }, '@/lib/ai-safety-log': {},
+  }, { ANTHROPIC_API_KEY: 'fixture-only' });
+  const res = await route.POST({ json: async () => ({ userProfile: { birthDate: '2024-02-31' } }) });
+  assert.equal(res.status, 422);
+  assert.equal(res.body.code, 'invalid_date');
+  assert.equal(modelCalls, 0);
+  assert.doesNotMatch(JSON.stringify(res.body), /2024-02-31/);
 });
 
 test('email delivery errors do not log recipient, reset URL or provider response body', async () => {

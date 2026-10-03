@@ -16,6 +16,7 @@ import {
   Illumination,
   SearchSunLongitude,
 } from 'astronomy-engine';
+import { BirthInputError, parseBirthDateTime } from './birth-input';
 
 // 'YYYY-MM-DD' + 'HH:mm' + tzオフセット(分) → UTCのDateを作る
 export function toUTCDate(
@@ -23,15 +24,11 @@ export function toUTCDate(
   birthTime?: string,
   tzOffsetMinutes: number = 540 // 既定はJST(+9h)
 ): { date: Date; hasExactTime: boolean } {
-  const [y, m, d] = birthDate.split('-').map(Number);
-  const hasExactTime = !!birthTime;
-  const [hh, mm] = (birthTime || '12:00').split(':').map(Number);
-  const off = Number.isFinite(tzOffsetMinutes) ? tzOffsetMinutes : 540;
+  const { localAsUTC } = parseBirthDateTime(birthDate, birthTime);
+  const hasExactTime = birthTime !== undefined;
+  if (!Number.isFinite(tzOffsetMinutes) || Math.abs(tzOffsetMinutes) > 14 * 60) throw new BirthInputError('invalid_offset');
   // ローカル時刻をUTCへ：UTC = local - offset
-  let utcMs = Date.UTC(y, m - 1, d, hh, mm) - off * 60_000;
-  // 不正な日付になった場合は正午UTCで安全にフォールバック（落とさない）
-  if (Number.isNaN(utcMs)) utcMs = Date.UTC(y, m - 1, d, 12, 0);
-  if (Number.isNaN(utcMs)) utcMs = Date.now();
+  const utcMs = localAsUTC.getTime() - tzOffsetMinutes * 60_000;
   return { date: new Date(utcMs), hasExactTime };
 }
 

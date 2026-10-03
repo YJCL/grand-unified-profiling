@@ -7,6 +7,9 @@ import type { Biorhythm, MoonState, DailyState, GrandProfile } from './types';
 import { moonPhaseInfo, toUTCDate } from './ephemeris';
 import { computeTransits } from './transits';
 import { computeSukuyo } from './sukuyo';
+import { ORBA_CALCULATION_VERSION } from './version';
+const JST_OFFSET_MS = 9 * 3_600_000;
+const jstDate = (date: Date) => new Date(date.getTime() + JST_OFFSET_MS).toISOString().slice(0, 10);
 
 export function computeBiorhythm(birthDate: string, targetDate: Date): Biorhythm {
   const { date: birth } = toUTCDate(birthDate);
@@ -54,7 +57,8 @@ export function computeDailyState(profile: GrandProfile, target: Date = new Date
   const score = Math.max(0, Math.min(100, Math.round(transitScore * 0.7 + bioScore * 0.3)));
 
   return {
-    date: target.toISOString().split('T')[0],
+    date: jstDate(target),
+    calculationVersion: ORBA_CALCULATION_VERSION,
     score,
     phase: score >= 55 ? 'attack' : 'defense',
     biorhythm: bio,
@@ -68,14 +72,14 @@ export function computeDailyState(profile: GrandProfile, target: Date = new Date
 export function computeScoreRange(
   profile: GrandProfile,
   startOffsetDays: number,
-  count: number
+  count: number,
+  reference: Date = new Date()
 ): { date: string; score: number; phase: 'attack' | 'defense'; moon: string }[] {
   const out = [];
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // Daily logs/counters use JST. Do not use the host's local midnight or DST rules.
+  const { date: today } = toUTCDate(jstDate(reference), '00:00', 540);
   for (let i = 0; i < count; i++) {
-    const d = new Date(today);
-    d.setDate(today.getDate() + startOffsetDays + i);
+    const d = new Date(today.getTime() + (startOffsetDays + i) * 86_400_000);
     const s = computeDailyState(profile, d);
     out.push({ date: s.date, score: s.score, phase: s.phase, moon: s.moon.phaseName });
   }

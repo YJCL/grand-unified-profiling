@@ -104,8 +104,9 @@ export function computeWesternAstrology(
     return {
       planet: PLANET_JA[p],
       sign,
-      degree: Math.round(degree * 100) / 100,
-      longitude: Math.round(longitude * 1000) / 1000,
+      // Round only for display: rounding here can produce 30 degrees in the previous sign.
+      degree,
+      longitude,
       retrograde: isRetrograde(p, date),
       sabian: sabianPointer(longitude),
     };
@@ -127,8 +128,8 @@ export function computeWesternAstrology(
     const { asc, mc } = computeAscMc(date, opts.lat, opts.lon);
     const a = signOf(asc);
     const m = signOf(mc);
-    result.ascendant = { sign: a.sign, degree: Math.round(a.degree * 100) / 100, longitude: Math.round(asc * 1000) / 1000 };
-    result.midheaven = { sign: m.sign, degree: Math.round(m.degree * 100) / 100, longitude: Math.round(mc * 1000) / 1000 };
+    result.ascendant = { sign: a.sign, degree: a.degree, longitude: asc };
+    result.midheaven = { sign: m.sign, degree: m.degree, longitude: mc };
     result.hasAscendant = true;
   }
 

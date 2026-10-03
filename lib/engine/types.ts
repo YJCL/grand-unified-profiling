@@ -16,7 +16,8 @@ export type BirthInput = {
   birthPlace?: string; // 自由入力地名
   lat?: number;        // 緯度（ジオコーディング後）
   lon?: number;        // 経度
-  tzOffsetMinutes?: number; // 出生地のUTCオフセット（分）。未指定なら +540(JST)と仮定
+  timeZone?: string;   // Explicit IANA zone; coordinates alone do not determine a timezone.
+  tzOffsetMinutes?: number; // Explicit birth-time offset; otherwise resolve the supplied/matched zone.
   gender?: string;
 };
 
@@ -115,12 +116,17 @@ export type Sukuyo = {
 // ── 静的プロフィール（生涯不変の計算結果） ───────────────
 export type GrandProfile = {
   meta: {
+    calculationVersion?: string; // Missing on legacy snapshots; never infer their calculation version.
     birthDate: string;
     birthTime?: string;
     hasExactTime: boolean;
     birthPlace?: string;
     lat?: number;
     lon?: number;
+    timeZone?: string;
+    tzOffsetMinutes?: number;
+    locationConfidence?: 'exact' | 'alias' | 'fallback' | 'explicit';
+    calculationAssumptions?: string[];
     generatedAt: string;
   };
   numerology: Numerology;
@@ -152,6 +158,7 @@ export type TransitHit = {
   harmony: '吉' | '凶' | '中';
 };
 export type DailyState = {
+  calculationVersion?: string;
   date: string;
   score: number;        // 0〜100（出生図を踏まえた総合運気）
   phase: 'attack' | 'defense'; // 攻め / 守り

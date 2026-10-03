@@ -1,0 +1,54 @@
+{
+  "reference": "NASA/JPL Horizons, geocentric observer 500@399, apparent ecliptic longitude of date, quantity31",
+  "limits": "Four bodies at two fictional instants; no certification of all bodies/dates/ASC/MC or predictive interpretations.",
+  "rows": [
+    {
+      "planet": "sun",
+      "date": "2000-01-01T12:00:00Z",
+      "referenceLongitude": 280.3689092,
+      "source": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND=%2710%27&OBJ_DATA=NO&MAKE_EPHEM=YES&EPHEM_TYPE=OBSERVER&CENTER=500%40399&START_TIME=2000-01-01%2012%3A00&STOP_TIME=2000-01-01%2012%3A01&STEP_SIZE=1%20m&QUANTITIES=31&CSV_FORMAT=YES"
+    },
+    {
+      "planet": "moon",
+      "date": "2000-01-01T12:00:00Z",
+      "referenceLongitude": 223.323786,
+      "source": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND=%27301%27&OBJ_DATA=NO&MAKE_EPHEM=YES&EPHEM_TYPE=OBSERVER&CENTER=500%40399&START_TIME=2000-01-01%2012%3A00&STOP_TIME=2000-01-01%2012%3A01&STEP_SIZE=1%20m&QUANTITIES=31&CSV_FORMAT=YES"
+    },
+    {
+      "planet": "mercury",
+      "date": "2000-01-01T12:00:00Z",
+      "referenceLongitude": 271.8892699,
+      "source": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND=%27199%27&OBJ_DATA=NO&MAKE_EPHEM=YES&EPHEM_TYPE=OBSERVER&CENTER=500%40399&START_TIME=2000-01-01%2012%3A00&STOP_TIME=2000-01-01%2012%3A01&STEP_SIZE=1%20m&QUANTITIES=31&CSV_FORMAT=YES"
+    },
+    {
+      "planet": "mars",
+      "date": "2000-01-01T12:00:00Z",
+      "referenceLongitude": 327.9632921,
+      "source": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND=%27499%27&OBJ_DATA=NO&MAKE_EPHEM=YES&EPHEM_TYPE=OBSERVER&CENTER=500%40399&START_TIME=2000-01-01%2012%3A00&STOP_TIME=2000-01-01%2012%3A01&STEP_SIZE=1%20m&QUANTITIES=31&CSV_FORMAT=YES"
+    },
+    {
+      "planet": "sun",
+      "date": "2024-02-04T08:27:00Z",
+      "referenceLongitude": 314.9998979,
+      "source": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND=%2710%27&OBJ_DATA=NO&MAKE_EPHEM=YES&EPHEM_TYPE=OBSERVER&CENTER=500%40399&START_TIME=2024-02-04%2008%3A27&STOP_TIME=2024-02-04%2008%3A28&STEP_SIZE=1%20m&QUANTITIES=31&CSV_FORMAT=YES"
+    },
+    {
+      "planet": "moon",
+      "date": "2024-02-04T08:27:00Z",
+      "referenceLongitude": 241.0665068,
+      "source": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND=%27301%27&OBJ_DATA=NO&MAKE_EPHEM=YES&EPHEM_TYPE=OBSERVER&CENTER=500%40399&START_TIME=2024-02-04%2008%3A27&STOP_TIME=2024-02-04%2008%3A28&STEP_SIZE=1%20m&QUANTITIES=31&CSV_FORMAT=YES"
+    },
+    {
+      "planet": "mercury",
+      "date": "2024-02-04T08:27:00Z",
+      "referenceLongitude": 298.6795515,
+      "source": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND=%27199%27&OBJ_DATA=NO&MAKE_EPHEM=YES&EPHEM_TYPE=OBSERVER&CENTER=500%40399&START_TIME=2024-02-04%2008%3A27&STOP_TIME=2024-02-04%2008%3A28&STEP_SIZE=1%20m&QUANTITIES=31&CSV_FORMAT=YES"
+    },
+    {
+      "planet": "mars",
+      "date": "2024-02-04T08:27:00Z",
+      "referenceLongitude": 293.1810045,
+      "source": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND=%27499%27&OBJ_DATA=NO&MAKE_EPHEM=YES&EPHEM_TYPE=OBSERVER&CENTER=500%40399&START_TIME=2024-02-04%2008%3A27&STOP_TIME=2024-02-04%2008%3A28&STEP_SIZE=1%20m&QUANTITIES=31&CSV_FORMAT=YES"
+    }
+  ]
+}

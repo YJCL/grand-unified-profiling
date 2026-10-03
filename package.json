@@ -10,7 +10,8 @@
     "test:ai-safety": "node --test scripts/test-ai-safety.mjs",
     "postinstall": "prisma generate",
     "test:security": "node --test scripts/test-security-boundaries.mjs",
-    "test:lint-glob": "node --test scripts/test-lint-glob.mjs"
+    "test:lint-glob": "node --test scripts/test-lint-glob.mjs",
+    "test:engine": "node --test scripts/test-engine.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.111.0",

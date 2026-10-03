@@ -20,14 +20,14 @@ import hexData from '@/data/iching/hexagrams.json';
 // JSON ファイルの "binary" フィールドは参考値だが信頼せず、ここで再計算する。
 function trigramBinary(triNum: number): string {
   const t = (hexData.trigrams as Record<string, { binary: string }>)[String(triNum)];
-  return t.binary; // "111" 等の3文字（上=index0=上爻, 下=index2=下爻）
+  return t.binary; // Bottom to top: 巽=011, 兌=110, 震=100, 艮=001.
 }
 
 // 易の卦の binary：下→上 の6ビット = 下卦(下→上) + 上卦(下→上)。
-// trigram.binary は「上→下」の順で 3 文字（"111"=乾は3本陽）なので reverse する。
+// The data already lists each trigram bottom to top. Reversing swaps 巽/兌 and 震/艮.
 function hexagramBinaryFromTrigrams(upperNum: number, lowerNum: number): string {
-  const lower = trigramBinary(lowerNum).split('').reverse().join(''); // 下→上
-  const upper = trigramBinary(upperNum).split('').reverse().join(''); // 下→上
+  const lower = trigramBinary(lowerNum);
+  const upper = trigramBinary(upperNum);
   return lower + upper; // 全体も 下→上
 }
 
@@ -39,6 +39,7 @@ const BINARY_TO_NUM: Record<string, number> = (() => {
   }
   return m;
 })();
+const DATA_VERSION = `${hexData.version}/bottom-up-v2`;
 
 export type LineValue = 6 | 7 | 8 | 9;
 
@@ -172,7 +173,7 @@ export function castIching(seed?: string): IchingResult {
     changingLines,
     transformed,
     binary: { primary: primaryBinary, transformed: transformedBinary },
-    dataVersion: hexData.version,
+    dataVersion: DATA_VERSION,
     seed,
   };
 }
@@ -199,7 +200,20 @@ export function reconstructIching(values: LineValue[]): IchingResult {
     changingLines,
     transformed,
     binary: { primary: primaryBinary, transformed: transformedBinary },
-    dataVersion: hexData.version,
+    dataVersion: DATA_VERSION,
+  };
+}
+
+// Saved numbers and version are authoritative for history. Never silently relabel an old reading.
+export function restoreIchingSnapshot(values: LineValue[], snapshot: {
+  primaryNum: number; transformedNum: number | null; dataVersion: string;
+}): IchingResult {
+  const validated = reconstructIching(values);
+  return {
+    ...validated,
+    primary: hexagramByNumber(snapshot.primaryNum),
+    transformed: snapshot.transformedNum === null ? null : hexagramByNumber(snapshot.transformedNum),
+    dataVersion: snapshot.dataVersion,
   };
 }
 

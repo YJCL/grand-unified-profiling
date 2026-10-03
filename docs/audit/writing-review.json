@@ -1,0 +1,19 @@
+{
+  "document": "docs/ENGINE_AUDIT_2026-10-03.md",
+  "mode": "manual checklist and structure review",
+  "automaticLint": "Attempted once; unavailable because the existing Python environment lacks sudachipy. No environment changes were made.",
+  "reviewed": [
+    "Conclusion and publication status are stated first.",
+    "Verified calculations, interpretation, mocked AI output and unverified predictive validity are distinguished.",
+    "The 800-date sample is described exactly; it is not represented as every date in the range.",
+    "The lunar-javascript distribution archive is identified as the tested source; differing gitHead source is disclosed.",
+    "Calendar rollover, timezone assumptions and the remaining late-Zi-hour discrepancy are explicit.",
+    "Existing snapshots, unimplemented opt-in recalculation and deployment approval are distinguished.",
+    "Tables compress parallel comparisons; longer reasoning remains in paragraphs.",
+    "The remaining technical terms are retained for code review and reproduction."
+  ],
+  "retained": [
+    { "item": "One contrast construction", "reason": "Distinguishes server controls from merely hiding a UI during a service pause." },
+    { "item": "Technical identifiers and pinned URLs", "reason": "Necessary to reproduce the calculation audit and review exact code scope." }
+  ]
+}

@@ -2,13 +2,14 @@
 //  ジオコーディング & タイムゾーン解決
 //  出生地（自由入力）→ 緯度経度 + IANAタイムゾーン。
 //  さらに「出生時刻の瞬間」の歴史的UTCオフセット（DST込み）を
-//  Node内蔵のICU(tzdata)経由で正確に求める。
+//  Node内蔵のICU(tzdata)経由で求める。曖昧・非存在の壁時計時刻は拒否する。
 //
 //  ※ content安定の鍵はlat/lon精度より「正しいタイムゾーン」。
 //    1時間のDST誤差はアセンダントを星座1つ分ずらすため。
 // ─────────────────────────────────────────────────────────────
 
 import cityTimezones from 'city-timezones';
+import { BirthInputError, parseBirthDateTime } from './birth-input';
 
 export type GeoResult = {
   lat: number;
@@ -60,19 +61,19 @@ export function geocodePlace(place?: string): GeoResult {
 }
 
 // ── 指定IANAゾーン・指定ローカル壁時計時刻の UTCオフセット(分) ──
-// Node内蔵ICUの履歴tzdataを使い、歴史的DSTも正確に反映する。
+// Use the runtime's ICU history. Missing/ambiguous wall times must not silently become JST.
 function instantOffsetMinutes(iana: string, instant: Date): number {
   const dtf = new Intl.DateTimeFormat('en-US', {
-    timeZone: iana, hour12: false,
+    timeZone: iana, hourCycle: 'h23',
     year: 'numeric', month: '2-digit', day: '2-digit',
     hour: '2-digit', minute: '2-digit', second: '2-digit',
   });
   const p: Record<string, string> = {};
   for (const part of dtf.formatToParts(instant)) p[part.type] = part.value;
-  let hour = Number(p.hour);
-  if (hour === 24) hour = 0; // en-US は 24:xx を返すことがある
-  const asUTC = Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day), hour, Number(p.minute), Number(p.second));
-  return Math.round((asUTC - instant.getTime()) / 60000);
+  const local = new Date(0);
+  local.setUTCFullYear(Number(p.year), Number(p.month) - 1, Number(p.day));
+  local.setUTCHours(Number(p.hour), Number(p.minute), Number(p.second), 0);
+  return (local.getTime() - instant.getTime()) / 60000;
 }
 
 // ローカル壁時計時刻（出生地）→ 正しいUTCオフセット(分)
@@ -81,18 +82,19 @@ export function resolveTzOffset(
   birthDate: string,
   birthTime: string = '12:00'
 ): number {
-  const [y, m, d] = birthDate.split('-').map(Number);
-  const [hh, mm] = birthTime.split(':').map(Number);
-  // 壁時計をUTCと見なした仮の瞬間
+  const { localAsUTC } = parseBirthDateTime(birthDate, birthTime);
+  const wallMs = localAsUTC.getTime();
   try {
-    const guess = new Date(Date.UTC(y, m - 1, d, hh, mm));
-    let offset = instantOffsetMinutes(iana, guess);
-    if (!Number.isFinite(offset)) return 540;
-    // 真の瞬間で再評価（DST境界の補正）
-    const real = new Date(guess.getTime() - offset * 60000);
-    offset = instantOffsetMinutes(iana, real);
-    return Number.isFinite(offset) ? offset : 540;
-  } catch {
-    return 540; // 何かあってもJSTにフォールバック（落とさない）
+    // Check offsets on both sides of a transition, then round-trip every candidate.
+    const offsets = new Set([-36, -24, -12, 0, 12, 24, 36].map(hours =>
+      instantOffsetMinutes(iana, new Date(wallMs + hours * 3_600_000))));
+    const candidates = [...offsets].filter(offset => Number.isFinite(offset) &&
+      instantOffsetMinutes(iana, new Date(wallMs - offset * 60_000)) === offset);
+    if (candidates.length === 0) throw new BirthInputError('nonexistent_local_time');
+    if (candidates.length > 1) throw new BirthInputError('ambiguous_local_time');
+    return candidates[0];
+  } catch (error) {
+    if (error instanceof BirthInputError) throw error;
+    throw new BirthInputError('invalid_timezone');
   }
 }

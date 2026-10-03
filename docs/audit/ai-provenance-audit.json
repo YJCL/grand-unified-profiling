@@ -1,0 +1,16 @@
+{
+  "modelCalled": false,
+  "productionDataUsed": false,
+  "actualSun": {
+    "sign": "山羊座",
+    "degree": 9.986361123677852
+  },
+  "mockedIncorrectOutput": {
+    "coreNature": "太陽は魚座1度です。"
+  },
+  "outputSafetyReviewFlagged": false,
+  "outputAfterReview": {
+    "coreNature": "太陽は魚座1度です。"
+  },
+  "conclusion": "This demonstrates the safety text filter does not verify astrological facts. It does not establish the frequency of actual model errors."
+}

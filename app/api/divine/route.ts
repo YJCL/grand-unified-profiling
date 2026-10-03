@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { type UserProfile, type Question } from '@/types';
 import { QUESTIONS } from '@/data/questions';
 import { buildGrandProfile } from '@/lib/engine/profile';
+import { BirthInputError } from '@/lib/engine/birth-input';
 import { summarizeProfile } from '@/lib/engine/summarize';
 import { characterToneBlock } from '@/lib/character';
 import { prisma } from '@/lib/prisma';
@@ -88,7 +89,10 @@ export async function POST(request: Request) {
                 gender: userProfile.gender || undefined,
             });
             factSheet = summarizeProfile(profile);
-        } catch {
+        } catch (error) {
+            if (error instanceof BirthInputError) {
+                return NextResponse.json({ error: '出生データを確認してください。', code: error.code }, { status: 422 });
+            }
             throw new Error('Profile calculation failed');
         }
 

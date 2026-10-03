@@ -32,7 +32,9 @@ function makePillar(stemIdx: number, branchIdx: number): Pillar {
 export function getSolarYear(date: Date): number {
   const civilYear = date.getUTCFullYear();
   // その年の立春を探す（2月頭付近）
-  const risshun = findSolarLongitudeDate(315, new Date(Date.UTC(civilYear, 0, 20)), 30);
+  const searchStart = new Date(Date.UTC(2000, 0, 20));
+  searchStart.setUTCFullYear(civilYear); // Date.UTC remaps years 0..99 into the 1900s.
+  const risshun = findSolarLongitudeDate(315, searchStart, 30);
   if (risshun && date.getTime() < risshun.getTime()) return civilYear - 1;
   return civilYear;
 }
@@ -75,9 +77,11 @@ function monthPillar(yearStemIdx: number, sector: number): Pillar {
 }
 
 // 日柱（JDNから六十干支の通し番号を出す）
-// アンカーは権威ある万年暦で較正: 2000-12-25(JDN=2451904)=己未(index55)。
-//   index = (jdn - 2451849) mod 60   （2451904 - 55 = 2451849）
-const DAY_ANCHOR_JDN = 2451849;
+// 2000-01-07 (JDN=2451551) is 甲子 (index0); 2000-12-25 is 丁巳 (index53).
+// Independently checked against GNU Emacs cal-china.el and lunar-javascript 1.7.7.
+// JDN - 2451851 is congruent to JDN + 49 (mod 60).
+// Preserve the existing local civil-midnight rollover; no apparent-solar-time correction.
+const DAY_ANCHOR_JDN = 2451851;
 function dayPillar(y: number, m: number, d: number): { pillar: Pillar; stemIdx: number } {
   const jdn = julianDayNumber(y, m, d);
   const idx = (((jdn - DAY_ANCHOR_JDN) % 60) + 60) % 60;

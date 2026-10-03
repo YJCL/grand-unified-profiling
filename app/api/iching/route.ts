@@ -11,12 +11,13 @@ import { prisma } from '@/lib/prisma';
 import { checkUserAccess } from '@/lib/auth';
 import {
   castIching,
-  reconstructIching,
+  restoreIchingSnapshot,
   normalizeQuestion,
   hashQuestion,
   type LineValue,
 } from '@/lib/engine/iching';
 import { buildProfileFromUser } from '@/lib/engine/profile';
+import { ORBA_CALCULATION_VERSION } from '@/lib/engine/version';
 import { isLaunchFreeActive } from '@/lib/launch';
 import { jstDateKey, jstDayRange } from '@/lib/jst';
 import {
@@ -260,7 +261,7 @@ export async function POST(request: Request) {
         changingLines: JSON.stringify(cast.changingLines),
         interpretation: JSON.stringify({ ...safetyOutput.value, riskFlags }),
         dataVersion: cast.dataVersion,
-        profileVersion: access.user.id, // 後でフリーズ版IDに置換可
+        profileVersion: access.user.birthDate ? ORBA_CALCULATION_VERSION : null,
         seed: cast.seed ?? null,
       },
     });
@@ -314,7 +315,7 @@ function formatReading(r: {
   primaryNum: number; transformedNum: number | null; dataVersion: string;
 }) {
   const values = JSON.parse(r.lineValues) as LineValue[];
-  const rebuilt = reconstructIching(values);
+  const rebuilt = restoreIchingSnapshot(values, r);
   return {
     id: r.id,
     question: r.question,
