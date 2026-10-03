@@ -1,6 +1,5 @@
 'use client';
 import { jstDateKey } from '@/lib/jst';
-import { ORBA_CALCULATION_VERSION } from '@/lib/engine/version';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -88,7 +87,7 @@ export default function CalendarPage() {
 
     const todayScore = getScore(today);
 
-    if (scoreError) return <div className="orba-service-page hig-shell"><OrbaAppNav /><main className="max-w-lg mx-auto p-8 text-white"><h1>暦を計算できませんでした</h1><p role="alert">{scoreError}</p><button className="btn-gold mt-4 px-4 py-2" onClick={() => router.push("/mypage")}>マイページに戻る</button></main></div>;
+    if (scoreError) return <div className="orba-service-page hig-shell"><OrbaAppNav /><main className="max-w-lg mx-auto p-8 text-white"><h1>暦を開けませんでした</h1><p role="alert">{scoreError}</p><button className="btn-gold mt-4 px-4 py-2" onClick={() => router.push("/mypage")}>マイページに戻る</button></main></div>;
     if (!birthDate) return (
         <div className="min-h-screen bg-mesh flex items-center justify-center">
             <div className="w-10 h-10 rounded-full border-2 border-dashed border-yellow-400/50 animate-spin" />
@@ -107,7 +106,6 @@ export default function CalendarPage() {
                         <ChevronLeft className="w-4 h-4" /> 戻る
                     </button>
                     <h1 className="text-base font-serif-jp text-white/80">運気カレンダー</h1>
-                    <p className="text-xs text-white/50">現在の計算版：{ORBA_CALCULATION_VERSION}。保存済み鑑定は変更していません。</p>
                     <div className="w-12" />
                 </header>
 

@@ -125,7 +125,7 @@ export type GrandProfile = {
     lon?: number;
     timeZone?: string;
     tzOffsetMinutes?: number;
-    locationConfidence?: 'exact' | 'alias' | 'fallback' | 'explicit';
+    locationConfidence?: 'exact' | 'alias' | 'locality' | 'timezone' | 'fallback' | 'explicit';
     calculationAssumptions?: string[];
     generatedAt: string;
   };

@@ -48,7 +48,11 @@ export function buildGrandProfile(input: BirthInput): GrandProfile {
   const geo = hasCoordinates
     ? { ...place, lat: input.lat!, lon: input.lon!, confidence: 'explicit' as const }
     : place;
+  const hasKnownCoordinates = geo.confidence !== 'fallback' && geo.confidence !== 'timezone';
   const timeZone = input.timeZone ?? (place.confidence !== 'fallback' ? place.iana : undefined);
+  if (place.confidence === 'fallback' && input.birthPlace?.trim() && timeZone === undefined && input.tzOffsetMinutes === undefined) {
+    throw new BirthInputError('unknown_place');
+  }
   if (hasCoordinates && timeZone === undefined && input.tzOffsetMinutes === undefined) {
     throw new BirthInputError('coordinates_require_timezone');
   }
@@ -73,7 +77,7 @@ export function buildGrandProfile(input: BirthInput): GrandProfile {
   const hasKnownTimeZone = timeZone !== undefined || input.tzOffsetMinutes !== undefined;
   const calculationAssumptions: string[] = [];
   if (!hasExactTime) calculationAssumptions.push('出生時刻が未入力のため現地正午を仮定しています。');
-  if (geo.confidence === 'fallback') calculationAssumptions.push('出生地を特定できないためアセンダントとMCは算出していません。');
+  if (!hasKnownCoordinates) calculationAssumptions.push('出生地を市区町村まで特定できないためアセンダントとMCは算出していません。');
   if (!hasKnownTimeZone) calculationAssumptions.push('出生地のタイムゾーンが不明のため日本標準時を仮定しています。');
 
   // 天体計算用のUTC日時
@@ -86,8 +90,8 @@ export function buildGrandProfile(input: BirthInput): GrandProfile {
       birthTime,
       hasExactTime,
       birthPlace: input.birthPlace,
-      lat: geo.lat,
-      lon: geo.lon,
+      lat: hasKnownCoordinates ? geo.lat : undefined,
+      lon: hasKnownCoordinates ? geo.lon : undefined,
       timeZone,
       tzOffsetMinutes: tz,
       locationConfidence: geo.confidence,
@@ -101,7 +105,7 @@ export function buildGrandProfile(input: BirthInput): GrandProfile {
     westernAstrology: computeWesternAstrology(utc, {
       lat: geo.lat,
       lon: geo.lon,
-      hasExactTime: hasExactTime && geo.confidence !== 'fallback',
+      hasExactTime: hasExactTime && hasKnownCoordinates,
     }),
     humanDesign: computeHumanDesign(utc, hasExactTime && hasKnownTimeZone),
     sukuyo: computeSukuyo(utc),

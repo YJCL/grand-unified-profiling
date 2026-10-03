@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, MessageCircle, Moon, Sparkles, Sun, UserRound } from "lucide-react";
+import { CalendarDays, Compass, Moon, Sparkles, Sun, UserRound } from "lucide-react";
 import { OrbaMark } from "./OrbaMark";
 import { useTheme } from "./ThemeProvider";
 
 const items = [
   { href: "/mypage", label: "今日", icon: Sparkles },
-  { href: "/chat", label: "会話履歴", icon: MessageCircle },
+  { href: "/mypage#iching", label: "易", icon: Compass },
   { href: "/calendar", label: "暦", icon: CalendarDays },
   { href: "/mypage#profile", label: "プロファイル", icon: UserRound },
 ];
@@ -41,7 +41,7 @@ export function OrbaAppNav() {
         <div className="orba-app-nav__links">
           {items.map(({ href, label, icon: Icon }) => {
             const target = href.split("#")[0];
-            const active = pathname === target && label !== "プロファイル";
+            const active = pathname === target && !href.includes("#");
             return (
               <Link key={label} href={href} className={active ? "is-active" : ""}>
                 <Icon size={17} />
@@ -50,9 +50,6 @@ export function OrbaAppNav() {
             );
           })}
         </div>
-        <p className="orba-app-nav__privacy">
-          新規受付は停止し、チャット機能は終了しました。既存の鑑定・暦・易は利用できます。
-        </p>
       </nav>
     </>
   );

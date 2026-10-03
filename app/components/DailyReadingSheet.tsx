@@ -1,11 +1,11 @@
 'use client';
 
-import { CalculationVersionNote } from './CalculationVersionNote';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowRight, BookOpen, Crown, Loader2, Ticket, X } from 'lucide-react';
 import type { DailyReadingContent } from '@/types';
+import { ModalPortal } from './ModalPortal';
 
 type ReadingStatus = {
   reading: DailyReadingContent | null;
@@ -78,6 +78,7 @@ export function DailyReadingSheet({
   const reading = status?.reading;
 
   return (
+    <ModalPortal>
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="orba-daily-reading"
@@ -109,7 +110,6 @@ export function DailyReadingSheet({
           <article className="orba-daily-reading__paper">
             <p className="orba-daily-reading__date">{reading.date.replaceAll('-', '.')}</p>
             <h3>{reading.title}</h3>
-            <CalculationVersionNote calculation={reading.calculation} />
             <p className="orba-daily-reading__opening">{reading.opening}</p>
             <div className="orba-daily-reading__sections">
               {SECTIONS.map(({ key, label }) => (
@@ -121,8 +121,8 @@ export function DailyReadingSheet({
             </div>
             <blockquote>{reading.closing}</blockquote>
             <p className="orba-daily-reading__ai-note is-paper">
-              この鑑定文はAIを用いて生成しています。重要な判断は、現実の情報や専門家の助言も確認してください。
-              <Link href="/safety" target="_blank">AI利用と安全性</Link>
+              重要な判断には、現実の情報や専門家の助言も参考にしてください。
+              <Link href="/safety" target="_blank">利用上の注意</Link>
             </p>
           </article>
         ) : (
@@ -130,8 +130,8 @@ export function DailyReadingSheet({
             <h3>今日を、ひとつの読み物に。</h3>
             <p>プロフィールと今日の星・暦を重ね、仕事、人との間、心の内側、動くタイミングまで丁寧に読み解きます。</p>
             <p className="orba-daily-reading__ai-note">
-              占術計算はプログラムで行い、鑑定文の生成にAIを使用します。結果は未来や成果を保証するものではありません。
-              <Link href="/safety" target="_blank">AI利用と安全性</Link>
+              結果は未来や成果を保証するものではありません。
+              <Link href="/safety" target="_blank">利用上の注意</Link>
             </p>
 
             {status?.included ? (
@@ -171,5 +171,6 @@ export function DailyReadingSheet({
         )}
       </motion.section>
     </motion.div>
+    </ModalPortal>
   );
 }
