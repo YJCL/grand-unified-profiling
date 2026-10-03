@@ -1,0 +1,158 @@
+{
+  "version": 1,
+  "input": "Only synthetic dates; no DB, model calls, secrets or user data.",
+  "references": {
+    "gnu": "https://raw.githubusercontent.com/emacs-mirror/emacs/master/lisp/calendar/cal-china.el",
+    "lunar": "https://github.com/6tail/lunar-javascript",
+    "lunarVersion": "1.7.7"
+  },
+  "sampleCount": 800,
+  "independentReferenceDisagreements": 0,
+  "orbaDeltas": {
+    "2": 800
+  },
+  "fixtures": [
+    {
+      "date": "1900-02-28",
+      "gnu": "壬申",
+      "lunar": "壬申",
+      "orba": "甲戌"
+    },
+    {
+      "date": "1900-03-01",
+      "gnu": "癸酉",
+      "lunar": "癸酉",
+      "orba": "乙亥"
+    },
+    {
+      "date": "2000-01-01",
+      "gnu": "戊午",
+      "lunar": "戊午",
+      "orba": "庚申"
+    },
+    {
+      "date": "2000-01-07",
+      "gnu": "甲子",
+      "lunar": "甲子",
+      "orba": "丙寅"
+    },
+    {
+      "date": "2000-02-28",
+      "gnu": "丙辰",
+      "lunar": "丙辰",
+      "orba": "戊午"
+    },
+    {
+      "date": "2000-02-29",
+      "gnu": "丁巳",
+      "lunar": "丁巳",
+      "orba": "己未"
+    },
+    {
+      "date": "2000-03-01",
+      "gnu": "戊午",
+      "lunar": "戊午",
+      "orba": "庚申"
+    },
+    {
+      "date": "2000-12-25",
+      "gnu": "丁巳",
+      "lunar": "丁巳",
+      "orba": "己未"
+    },
+    {
+      "date": "1986-05-29",
+      "gnu": "癸酉",
+      "lunar": "癸酉",
+      "orba": "乙亥"
+    },
+    {
+      "date": "2024-02-29",
+      "gnu": "癸亥",
+      "lunar": "癸亥",
+      "orba": "乙丑"
+    }
+  ],
+  "boundary": [
+    {
+      "date": "2024-02-29",
+      "time": "22:59",
+      "orba": {
+        "day": "乙丑",
+        "hour": "丁亥"
+      },
+      "alternatives": [
+        {
+          "sect": 1,
+          "day": "癸亥",
+          "hour": "癸亥"
+        },
+        {
+          "sect": 2,
+          "day": "癸亥",
+          "hour": "癸亥"
+        }
+      ]
+    },
+    {
+      "date": "2024-02-29",
+      "time": "23:00",
+      "orba": {
+        "day": "乙丑",
+        "hour": "丙子"
+      },
+      "alternatives": [
+        {
+          "sect": 1,
+          "day": "甲子",
+          "hour": "甲子"
+        },
+        {
+          "sect": 2,
+          "day": "癸亥",
+          "hour": "甲子"
+        }
+      ]
+    },
+    {
+      "date": "2024-02-29",
+      "time": "23:59",
+      "orba": {
+        "day": "乙丑",
+        "hour": "丙子"
+      },
+      "alternatives": [
+        {
+          "sect": 1,
+          "day": "甲子",
+          "hour": "甲子"
+        },
+        {
+          "sect": 2,
+          "day": "癸亥",
+          "hour": "甲子"
+        }
+      ]
+    },
+    {
+      "date": "2024-03-01",
+      "time": "00:00",
+      "orba": {
+        "day": "丙寅",
+        "hour": "戊子"
+      },
+      "alternatives": [
+        {
+          "sect": 1,
+          "day": "甲子",
+          "hour": "甲子"
+        },
+        {
+          "sect": 2,
+          "day": "甲子",
+          "hour": "甲子"
+        }
+      ]
+    }
+  ]
+}

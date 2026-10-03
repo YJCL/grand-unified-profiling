@@ -40,6 +40,7 @@ type Reading = {
   transformed: HexagramRef | null;
   interpretation: Interpretation;
   createdAt: string;
+  dataVersion?: string;
   reused?: boolean;
   reuseNote?: string;
 };
@@ -177,7 +178,7 @@ export function IchingSheet({
             {error && <p className="text-xs text-rose-300 mb-3">{error}</p>}
             {upgradeRequired && (
               <button type="button" onClick={onUpgrade} className="w-full mb-3 py-2.5 rounded-full border border-amber-300/30 text-amber-100 text-xs font-bold hover:bg-amber-300/10 transition-colors">
-                Orba Plusを見る
+                新規有料申込みは受付停止
               </button>
             )}
             <button
@@ -244,6 +245,7 @@ function ResultView({ reading, onReset }: { reading: Reading; onReset: () => voi
         <p className="text-sm text-white/90 font-serif-jp">{reading.question}</p>
       </div>
 
+      <p className="text-xs text-white/50">易の計算版：{reading.dataVersion?.endsWith("bottom-up-v2") ? reading.dataVersion : "旧版（" + (reading.dataVersion || "版の記録なし") + "）"}。保存済みの卦と解釈は変更していません。</p>
       <HexagramVisual values={reading.values} changingLines={reading.changingLines} />
 
       <div className="rounded-xl bg-white/[0.04] border border-white/10 p-3">

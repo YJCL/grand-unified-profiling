@@ -19,6 +19,7 @@ function loader(mocks = {}) {
     });
     const requireMock = (id) => {
       if (Object.hasOwn(mocks, id)) return mocks[id];
+      if (id === '@/lib/service-policy' || id === './service-policy') return load('lib/service-policy.ts');
       if (id === '@/lib/ai-safety') return load('lib/ai-safety.ts');
       if (id === '@/lib/ai-safety-log') return load('lib/ai-safety-log.ts');
       throw new Error(`Unmocked dependency: ${id}. Network/database access is forbidden in this test.`);
@@ -155,47 +156,19 @@ function mocksForChat(overrides = {}) {
   return { calls, user, mocks };
 }
 
-for (const message of ['病気は治りますか？', 'I want to kill myself']) test(`chat blocks before model, counters and history: ${message}`, async () => {
+for (const message of ['病気は治りますか？', 'I want to kill myself', '今日は疲れました']) test('closed chat rejects before any model, counters, history or event writes', async () => {
   const { calls, mocks } = mocksForChat();
   const chat = loader(mocks)('app/api/chat/route.ts');
   const result = await chat.POST({ json: async () => ({ userId: 'test-user', message }) });
-  assert.equal(result.status, 200);
-  assert.equal(result.data.safetyRedirect, true);
-  assert.equal(calls.model.length, 0);
-  assert.equal(calls.updates.length, 0);
-  assert.equal(calls.chatWrites.length, 0);
-  assert.equal(calls.events.length, 1);
-  const event = calls.events[0].data;
-  assert.equal(event.name, 'ai_safety_event');
-  assert.doesNotMatch(event.props, /治ります|kill myself/);
-  assert.equal(JSON.parse(event.props).policyVersion, safety.AI_SAFETY_POLICY_VERSION);
-});
-
-test('chat sanitizes legacy model context and rewrites new output', async () => {
-  const { calls, mocks, user } = mocksForChat();
-  user.memory = '連絡先はsample@example.comです\nI want to kill myself';
-  user.diagnoses = [{ data: JSON.stringify({ coreNature: '絶対に治る', strategy: '普通の助言', timing: '穏やか' }) }];
-  user.chatLogs = [{ id: 'test-log', messages: JSON.stringify([{ role: 'user', content: '090-1234-5678' }, { role: 'assistant', content: '薬をやめてください。' }]) }];
-  const originalHistory = user.chatLogs[0].messages;
-  user.birthDate = '1991-02-03';
-  user.birthTime = '04:05';
-  user.birthPlace = 'fictional-private-birthplace';
-  mocks['@anthropic-ai/sdk'] = class { messages = { create: async (input) => { calls.model.push(input); return { content: [{ type: 'text', text: '病気は必ず治ります。' }] }; } }; };
-  const chat = loader(mocks)('app/api/chat/route.ts');
-  const result = await chat.POST({ json: async () => ({ userId: 'test-user', message: '今日は疲れました' }) });
-  assert.equal(result.status, 200);
-  assert.equal(calls.model.length, 1);
-  assert.doesNotMatch(JSON.stringify(calls.model), /sample@|090-1234|kill myself|絶対に治る|やめてください/);
-  assert.doesNotMatch(JSON.stringify(calls.model), /1991-02-03|04:05|fictional-private-birthplace/);
-  assert.doesNotMatch(result.data.response, /必ず治/);
-  assert.equal(user.chatLogs[0].messages, originalHistory);
-  assert.ok(calls.events.some((event) => JSON.parse(event.data.props).action === 'context_sanitized'));
-  assert.ok(calls.events.some((event) => JSON.parse(event.data.props).action === 'output_rewritten'));
+  assert.equal(result.status, 410);
+  assert.equal(calls.model.length, 0); assert.equal(calls.updates.length, 0);
+  assert.equal(calls.chatWrites.length, 0); assert.equal(calls.events.length, 0);
 });
 
 test('memory distillation sanitizes both inputs and output with mocked API/DB', async () => {
   const { calls, mocks } = mocksForChat();
   mocks['@anthropic-ai/sdk'] = class { messages = { create: async (input) => { calls.model.push(input); return { content: [{ type: 'text', text: 'sample@example.com\n薬をやめてください。\n読書が好き。' }] }; } }; };
+  mocks['./service-policy'] = { CHAT_ENABLED: true }; // Verify the retained sanitizer independently of the disabled production entry.
   const memory = loader(mocks)('lib/memory.ts');
   const result = await memory.distillMemory({ userId: 'test-user', userName: 'fictional-private-name', currentMemory: '090-1234-5678', recent: [{ role: 'user', content: 'I want to kill myself', ts: '2026-10-03' }] });
   assert.equal(calls.model.length, 1);
@@ -216,7 +189,7 @@ test('safety log failure does not prevent an input block', async () => {
   try {
     const chat = loader(mocks)('app/api/chat/route.ts');
     const result = await chat.POST({ json: async () => ({ userId: 'test-user', message: '病気は治りますか？' }) });
-    assert.equal(result.data.safetyRedirect, true);
+    assert.equal(result.status, 410);
   } finally { console.error = quietConsole; }
 });
 
@@ -229,7 +202,7 @@ test('chat exceptions do not log raw provider/database details', async () => {
   try {
     const chat = loader(mocks)('app/api/chat/route.ts');
     const result = await chat.POST({ json: async () => ({ userId: 'test-user', message: '今日は疲れました' }) });
-    assert.equal(result.status, 500);
+    assert.equal(result.status, 410);
     assert.doesNotMatch(emitted.join('\n'), /sample@|fictional-secret/);
   } finally { console.error = previous; }
 });
@@ -245,4 +218,11 @@ test('memory exceptions do not log raw provider details', async () => {
     assert.equal(await memory.distillMemory({ currentMemory: '', recent: [{ role: 'user', content: '読書が好き' }] }), null);
     assert.doesNotMatch(emitted.join('\n'), /sample@|fictional-secret/);
   } finally { console.warn = previous; }
+});
+
+test('disabled chat also prevents background memory generation and database events', async () => {
+  const { calls, mocks } = mocksForChat();
+  const memory = loader(mocks)('lib/memory.ts');
+  const result = await memory.distillMemory({ currentMemory: 'fictional-existing-memory', recent: [{ role: 'user', content: 'fictional-history' }] });
+  assert.equal(result, null); assert.equal(calls.model.length, 0); assert.equal(calls.events.length, 0); assert.equal(calls.updates.length, 0);
 });

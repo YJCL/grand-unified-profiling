@@ -1,5 +1,6 @@
 'use client';
 
+import { CalculationVersionNote } from './CalculationVersionNote';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -14,7 +15,7 @@ type ReadingStatus = {
   canCreate: boolean;
 };
 
-const SECTIONS: { key: keyof DailyReadingContent; label: string }[] = [
+const SECTIONS: { key: Exclude<keyof DailyReadingContent, 'calculation'>; label: string }[] = [
   { key: 'overall', label: '今日全体の流れ' },
   { key: 'work', label: '仕事・学び' },
   { key: 'relationships', label: '人との間' },
@@ -108,6 +109,7 @@ export function DailyReadingSheet({
           <article className="orba-daily-reading__paper">
             <p className="orba-daily-reading__date">{reading.date.replaceAll('-', '.')}</p>
             <h3>{reading.title}</h3>
+            <CalculationVersionNote calculation={reading.calculation} />
             <p className="orba-daily-reading__opening">{reading.opening}</p>
             <div className="orba-daily-reading__sections">
               {SECTIONS.map(({ key, label }) => (
@@ -157,7 +159,7 @@ export function DailyReadingSheet({
               </button>
             ) : (
               <button type="button" className="orba-daily-reading__primary" onClick={onUpgrade}>
-                Orba Plusを見る <ArrowRight aria-hidden="true" />
+                新規有料申込みは受付停止 <ArrowRight aria-hidden="true" />
               </button>
             )}
             <p className="orba-daily-reading__note">生成後は、今日中なら何度でも読み返せます。</p>

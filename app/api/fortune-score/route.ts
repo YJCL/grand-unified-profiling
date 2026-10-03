@@ -1,3 +1,4 @@
+import { BirthInputError, birthInputIssue } from '@/lib/engine/birth-input';
 import { NextResponse } from 'next/server';
 import { buildProfileFromUser, buildGrandProfile } from '@/lib/engine/profile';
 import { computeScoreRange } from '@/lib/engine/daily';
@@ -22,7 +23,9 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
     const birthDate = searchParams.get('birthDate');
-    let range = Math.min(parseInt(searchParams.get('range') || '14'), MAX_RANGE_DAYS);
+    const requestedRange = Number(searchParams.get('range') || '14');
+    if (!Number.isInteger(requestedRange) || requestedRange < 1) return NextResponse.json({ error: 'range must be a positive integer' }, { status: 400 });
+    let range = Math.min(requestedRange, MAX_RANGE_DAYS);
 
     try {
         let profile: GrandProfile | null = null;
@@ -47,8 +50,9 @@ export async function GET(request: Request) {
 
         // 過去1/4・未来3/4の範囲
         const scores = computeScoreRange(profile, -Math.floor(range / 4), range);
-        return NextResponse.json(scores);
-    } catch {
+        return NextResponse.json(scores.map(score => ({ ...score, calculationVersion: profile!.meta.calculationVersion })));
+    } catch (error) {
+    if (error instanceof BirthInputError) return NextResponse.json(birthInputIssue(error.code), { status: 422 });
         console.error('Error in /api/fortune-score:');
         return NextResponse.json({ error: 'Failed to compute scores' }, { status: 500 });
     }

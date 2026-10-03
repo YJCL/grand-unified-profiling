@@ -1,3 +1,5 @@
+import { calculationMetadata } from '@/lib/engine/calculation-meta';
+import { BirthInputError, birthInputIssue } from '@/lib/engine/birth-input';
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { prisma } from '@/lib/prisma';
@@ -120,7 +122,7 @@ ${AI_SAFETY_PROMPT}`,
         ruleIds: safetyOutput.ruleIds,
       });
     }
-    const reading = safetyOutput.value;
+    const reading = { ...safetyOutput.value, calculation: calculationMetadata(profile) };
 
     const saved = await prisma.$transaction(async (tx) => {
       const user = await tx.user.findUnique({ where: { id: userId } });
@@ -144,7 +146,8 @@ ${AI_SAFETY_PROMPT}`,
     if (saved.kind === 'missing') return NextResponse.json({ error: 'User not found' }, { status: 404 });
     if (saved.kind === 'ticket') return NextResponse.json({ error: 'ticket required', upgradeRequired: true }, { status: 402 });
     return NextResponse.json({ reading: saved.reading, tickets: saved.tickets, reused: saved.kind === 'existing' });
-  } catch {
+  } catch (error) {
+    if (error instanceof BirthInputError) return NextResponse.json(birthInputIssue(error.code), { status: 422 });
     console.error('daily reading error:');
     return NextResponse.json({ error: '今日の鑑定を読みきれませんでした。少し時間をおいて、もう一度お試しください。' }, { status: 500 });
   }

@@ -1,0 +1,39 @@
+{
+  "pinnedAt": "2026-10-03T10:10:15.877Z",
+  "gitReferences": [
+    {
+      "repo": "emacs-mirror/emacs",
+      "branch": "master",
+      "commit": "7586a71d7c465e3a403dd6f04b76cac38a995189"
+    },
+    {
+      "repo": "kanripo/KR1a0001",
+      "branch": "master",
+      "commit": "8284adbf9e3435d713180e24f05bf75f8b7d1d96"
+    }
+  ],
+  "lunar": {
+    "version": "1.7.7",
+    "gitHead": "eecd5d12c8221b82ce574dc2bad2d7aefcb46e56",
+    "tarball": "https://registry.npmjs.org/lunar-javascript/-/lunar-javascript-1.7.7.tgz",
+    "integrity": "sha512-u/KYiwPIBo/0bT+WWfU7qO1d+aqeB90Tuy4ErXenr2Gam0QcWeezUvtiOIyXR7HbVnW2I1DKfU0NBvzMZhbVQw=="
+  },
+  "files": [
+    {
+      "file": "reference-cal-china.el",
+      "sha256": "69e5e1cb3e7b48b468dfa10fae1cbcb5b0e59c1f4ad160b4948d082e8b69ea97"
+    },
+    {
+      "file": "orba-audit-reference/node_modules/lunar-javascript/lunar.js",
+      "sha256": "9750324bfe1aa63c146f8c72b1143df924466c11c8a5277d7d9225c541a18aaa"
+    },
+    {
+      "file": "orba-release/scripts/fixtures/iching-classical.json",
+      "sha256": "3db8025165b3aca122909260a6f5d6d61addc7cffca67f3e088c2604135089f7"
+    },
+    {
+      "file": "orba-release/scripts/fixtures/ephemeris-jpl.json",
+      "sha256": "a350d56f6340e41db90d9a75dbb685366bba94f9b3cf9d673aa583ad03928157"
+    }
+  ]
+}

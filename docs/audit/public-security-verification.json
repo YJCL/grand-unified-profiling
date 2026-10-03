@@ -1,0 +1,59 @@
+{
+  "checkedAt": "2026-10-03T10:02:23.184Z",
+  "site": "https://orba.life",
+  "noAuthenticatedRequests": true,
+  "noModelCalls": true,
+  "noNewUserData": true,
+  "limits": "HTTP text and denial probes only. No real account, purchase, chat or previous user records were inspected.",
+  "rows": [
+    {
+      "route": "/",
+      "status": 200,
+      "hasAIText": true,
+      "hasAge18Text": true,
+      "hasSensitiveInputWarning": false,
+      "hasNoGuaranteeText": false
+    },
+    {
+      "route": "/legal/privacy",
+      "status": 200,
+      "hasAIText": true,
+      "hasAge18Text": false,
+      "hasSensitiveInputWarning": false,
+      "hasNoGuaranteeText": true
+    },
+    {
+      "route": "/legal/terms",
+      "status": 200,
+      "hasAIText": true,
+      "hasAge18Text": true,
+      "hasSensitiveInputWarning": false,
+      "hasNoGuaranteeText": true
+    },
+    {
+      "route": "/safety",
+      "status": 200,
+      "hasAIText": true,
+      "hasAge18Text": false,
+      "hasSensitiveInputWarning": false,
+      "hasNoGuaranteeText": true
+    },
+    {
+      "route": "/api/user?id=orba-fictional-security-check",
+      "status": 403,
+      "expected": 403
+    },
+    {
+      "route": "/api/chat?userId=orba-fictional-security-check",
+      "status": 403,
+      "expected": 403
+    },
+    {
+      "route": "/api/billing/upgrade",
+      "method": "POST",
+      "cookiesSent": false,
+      "status": 503,
+      "newBillingDisabled": true
+    }
+  ]
+}

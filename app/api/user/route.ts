@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { checkUserAccess, createSessionToken, sessionCookieOptions, SESSION_COOKIE, guestCookieName, getSessionUserId } from '@/lib/auth';
+import { checkUserAccess } from '@/lib/auth';
+import { RECEPTION_CLOSED_MESSAGE } from '@/lib/service-policy';
+import { buildProfileFromUser } from '@/lib/engine/profile';
+import { BirthInputError, birthInputIssue } from '@/lib/engine/birth-input';
 import type { User, Diagnosis } from '@prisma/client';
 
 const PUBLIC_FIELDS = ['id', 'email', 'name', 'birthDate', 'birthTime', 'birthPlace', 'gender', 'language', 'characterType', 'mbti', 'enneagram', 'createdAt', 'isPremium', 'tickets', 'widgetOrder', 'profileType', 'expiresAt', 'diagnoses'] as const;
@@ -14,34 +17,19 @@ export async function POST(request: Request) {
         // 注意: isPremium はここでは受け付けない（課金状態はサーバー側でのみ変更可能）
         const { id, name, birthDate, birthTime, birthPlace, gender, language, characterType, mbti, enneagram, widgetOrder, profileType, expiresAt } = body;
 
-        let user = null;
-
-        if (id) {
-            const access = await checkUserAccess(id);
-            if (!access.ok) {
-                return NextResponse.json({ error: access.error }, { status: access.status });
-            }
-            if (access.ok) user = access.user;
-        }
-
-        let created = false;
-        if (!user) {
-            user = await prisma.user.create({
-                data: {
-                    name: name || null,
-                    birthDate: birthDate || null,
-                    birthTime: birthTime || null,
-                    birthPlace: birthPlace || null,
-                    gender: gender || null,
-                    language: language || 'ja',
-                    characterType: characterType || null,
-                    profileType: profileType || 'self',
-                    expiresAt: expiresAt ? new Date(expiresAt) : null,
-                    tickets: 2,
-                }
+        if (!id) return NextResponse.json({ error: RECEPTION_CLOSED_MESSAGE, code: 'reception_closed' }, { status: 410 });
+        const access = await checkUserAccess(id);
+        if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
+        let user = access.user;
+        if (birthDate !== undefined || birthTime !== undefined || birthPlace !== undefined) {
+            buildProfileFromUser({
+                ...user,
+                birthDate: birthDate !== undefined ? birthDate : user.birthDate,
+                birthTime: birthTime !== undefined ? birthTime : user.birthTime,
+                birthPlace: birthPlace !== undefined ? birthPlace : user.birthPlace,
             });
-            created = true;
-        } else {
+        }
+        {
             // Update any provided fields（isPremium は除外）
             const updateData: Record<string, unknown> = {};
             if (name !== undefined) updateData.name = name;
@@ -62,16 +50,9 @@ export async function POST(request: Request) {
             }
         }
 
-        const res = NextResponse.json(userView(user));
-        // 新規作成（インスタントアカウント）にもセッションを発行しておく
-        if (created) {
-            const token = createSessionToken(user.id);
-            res.cookies.set(guestCookieName(user.id), token, sessionCookieOptions);
-            // Preserve the main account session while adding a separate guest profile.
-            if (!await getSessionUserId()) res.cookies.set(SESSION_COOKIE, token, sessionCookieOptions);
-        }
-        return res;
-    } catch {
+        return NextResponse.json(userView(user));
+    } catch (error) {
+        if (error instanceof BirthInputError) return NextResponse.json(birthInputIssue(error.code), { status: 422 });
         console.error('Error in /api/user');
         return NextResponse.json({ error: 'Failed to process user' }, { status: 500 });
     }

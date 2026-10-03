@@ -1,285 +1,37 @@
 'use client';
-
-import { useState, useEffect, useRef, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowUp, BookOpen, ChevronLeft, PenSquare, Sparkles } from 'lucide-react';
-import { IchingSheet } from '@/app/components/IchingSheet';
-import { DailyReadingSheet } from '@/app/components/DailyReadingSheet';
-import { cn } from '@/lib/utils';
-import { CharacterAvatar, CHARACTER_META, type CharacterType } from '@/app/components/CharacterAvatar';
-import { OrbField } from '@/app/components/OrbField';
-import { FoundingMemberModal } from '@/app/components/FoundingMemberModal';
 import { OrbaAppNav } from '@/app/components/OrbaAppNav';
-import { track } from '@/lib/analytics';
-import { isLaunchFreeActive } from '@/lib/launch';
-
-type Message = { id: string; role: 'user' | 'assistant'; content: string };
-
-const CONVERSATION_STARTERS = [
-    'いまの気持ちを整理したい',
-    '決めかねていることがある',
-    '今日の流れを一緒に見たい',
-];
-
-function ChatPageInner() {
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [input, setInput] = useState(searchParams.get('prefill') || '');
-    const [isInitializing, setIsInitializing] = useState(true);
-    const [isLoading, setIsLoading] = useState(false);
-    const [userId, setUserId] = useState<string | null>(null);
-    const [char, setChar] = useState<CharacterType>('sage');
-    const [userEmail, setUserEmail] = useState<string | null>(null);
-    const [isPremium, setIsPremium] = useState(false);
-    const [tickets, setTickets] = useState(0);
-    const [showFounding, setShowFounding] = useState(false);
-    const [showIching, setShowIching] = useState(false);
-    const [showDailyReading, setShowDailyReading] = useState(false);
-    const endRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        if (messages.length > 1 || isLoading) endRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages, isLoading]);
-
-    useEffect(() => {
-        const init = async () => {
-            const id = localStorage.getItem('guf_user_id');
-            if (!id) { router.push('/start'); return; }
-            setUserId(id);
-            try {
-                const res = await fetch(`/api/user?id=${id}`);
-                let name = 'あなた';
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.characterType && CHARACTER_META[data.characterType as CharacterType]) setChar(data.characterType);
-                    name = data.name ? `${data.name}` : 'あなた';
-                    setUserEmail(data.email ?? null);
-                    setIsPremium(Boolean(data.isPremium));
-                    setTickets(data.tickets ?? 0);
-                }
-                // 過去の会話履歴を読み込んで表示
-                const hist = await fetch(`/api/chat?userId=${id}`).then(r => r.ok ? r.json() : { messages: [] }).catch(() => ({ messages: [] }));
-                const past: Message[] = (hist.messages || [])
-                    .filter((m: { role: string }) => m.role === 'user' || m.role === 'assistant')
-                    .map((m: { role: string; content: string }, i: number) => ({ id: `h${i}`, role: m.role as 'user' | 'assistant', content: m.content }));
-
-                if (past.length > 0) {
-                    setMessages([
-                        { id: 'welcome', role: 'assistant', content: `${name}、おかえり。前回の続きから話せるよ。` },
-                        ...past,
-                    ]);
-                } else {
-                    setMessages([{ id: 'welcome', role: 'assistant',
-                        content: `${name}、はじめまして。\n今日はどんなことを話す？日々の悩みでも、大きな決断でも、まとまっていない気持ちのままでも大丈夫だよ。` }]);
-                }
-            } catch (e) { console.error(e); }
-            finally { setIsInitializing(false); }
-        };
-        init();
-    }, [router]);
-
-    const sendMessage = async (content: string) => {
-        const clean = content.trim();
-        if (!clean || !userId || isLoading) return;
-        const userMsg: Message = { id: Date.now().toString(), role: 'user', content: clean };
-        setMessages((p) => [...p, userMsg]);
-        setInput('');
-        setIsLoading(true);
-        try {
-            const res = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, message: userMsg.content }) });
-            const data = await res.json().catch(() => ({}));
-            const responseText = res.ok
-                ? `${data.response}${data.personalDataRedacted ? '\n\n※入力に含まれた連絡先形式は、AIへ送る前に伏せました。' : ''}`
-                : (data.message || 'ごめん、うまく繋がらなかった…もう一度試してみて。');
-            setMessages((p) => [...p, { id: Date.now() + 'ai', role: 'assistant', content: responseText }]);
-            // 無料相談の上限に当たった瞬間＝最良のアップセル機会。先行登録へ誘導する。
-            if (!res.ok && data.limitReached) {
-                track('paywall_view', { source: 'chat_limit' });
-                setTimeout(() => setShowFounding(true), 500);
-            }
-        } catch { setMessages((p) => [...p, { id: Date.now() + 'ai', role: 'assistant', content: 'ごめん、エラーが起きたみたい。' }]); }
-        finally { setIsLoading(false); }
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        void sendMessage(input);
-    };
-
-    if (!userId) return null;
-
-    const isWelcome = !isInitializing && messages.length === 1 && messages[0]?.id === 'welcome';
-
-    return (
-        <div className="orba-service-page hig-shell service-chat-shell">
-        <OrbaAppNav />
-        <main className="orba-chat-main orba-dialogue flex flex-col w-full relative">
-            <OrbField count={12} className="orba-dialogue__field" />
-
-            <header className="orba-dialogue__header">
-                <button onClick={() => router.push('/mypage')} className="orba-dialogue__back" aria-label="今日の画面へ戻る">
-                    <ChevronLeft aria-hidden="true" />
-                </button>
-                <div className="orba-dialogue__identity">
-                    <CharacterAvatar type={char} size={52} speaking={isLoading} />
-                    <div>
-                        <p>{CHARACTER_META[char].label}</p>
-                        <span>{isLoading ? '言葉を整えています' : 'あなたのパートナー'}</span>
-                    </div>
-                </div>
-                <p className="orba-dialogue__privacy"><i />この対話は、あなたの輪郭として静かに残ります。</p>
-                <button
-                    onClick={async () => {
-                        if (!userId || isLoading) return;
-                        if (!window.confirm('これまでの会話履歴を消して、新しい会話を始めますか？')) return;
-                        await fetch(`/api/chat?userId=${userId}`, { method: 'DELETE' });
-                        setMessages([{ id: 'welcome', role: 'assistant', content: 'うん、新しく始めよう。今日はどんなことを話す？' }]);
-                    }}
-                    className="orba-dialogue__new"
-                    title="新しい会話を始める"
-                >
-                    <PenSquare aria-hidden="true" /> <span>会話を新しく</span>
-                </button>
-            </header>
-
-            <div className="orba-dialogue__scroll flex-1 overflow-y-auto relative z-10">
-                {isInitializing ? (
-                    <div className="orba-dialogue__initializing" role="status">
-                        <CharacterAvatar type={char} size={92} speaking />
-                        <p>前の言葉を、静かにひらいています。</p>
-                    </div>
-                ) : isWelcome ? (
-                    <motion.section
-                        className="orba-dialogue-welcome"
-                        initial={{ opacity: 0, filter: 'blur(8px)', y: 12 }}
-                        animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
-                        transition={{ duration: 0.65, ease: [0.23, 1, 0.32, 1] }}
-                    >
-                        <CharacterAvatar type={char} size={148} />
-                        <h1>今日は、どんな輪郭を<br />見つけたい？</h1>
-                        <p>まとまった質問でなくて大丈夫。いま心に残っていることから、聞かせてください。</p>
-                        <div className="orba-dialogue-welcome__starters" aria-label="会話のきっかけ">
-                            {CONVERSATION_STARTERS.map((starter) => (
-                                <button key={starter} type="button" onClick={() => void sendMessage(starter)}>
-                                    {starter}<ArrowUp aria-hidden="true" />
-                                </button>
-                            ))}
-                        </div>
-                        <div className="orba-dialogue-welcome__rituals">
-                            <button type="button" onClick={() => setShowDailyReading(true)}>
-                                <BookOpen aria-hidden="true" /> 今日の鑑定
-                                <em>{isPremium ? 'Premium' : isLaunchFreeActive() ? '無料開放中' : `残り${tickets}枚`}</em>
-                            </button>
-                            <button type="button" onClick={() => setShowIching(true)}>
-                                <Sparkles aria-hidden="true" /> 具体的な問いを、易で確かめる
-                            </button>
-                        </div>
-                    </motion.section>
-                ) : (
-                    <div className="orba-dialogue__transcript">
-                        {messages.map((msg) => (
-                            <motion.article
-                                key={msg.id}
-                                initial={{ opacity: 0, y: 8 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className={cn('orba-dialogue-turn', msg.role === 'user' ? 'is-user' : 'is-assistant')}
-                            >
-                                {msg.role === 'assistant' && <CharacterAvatar type={char} size={42} />}
-                                <div>
-                                    <span>{msg.role === 'assistant' ? CHARACTER_META[char].label : 'あなた'}</span>
-                                    <p>{msg.content}</p>
-                                </div>
-                            </motion.article>
-                        ))}
-                    </div>
-                )}
-                {isLoading && (
-                    <div className="orba-dialogue__thinking" role="status">
-                        <CharacterAvatar type={char} size={42} speaking />
-                        <div>
-                            <span>{CHARACTER_META[char].label}</span>
-                            <p>言葉を整えています<i /><i /><i /></p>
-                        </div>
-                    </div>
-                )}
-                <div ref={endRef} />
-            </div>
-
-            <div className="orba-dialogue-composer relative z-10">
-                <div className="orba-dialogue-composer__inner">
-                    <div className="orba-dialogue-composer__tools">
-                        <span>書きかけのままでも大丈夫です。</span>
-                        <div className="orba-dialogue-composer__actions">
-                            <button type="button" onClick={() => setShowDailyReading(true)} title="プロフィールと今日の流れを重ねて鑑定する">
-                                <BookOpen aria-hidden="true" /> 今日の鑑定
-                                <em>{isPremium ? 'Premium' : isLaunchFreeActive() ? '無料開放中' : `残り${tickets}枚`}</em>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setShowIching(true)}
-                                title="易を立てる（具体的な問いに対して卦を立てる）"
-                            >
-                                <Sparkles aria-hidden="true" /> 易を立てる
-                            </button>
-                        </div>
-                    </div>
-                    <form onSubmit={handleSubmit} className="orba-dialogue-composer__form">
-                        <textarea
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault();
-                                    void sendMessage(input);
-                                }
-                            }}
-                            rows={1}
-                            aria-label="パートナーへ送るメッセージ"
-                            placeholder="いま、心に残っていることは？"
-                            disabled={isLoading}
-                        />
-                        <button type="submit" disabled={!input.trim() || isLoading} aria-label="メッセージを送る">
-                            <ArrowUp aria-hidden="true" />
-                        </button>
-                    </form>
-                    <p className="orba-dialogue-composer__safety">
-                        文章生成にはAIを使用します。氏名・住所・電話番号・病歴など、本人を特定できる情報は入力しないでください。
-                        <Link href="/safety">AI利用と安全性</Link>
-                    </p>
-                </div>
-            </div>
-
-            <AnimatePresence>
-                {showFounding && <FoundingMemberModal userEmail={userEmail} onClose={() => setShowFounding(false)} />}
-                {showDailyReading && userId && (
-                    <DailyReadingSheet
-                        userId={userId}
-                        onClose={() => setShowDailyReading(false)}
-                        onUpgrade={() => { setShowDailyReading(false); track('paywall_view', { source: 'daily_reading' }); setShowFounding(true); }}
-                        onTicketChange={setTickets}
-                    />
-                )}
-                {showIching && userId && (
-                    <IchingSheet
-                        userId={userId}
-                        initialQuestion={input.trim()}
-                        onClose={() => setShowIching(false)}
-                        onUpgrade={() => { setShowIching(false); track('paywall_view', { source: 'iching' }); setShowFounding(true); }}
-                    />
-                )}
-            </AnimatePresence>
-        </main>
-        </div>
-    );
-}
-
-export default function ChatPage() {
-    return (
-        <Suspense fallback={<div className="min-h-screen bg-mesh flex items-center justify-center"><div className="w-10 h-10 rounded-full border-2 border-dashed border-amber-300/40 animate-spin" /></div>}>
-            <ChatPageInner />
-        </Suspense>
-    );
+import { ProfileSessionRecovery } from '@/app/components/ProfileSessionRecovery';
+import { CHAT_CLOSED_MESSAGE } from '@/lib/service-policy';
+type Message = { role: 'user' | 'assistant'; content: string };
+export default function ChatHistoryPage() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [needsOwner, setNeedsOwner] = useState(false);
+  useEffect(() => {
+    const controller = new AbortController();
+    const id = localStorage.getItem('guf_user_id');
+    if (!id) {
+      queueMicrotask(() => { if (!controller.signal.aborted) { setNeedsOwner(true); setLoading(false); } });
+      return () => controller.abort();
+    }
+    fetch('/api/chat?userId=' + encodeURIComponent(id), { signal: controller.signal })
+      .then(async response => {
+        if (response.status === 403 || response.status === 401) { setNeedsOwner(true); return; }
+        if (!response.ok) throw new Error('history unavailable');
+        const data = await response.json();
+        setMessages((data.messages || []).filter((m: Message) => (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string'));
+      }).catch(() => { if (!controller.signal.aborted) setError('会話履歴を読み込めませんでした。'); })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => controller.abort();
+  }, []);
+  if (needsOwner) return <ProfileSessionRecovery />;
+  return <div className="orba-service-page hig-shell"><OrbaAppNav /><main className="max-w-2xl mx-auto px-5 py-8 space-y-5 text-white">
+    <h1 className="text-2xl font-serif-jp">これまでの会話履歴</h1>
+    <p className="text-sm text-white/70">{CHAT_CLOSED_MESSAGE} この画面は閲覧専用です。</p>
+    <Link href="/mypage" className="underline text-sm">マイページで鑑定・暦・易を使う</Link>
+    {loading ? <p role="status">履歴を読み込んでいます。</p> : error ? <p role="alert">{error}</p> : messages.length === 0 ? <p>保存された会話履歴はありません。</p> : messages.map((message, index) => <article key={index} className="card rounded-2xl p-5"><p className="text-xs text-white/40 mb-2">{message.role === 'user' ? 'あなた' : 'Orba'}</p><p className="whitespace-pre-wrap leading-relaxed">{message.content}</p></article>)}
+  </main></div>;
 }

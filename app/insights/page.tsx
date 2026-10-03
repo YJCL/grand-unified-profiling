@@ -27,7 +27,7 @@ export default function InsightsPage() {
           <OrbaMark />
         </Link>
         <span>INSIGHTS / SELF UNDERSTANDING</span>
-        <Link href="/start">無料ではじめる <ArrowRight size={14} /></Link>
+        <Link href="/">既存アカウントの利用 <ArrowRight size={14} /></Link>
       </header>
 
       <section className="orba-insights__hero">
@@ -89,7 +89,7 @@ export default function InsightsPage() {
         <p>READING IS A BEGINNING</p>
         <h2>一般論ではなく、<br />あなた自身の輪郭を見る。</h2>
         <span>生年月日といくつかの質問から、最初のプロファイルを作成します。</span>
-        <Link href="/start">無料でOrbaをはじめる <ArrowRight size={15} /></Link>
+        <Link href="/">受付状況とログイン <ArrowRight size={15} /></Link>
       </section>
 
       <footer className="orba-insights__footer">

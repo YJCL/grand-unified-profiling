@@ -1,0 +1,22 @@
+[
+  {
+    "file": "reference-cal-china.el",
+    "url": "https://raw.githubusercontent.com/emacs-mirror/emacs/7586a71d7c465e3a403dd6f04b76cac38a995189/lisp/calendar/cal-china.el",
+    "byteIdentical": true,
+    "normalizedIdentical": true,
+    "sourceSha256": "69e5e1cb3e7b48b468dfa10fae1cbcb5b0e59c1f4ad160b4948d082e8b69ea97"
+  },
+  {
+    "file": "orba-audit-reference/node_modules/lunar-javascript/lunar.js",
+    "url": "https://raw.githubusercontent.com/6tail/lunar-javascript/eecd5d12c8221b82ce574dc2bad2d7aefcb46e56/lunar.js",
+    "byteIdentical": false,
+    "normalizedIdentical": false,
+    "sourceSha256": "c8adc4a93bd0442b387342402548a891b094b193878de8889df35f2720ffae63"
+  },
+  {
+    "file": "orba-audit-reference/node_modules/lunar-javascript/lunar.js",
+    "url": "https://registry.npmjs.org/lunar-javascript/-/lunar-javascript-1.7.7.tgz",
+    "distributionIntegrityMatches": true,
+    "byteIdentical": true
+  }
+]

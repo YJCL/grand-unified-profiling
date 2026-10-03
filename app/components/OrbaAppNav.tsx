@@ -8,7 +8,7 @@ import { useTheme } from "./ThemeProvider";
 
 const items = [
   { href: "/mypage", label: "今日", icon: Sparkles },
-  { href: "/chat", label: "対話", icon: MessageCircle },
+  { href: "/chat", label: "会話履歴", icon: MessageCircle },
   { href: "/calendar", label: "暦", icon: CalendarDays },
   { href: "/mypage#profile", label: "プロファイル", icon: UserRound },
 ];
@@ -51,7 +51,7 @@ export function OrbaAppNav() {
           })}
         </div>
         <p className="orba-app-nav__privacy">
-          この端末での対話と設定を、静かに保ちます。
+          新規受付は停止し、チャット機能は終了しました。既存の鑑定・暦・易は利用できます。
         </p>
       </nav>
     </>

@@ -1,3 +1,4 @@
+import { CHAT_ENABLED } from './service-policy';
 // ─────────────────────────────────────────────────────────────
 //  会話メモリの蒸留
 //  全会話をAPIに毎回詰め込むのはトークン浪費＝代わりに「覚えておくべきこと」を
@@ -24,6 +25,7 @@ export async function distillMemory(opts: {
   userName?: string | null;
   userId?: string | null;
 }): Promise<string | null> {
+  if (!CHAT_ENABLED) return null;
   if (opts.recent.length === 0) return null;
   // The summary needs conversational facts, not a user's name or birth identifiers.
   const who = 'ユーザー';

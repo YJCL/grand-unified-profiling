@@ -273,7 +273,6 @@ export function StrengthsDiagnosis({
     window.history.replaceState({}, '', '/diagnosis/strengths');
   };
 
-  const startHref = `/start?utm_source=orba_diagnosis&utm_medium=owned_tool&utm_campaign=strengths_diagnosis&utm_content=${result.id}&diagnosis_result=${result.id}`;
 
   return (
     <main className={`orba-mini-diagnosis is-${phase}`}>
@@ -378,13 +377,13 @@ export function StrengthsDiagnosis({
           <aside className="orba-mini-diagnosis__result-actions">
             <div className="orba-mini-diagnosis__deepening">
               <h2>もう少し詳しく見たいときは。</h2>
-              <p>Orba本編では、あなたの言葉と出生情報を重ねて、共通点と違いを整理します。最初の結果まで登録は不要です。</p>
+              <p>Orba本編では、あなたの言葉と出生情報を重ねて、共通点と違いを整理します。現在、新規登録と新しいプロフィールの受付は停止しています。</p>
               <Link
-                href={startHref}
+                href="/"
                 className="orba-mini-diagnosis__primary"
                 onClick={() => track(sharedLanding ? 'share_landing_cta_click' : 'diagnosis_to_start', { diagnosis: 'strengths', result: result.id, secondary: secondary?.id })}
               >
-                Orba本編で詳しく見る <ArrowRight size={17} />
+                受付状況と既存アカウントの利用 <ArrowRight size={17} />
               </Link>
             </div>
 

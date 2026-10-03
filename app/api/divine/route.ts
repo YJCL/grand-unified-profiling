@@ -3,6 +3,9 @@ import { NextResponse } from 'next/server';
 import { type UserProfile, type Question } from '@/types';
 import { QUESTIONS } from '@/data/questions';
 import { buildGrandProfile } from '@/lib/engine/profile';
+import { calculationMetadata, type CalculationMetadata } from '@/lib/engine/calculation-meta';
+import { RECEPTION_CLOSED_MESSAGE } from '@/lib/service-policy';
+import { BirthInputError, birthInputIssue } from '@/lib/engine/birth-input';
 import { summarizeProfile } from '@/lib/engine/summarize';
 import { characterToneBlock } from '@/lib/character';
 import { prisma } from '@/lib/prisma';
@@ -26,6 +29,7 @@ export async function POST(request: Request) {
         // 既存ユーザーの再鑑定で signature/compass がブレないように、
         // userIdが渡され、かつ frozen が既存ならそちらを優先する。
         const userId: string | undefined = body.userId;
+        if (!userId) return NextResponse.json({ error: RECEPTION_CLOSED_MESSAGE, code: 'reception_closed' }, { status: 410 });
         if (userId) {
             const access = await checkUserAccess(userId);
             if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
@@ -79,6 +83,7 @@ export async function POST(request: Request) {
 
         // ★ 占術データは天体暦で実計算（LLMには計算させない）
         let factSheet: string;
+        let calculation: CalculationMetadata;
         try {
             const profile = buildGrandProfile({
                 name: userProfile.name,
@@ -88,7 +93,11 @@ export async function POST(request: Request) {
                 gender: userProfile.gender || undefined,
             });
             factSheet = summarizeProfile(profile);
-        } catch {
+            calculation = calculationMetadata(profile, Boolean(frozenSignature || frozenCompass));
+        } catch (error) {
+            if (error instanceof BirthInputError) {
+                return NextResponse.json(birthInputIssue(error.code), { status: 422 });
+            }
             throw new Error('Profile calculation failed');
         }
 
@@ -263,7 +272,7 @@ ${answersText ? '## 心理テスト傾向（補助）\n' + answersText : ''}
                 ruleIds: safetyOutput.ruleIds,
             });
         }
-        return NextResponse.json(safetyOutput.value);
+        return NextResponse.json({ ...safetyOutput.value, calculation });
 
     } catch {
         console.error('Error generating fortune:');

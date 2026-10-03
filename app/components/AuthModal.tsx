@@ -4,15 +4,13 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { X } from 'lucide-react';
-import { track } from '@/lib/analytics';
+
 
 type Mode = 'login' | 'register';
 
 // 本登録/ログイン兼用モーダル。
 // userId を渡すと「インスタントアカウントの本登録（データ引き継ぎ）」になる。
 export function AuthModal({
-  initialMode = 'login',
-  userId,
   onClose,
   onSuccess,
 }: {
@@ -21,7 +19,7 @@ export function AuthModal({
   onClose: () => void;
   onSuccess: (user: { id: string; email: string | null }) => void;
 }) {
-  const [mode, setMode] = useState<Mode>(initialMode);
+  const mode: Mode = 'login';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -32,14 +30,13 @@ export function AuthModal({
     setError('');
     setLoading(true);
     try {
-      const url = mode === 'register' ? '/api/auth/register' : '/api/auth/login';
-      const body = mode === 'register' ? { email, password, userId } : { email, password };
+      const url = '/api/auth/login';
+      const body = { email, password };
       const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const data = await res.json();
       if (!res.ok) { setError(data.error || 'エラーが発生しました'); setLoading(false); return; }
       // ログイン中の identity を localStorage に反映
       localStorage.setItem('guf_user_id', data.id);
-      if (mode === 'register') track('registration_complete', { source: userId ? 'profile_handoff' : 'direct_registration' });
       onSuccess({ id: data.id, email: data.email });
     } catch {
       setError('通信に失敗しました');
@@ -55,36 +52,26 @@ export function AuthModal({
       <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} onClick={(e) => e.stopPropagation()}
         className="w-full max-w-sm card p-7 rounded-3xl">
         <div className="flex items-center justify-between mb-1">
-          <h2 className="text-xl font-serif-jp text-white">{mode === 'register' ? 'アカウント登録' : 'ログイン'}</h2>
+          <h2 className="text-xl font-serif-jp text-white">ログイン</h2>
           <button type="button" aria-label="閉じる" onClick={onClose} className="text-white/30 hover:text-white"><X className="w-5 h-5" /></button>
         </div>
         <p className="text-xs text-white/40 mb-5 font-serif-jp">
-          {mode === 'register'
-            ? (userId ? '今のプロフィールをそのまま保存します。別の端末でも続きから使えます。' : '先にアカウントを作ることもできます。登録後、プロフィール作成へ進みます。')
-            : '登録済みのメールとパスワードでログインします。'}
+          登録済みのメールとパスワードでログインします。
         </p>
 
         <form onSubmit={submit} className="space-y-3">
           <input type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="メールアドレス"
             className="w-full bg-white/6 border border-white/12 rounded-xl px-4 py-3 text-white placeholder:text-white/25 focus:outline-none focus:border-amber-200/40" />
-          <input type="password" autoComplete={mode === 'register' ? 'new-password' : 'current-password'} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="パスワード（8文字以上）"
+          <input type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="パスワード（8文字以上）"
             className="w-full bg-white/6 border border-white/12 rounded-xl px-4 py-3 text-white placeholder:text-white/25 focus:outline-none focus:border-amber-200/40" />
           {error && <p className="text-xs text-rose-300">{error}</p>}
           <button type="submit" disabled={loading} className="w-full btn-gold py-3 font-bold disabled:opacity-50">
-            {loading ? '処理中…' : mode === 'register' ? '登録する' : 'ログイン'}
+            {loading ? '処理中…' : 'ログイン'}
           </button>
         </form>
 
-        {mode === 'register' && (
-          <p className="mt-3 text-[10px] text-white/35 leading-relaxed">
-            登録することで、<a href="/legal/terms" className="underline hover:text-white/60">利用規約</a>と<a href="/legal/privacy" className="underline hover:text-white/60">プライバシーポリシー</a>に同意したものとみなされます。
-          </p>
-        )}
 
-        <button onClick={() => { setMode(mode === 'register' ? 'login' : 'register'); setError(''); }}
-          className="mt-4 w-full text-center text-xs text-white/40 hover:text-white/70">
-          {mode === 'register' ? 'アカウントをお持ちの方はログイン' : '新規登録はこちら'}
-        </button>
+        <p className="mt-4 text-xs text-white/50">新規登録の受付は停止しています。</p>
         {mode === 'login' && (
           <a href="/forgot" className="mt-2 block w-full text-center text-[11px] text-white/30 hover:text-white/60">
             パスワードをお忘れですか？

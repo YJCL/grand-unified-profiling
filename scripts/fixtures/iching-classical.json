@@ -1,0 +1,263 @@
+{
+  "reference": "Kanseki Repository KR1a0001, classical Zhou Yi, initial-to-upper yao headings",
+  "source": "https://github.com/kanripo/KR1a0001",
+  "extraction": "Initial-to-upper yao headings; 九=1, 六=0. Numeric facts only; no classic commentary copied.",
+  "rows": [
+    {
+      "num": 1,
+      "binary": "111111"
+    },
+    {
+      "num": 2,
+      "binary": "000000"
+    },
+    {
+      "num": 3,
+      "binary": "100010"
+    },
+    {
+      "num": 4,
+      "binary": "010001"
+    },
+    {
+      "num": 5,
+      "binary": "111010"
+    },
+    {
+      "num": 6,
+      "binary": "010111"
+    },
+    {
+      "num": 7,
+      "binary": "010000"
+    },
+    {
+      "num": 8,
+      "binary": "000010"
+    },
+    {
+      "num": 9,
+      "binary": "111011"
+    },
+    {
+      "num": 10,
+      "binary": "110111"
+    },
+    {
+      "num": 11,
+      "binary": "111000"
+    },
+    {
+      "num": 12,
+      "binary": "000111"
+    },
+    {
+      "num": 13,
+      "binary": "101111"
+    },
+    {
+      "num": 14,
+      "binary": "111101"
+    },
+    {
+      "num": 15,
+      "binary": "001000"
+    },
+    {
+      "num": 16,
+      "binary": "000100"
+    },
+    {
+      "num": 17,
+      "binary": "100110"
+    },
+    {
+      "num": 18,
+      "binary": "011001"
+    },
+    {
+      "num": 19,
+      "binary": "110000"
+    },
+    {
+      "num": 20,
+      "binary": "000011"
+    },
+    {
+      "num": 21,
+      "binary": "100101"
+    },
+    {
+      "num": 22,
+      "binary": "101001"
+    },
+    {
+      "num": 23,
+      "binary": "000001"
+    },
+    {
+      "num": 24,
+      "binary": "100000"
+    },
+    {
+      "num": 25,
+      "binary": "100111"
+    },
+    {
+      "num": 26,
+      "binary": "111001"
+    },
+    {
+      "num": 27,
+      "binary": "100001"
+    },
+    {
+      "num": 28,
+      "binary": "011110"
+    },
+    {
+      "num": 29,
+      "binary": "010010"
+    },
+    {
+      "num": 30,
+      "binary": "101101"
+    },
+    {
+      "num": 31,
+      "binary": "001110"
+    },
+    {
+      "num": 32,
+      "binary": "011100"
+    },
+    {
+      "num": 33,
+      "binary": "001111"
+    },
+    {
+      "num": 34,
+      "binary": "111100"
+    },
+    {
+      "num": 35,
+      "binary": "000101"
+    },
+    {
+      "num": 36,
+      "binary": "101000"
+    },
+    {
+      "num": 37,
+      "binary": "101011"
+    },
+    {
+      "num": 38,
+      "binary": "110101"
+    },
+    {
+      "num": 39,
+      "binary": "001010"
+    },
+    {
+      "num": 40,
+      "binary": "010100"
+    },
+    {
+      "num": 41,
+      "binary": "110001"
+    },
+    {
+      "num": 42,
+      "binary": "100011"
+    },
+    {
+      "num": 43,
+      "binary": "111110"
+    },
+    {
+      "num": 44,
+      "binary": "011111"
+    },
+    {
+      "num": 45,
+      "binary": "000110"
+    },
+    {
+      "num": 46,
+      "binary": "011000"
+    },
+    {
+      "num": 47,
+      "binary": "010110"
+    },
+    {
+      "num": 48,
+      "binary": "011010"
+    },
+    {
+      "num": 49,
+      "binary": "101110"
+    },
+    {
+      "num": 50,
+      "binary": "011101"
+    },
+    {
+      "num": 51,
+      "binary": "100100"
+    },
+    {
+      "num": 52,
+      "binary": "001001"
+    },
+    {
+      "num": 53,
+      "binary": "001011"
+    },
+    {
+      "num": 54,
+      "binary": "110100"
+    },
+    {
+      "num": 55,
+      "binary": "101100"
+    },
+    {
+      "num": 56,
+      "binary": "001101"
+    },
+    {
+      "num": 57,
+      "binary": "011011"
+    },
+    {
+      "num": 58,
+      "binary": "110110"
+    },
+    {
+      "num": 59,
+      "binary": "010011"
+    },
+    {
+      "num": 60,
+      "binary": "110010"
+    },
+    {
+      "num": 61,
+      "binary": "110011"
+    },
+    {
+      "num": 62,
+      "binary": "001100"
+    },
+    {
+      "num": 63,
+      "binary": "101010"
+    },
+    {
+      "num": 64,
+      "binary": "010101"
+    }
+  ]
+}

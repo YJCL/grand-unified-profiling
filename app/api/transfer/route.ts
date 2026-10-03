@@ -1,26 +1,46 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { checkUserAccess } from '@/lib/auth';
+import { checkUserAccess, createSessionToken, sessionCookieOptions, SESSION_COOKIE, guestCookieName, getSessionUserId } from '@/lib/auth';
 import { randomBytes } from 'crypto';
 
 function generateCode(): string {
-    return randomBytes(16).toString('hex').toUpperCase();
+    return 'R1-' + randomBytes(16).toString('hex').toUpperCase();
 }
 
 // POST /api/transfer { userId } → { code }
 export async function POST(request: Request) {
     try {
-        const { userId } = await request.json();
+        const { userId, code: recoveryCode } = await request.json();
+        const code = recoveryCode;
+        if (code !== undefined) {
+            if (typeof code !== 'string' || !/^R1-[A-F0-9]{32}$/.test(code)) return NextResponse.json({ error: '所有者の端末で新しい引き継ぎコードを発行してください。以前の共有コードはログインに使えません。' }, { status: 410 });
+            const restored = await prisma.$transaction(async tx => {
+                const transfer = await tx.transferCode.findUnique({ where: { code } });
+                if (!transfer || transfer.expiresAt <= new Date()) return null;
+                const user = await tx.user.findUnique({ where: { id: transfer.userId }, select: { id: true, passwordHash: true, profileType: true } });
+                if (!user) return null;
+                if (user.passwordHash) return { registered: true as const };
+                const consumed = await tx.transferCode.deleteMany({ where: { code, expiresAt: { gt: new Date() } } });
+                return consumed.count === 1 ? { registered: false as const, user } : null;
+            });
+            if (!restored) return NextResponse.json({ error: '無効・期限切れ・使用済みのコードです。' }, { status: 410 });
+            if (restored.registered) return NextResponse.json({ error: '登録済みアカウントはメールとパスワードでログインしてください。' }, { status: 403 });
+            const response = NextResponse.json({ id: restored.user.id, profileType: restored.user.profileType, restored: true });
+            const token = createSessionToken(restored.user.id);
+            response.cookies.set(guestCookieName(restored.user.id), token, sessionCookieOptions);
+            if (!await getSessionUserId()) response.cookies.set(SESSION_COOKIE, token, sessionCookieOptions);
+            return response;
+        }
         const access = await checkUserAccess(userId);
         if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
 
         // Generate unique code
-        let code = generateCode();
+        let generatedCode = generateCode();
         let attempts = 0;
         while (attempts < 10) {
-            const existing = await prisma.transferCode.findUnique({ where: { code } });
+            const existing = await prisma.transferCode.findUnique({ where: { code: generatedCode } });
             if (!existing) break;
-            code = generateCode();
+            generatedCode = generateCode();
             attempts++;
         }
 
@@ -28,9 +48,9 @@ export async function POST(request: Request) {
         await prisma.transferCode.deleteMany({ where: { userId } });
 
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-        await prisma.transferCode.create({ data: { code, userId, expiresAt } });
+        await prisma.transferCode.create({ data: { code: generatedCode, userId, expiresAt } });
 
-        return NextResponse.json({ code });
+        return NextResponse.json({ code: generatedCode });
     } catch {
         console.error('Error creating transfer code:');
         return NextResponse.json({ error: 'Failed to create transfer code' }, { status: 500 });

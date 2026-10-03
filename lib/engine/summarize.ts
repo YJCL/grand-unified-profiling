@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 //  計算済みプロフィール → LLM用ファクトシート
 //  GrandProfile / DailyState の「硬い事実」を簡潔なテキストに変換。
-//  LLMはこれを“計算”せず“解釈・統合”するだけ＝ハルシネーション撲滅。
+//  Supplying calculated values does not independently validate an LLM's interpretation.
 // ─────────────────────────────────────────────────────────────
 
 import type { GrandProfile, DailyState } from './types';
@@ -12,19 +12,24 @@ export function summarizeProfile(p: GrandProfile): string {
   const fp = p.fourPillars;
   const hd = p.humanDesign;
   const num = p.numerology;
+  // Keep degrees within their named sign; rounding 29.6 to 30 misstates the boundary.
+  const degrees = (value: number) => (Math.floor(value * 100) / 100).toFixed(2);
 
   const planets = w.planets
-    .map((pl) => `${pl.planet}${pl.sign}${pl.degree.toFixed(0)}度${pl.retrograde ? '(逆)' : ''}`)
+    .map((pl) => `${pl.planet}${pl.sign}${degrees(pl.degree)}度${pl.retrograde ? '(逆)' : ''}`)
     .join('・');
   const aspects = w.aspects.slice(0, 6).map((a) => `${a.a}${a.type}${a.b}`).join('・');
   const ascLine = w.hasAscendant
-    ? `アセンダント=${w.ascendant!.sign}${w.ascendant!.degree.toFixed(0)}度・MC=${w.midheaven!.sign}`
-    : 'アセンダント=出生時刻不明のため未算出';
+    ? `アセンダント=${w.ascendant!.sign}${degrees(w.ascendant!.degree)}度・MC=${w.midheaven!.sign}`
+    : 'アセンダント=出生時刻または出生地を特定できないため未算出';
+  const assumptions = p.meta.calculationAssumptions?.length
+    ? `\n計算上の仮定・制限:\n${p.meta.calculationAssumptions.join('\n')}\n未確定の項目を確定事項として扱わないこと。\n` : '';
 
-  return `# 計算済み占術データ（これは天体暦による実計算。再計算せず解釈すること）
+  return `# 計算済み占術データ（計算値を再計算せず参照すること。解釈や予測の正しさを保証するものではありません）
+${assumptions}
 
 【西洋占星術】
-太陽=${w.sun.sign}${w.sun.degree.toFixed(0)}度(サビアン:${w.planets[0].sabian.sign}${w.planets[0].sabian.degreeInSign}度) / 月=${w.moon.sign}${w.moon.degree.toFixed(0)}度
+太陽=${w.sun.sign}${degrees(w.sun.degree)}度(サビアン:${w.planets[0].sabian.sign}${w.planets[0].sabian.degreeInSign}度) / 月=${w.moon.sign}${degrees(w.moon.degree)}度
 ${ascLine}
 天体配置: ${planets}
 主要アスペクト: ${aspects}

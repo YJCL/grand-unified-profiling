@@ -1,49 +1,7 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { hashPassword, createSessionToken, sessionCookieOptions, SESSION_COOKIE, checkUserAccess, guestCookieName } from '@/lib/auth';
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-// 本登録（インスタントアカウントのアップグレード or 新規登録）
-export async function POST(request: Request) {
-    try {
-        const { email, password, userId } = await request.json();
-        const mail = String(email || '').trim().toLowerCase();
-
-        if (!EMAIL_RE.test(mail)) return NextResponse.json({ error: 'メールアドレスの形式が正しくありません' }, { status: 400 });
-        if (typeof password !== 'string' || password.length < 8) return NextResponse.json({ error: 'パスワードは8文字以上にしてください' }, { status: 400 });
-
-        let current = null;
-        if (userId) {
-            const access = await checkUserAccess(userId);
-            if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
-            current = access.user;
-            if (current.passwordHash) return NextResponse.json({ error: '登録済みです。ログインまたはパスワード再設定をご利用ください。' }, { status: 409 });
-        }
-
-        // 既に同じメールが使われていないか
-        const existing = await prisma.user.findUnique({ where: { email: mail } });
-        if (existing && existing.id !== userId) return NextResponse.json({ error: 'このメールアドレスは既に登録されています' }, { status: 409 });
-
-        const passwordHash = hashPassword(password);
-        let user;
-
-        if (current) {
-            if (!current.email || current.email === mail) {
-                // インスタントアカウントを本登録（データはそのまま引き継ぐ）
-                user = await prisma.user.update({ where: { id: current.id }, data: { email: mail, passwordHash } });
-            } else return NextResponse.json({ error: '登録内容を確認してください' }, { status: 409 });
-        }
-        if (!user) {
-            user = await prisma.user.create({ data: { email: mail, passwordHash, language: 'ja' } });
-        }
-
-        const res = NextResponse.json({ id: user.id, email: user.email, isPremium: user.isPremium, birthDate: user.birthDate });
-        res.cookies.set(SESSION_COOKIE, createSessionToken(user.id), sessionCookieOptions);
-        res.cookies.set(guestCookieName(user.id), '', { ...sessionCookieOptions, maxAge: 0 });
-        return res;
-    } catch {
-        console.error('register failed');
-        return NextResponse.json({ error: '登録に失敗しました' }, { status: 500 });
-    }
+import { RECEPTION_CLOSED_MESSAGE } from '@/lib/service-policy';
+// Close before body parsing, authentication, database work or payment API calls.
+// Existing login, recovery, subscriptions and cancellation have separate routes.
+export async function POST() {
+  return NextResponse.json({ error: RECEPTION_CLOSED_MESSAGE, code: 'reception_closed' }, { status: 410 });
 }

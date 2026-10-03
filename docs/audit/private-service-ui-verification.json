@@ -1,0 +1,64 @@
+{
+  "checkedAt": "2026-10-03T11:18:42.977Z",
+  "mode": "isolated hidden headless browser; fictional API fixtures only; no production accounts/model calls",
+  "checks": {
+    "homeClosed": true,
+    "homeLogin": true,
+    "newProfileClosed": true,
+    "existingProfile": true,
+    "legacyVersion": true,
+    "nonChatReading": true,
+    "birthCorrectionAvailable": true,
+    "explicitUnknownBirthTime": true,
+    "dailyReading": true,
+    "historyRetained": true,
+    "historyReadOnly": true,
+    "noChatComposer": true,
+    "currentCalendarVersion": true,
+    "noChatMutation": true,
+    "noBrowserRuntimeExceptions": true
+  },
+  "requests": [
+    {
+      "route": "/api/track",
+      "method": "POST"
+    },
+    {
+      "route": "/api/user",
+      "method": "GET"
+    },
+    {
+      "route": "/api/tickets/login-bonus",
+      "method": "POST"
+    },
+    {
+      "route": "/api/track",
+      "method": "POST"
+    },
+    {
+      "route": "/api/daily",
+      "method": "GET"
+    },
+    {
+      "route": "/api/fortune-score",
+      "method": "GET"
+    },
+    {
+      "route": "/api/daily-reading",
+      "method": "GET"
+    },
+    {
+      "route": "/api/chat",
+      "method": "GET"
+    },
+    {
+      "route": "/api/user",
+      "method": "GET"
+    },
+    {
+      "route": "/api/fortune-score",
+      "method": "GET"
+    }
+  ],
+  "errors": []
+}

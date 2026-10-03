@@ -164,13 +164,13 @@ export default async function InsightArticlePage({ params }: PageProps) {
       <section className="orba-article__cta">
         <p>YOUR OWN PROFILE</p>
         <h2>今度は、あなた自身の言葉で。</h2>
-        <span>無料プロファイリングから、自分の輪郭を少しずつ確かめられます。</span>
+        <span>新規受付は停止しています。既存アカウントは引き続き利用できます。</span>
         <TrackedLink
-          href={ctaHref}
+          href={diagnosisSlugs.has(insight.slug) ? ctaHref : "/"}
           event="article_cta_click"
           eventProps={{ articleSlug: insight.slug, cluster: campaign, destination: diagnosisSlugs.has(insight.slug) ? 'mini_diagnosis' : 'start' }}
         >
-          {ctaLabel} <ArrowRight size={15} />
+          {diagnosisSlugs.has(insight.slug) ? ctaLabel : "受付状況とログイン"} <ArrowRight size={15} />
         </TrackedLink>
       </section>
     </main>
