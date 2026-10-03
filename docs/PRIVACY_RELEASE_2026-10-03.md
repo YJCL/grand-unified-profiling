@@ -21,3 +21,7 @@ Run `npm run test:ai-safety`, `npm run test:security`, `npm run lint`, `npx tsc 
 Prefer rolling back application code while keeping the database private. The baseline production application used the same owner/BYPASSRLS Prisma connection, so reverting code does not require reopening browser database access. An application rollback would reintroduce the old ID-only guest vulnerability and must be treated as an emergency risk decision, not a normal restoration procedure. Restoring previous unrestricted table ACLs or disabling RLS requires separate approval; do not do so to make a health check pass.
 
 No payment configuration or paid transactions are part of this release.
+
+## Dependency gate
+
+The existing lockfile had critical Next.js and high-severity dependency advisories. Compatible lockfile updates select Next.js 16.3.8 and sharp 0.35.5; runtime-only `npm audit --omit=dev --audit-level=high` reports zero vulnerabilities. The full audit still fails on development-only braces 3.0.3 and its ESLint dependency chain (GHSA-vfj7-8cjw-p6xm, no upstream patched version at review time). Do not use `npm audit fix --force`, downgrade Next.js, remove the audit gate, or describe the full CI as passing. Verification and full dependency audit run as separate mandatory jobs so the unchanged audit failure does not conceal other validation results. Production rollout remains pending this blocker.
