@@ -23,8 +23,12 @@ jobs:
       - run: npm ci
       - run: npm audit --audit-level=high
       - run: npx prisma generate
+      - run: npm run lint
+      - run: npm run test:ai-safety
+      - run: npm run test:security
       - run: npx tsc --noEmit
       - run: npm run build
         env:
           DATABASE_URL: postgresql://user:password@localhost:5432/orba
           AUTH_SECRET: ci-only-secret
+          ANTHROPIC_API_KEY: ci-only-key

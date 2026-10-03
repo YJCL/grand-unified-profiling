@@ -8,6 +8,8 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { jstDateKey, jstDateLabel } from '@/lib/jst';
+import { AI_SAFETY_PROMPT, reviewAiConversationHistory, reviewAiStoredContext } from '@/lib/ai-safety';
+import { recordAiSafetyEvent } from '@/lib/ai-safety-log';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -20,11 +22,19 @@ export async function distillMemory(opts: {
   currentMemory: string;
   recent: Turn[];
   userName?: string | null;
+  userId?: string | null;
 }): Promise<string | null> {
   if (opts.recent.length === 0) return null;
-  const who = opts.userName || 'ユーザー';
+  // The summary needs conversational facts, not a user's name or birth identifiers.
+  const who = 'ユーザー';
+  const safeMemory = reviewAiStoredContext(opts.currentMemory);
+  const safeRecent = reviewAiConversationHistory(opts.recent);
+  const contextRuleIds = [...new Set([...safeMemory.ruleIds, ...safeRecent.ruleIds])];
+  if (contextRuleIds.length > 0) {
+    await recordAiSafetyEvent({ userId: opts.userId, route: 'memory', phase: 'context', action: 'context_sanitized', ruleIds: contextRuleIds });
+  }
   // 発言日が分かるものは行頭に付ける（記憶に「いつの話か」を残すため）
-  const transcript = opts.recent
+  const transcript = safeRecent.value
     .map((m) => {
       const day = m.ts ? `[${jstDateKey(new Date(m.ts))}] ` : '';
       return `${day}${m.role === 'assistant' ? 'Orba' : who}: ${m.content}`;
@@ -53,7 +63,7 @@ export async function distillMemory(opts: {
 - メモ本文だけを出力する（前置き・後書き不要）。`;
 
   const userMsg = `# 現在の記憶
-${opts.currentMemory || '(まだ何も覚えていない)'}
+${safeMemory.value || '(まだ何も覚えていない)'}
 
 # 最近の会話
 ${transcript}
@@ -65,13 +75,18 @@ ${transcript}
       model: 'claude-haiku-4-5-20251001',
       // 4000字の記憶が途中で切れないだけの出力余裕を確保（旧800では尻切れが起きていた）
       max_tokens: 3000,
-      system,
+      system: `${system}\n${AI_SAFETY_PROMPT}\n- 個人情報・機微情報を新しく推測したり補完したりしない。メールアドレス、電話番号、口座・カード番号や具体的な病歴は記憶に残さない。`,
       messages: [{ role: 'user', content: userMsg }],
     });
     const txt = res.content[0]?.type === 'text' ? res.content[0].text.trim() : '';
-    return txt ? txt.slice(0, MEMORY_MAX_CHARS) : null;
-  } catch (e) {
-    console.warn('memory distill failed:', (e as Error)?.message);
+    if (!txt) return null;
+    const reviewed = reviewAiStoredContext(txt);
+    if (reviewed.ruleIds.length > 0) {
+      await recordAiSafetyEvent({ userId: opts.userId, route: 'memory', phase: 'output', action: 'output_rewritten', ruleIds: reviewed.ruleIds });
+    }
+    return reviewed.value.slice(0, MEMORY_MAX_CHARS);
+  } catch {
+    console.warn('memory distill failed');
     return null;
   }
 }

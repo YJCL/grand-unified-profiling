@@ -12,6 +12,7 @@ import {
     reviewAiGeneratedValue,
 } from '@/lib/ai-safety';
 import { recordAiSafetyEvent } from '@/lib/ai-safety-log';
+import { checkUserAccess } from '@/lib/auth';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -25,6 +26,10 @@ export async function POST(request: Request) {
         // 既存ユーザーの再鑑定で signature/compass がブレないように、
         // userIdが渡され、かつ frozen が既存ならそちらを優先する。
         const userId: string | undefined = body.userId;
+        if (userId) {
+            const access = await checkUserAccess(userId);
+            if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
+        }
 
         if (!process.env.ANTHROPIC_API_KEY) {
             return NextResponse.json({ error: 'ANTHROPIC_API_KEY is not set' }, { status: 500 });

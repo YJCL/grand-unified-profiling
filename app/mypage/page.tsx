@@ -14,6 +14,7 @@ import { type AnalysisResult, type DailyContent } from '@/types';
 import { CharacterAvatar, CHARACTER_META, type CharacterType } from '@/app/components/CharacterAvatar';
 import { OrbField } from '@/app/components/OrbField';
 import { AuthModal } from '@/app/components/AuthModal';
+import { ProfileSessionRecovery } from '@/app/components/ProfileSessionRecovery';
 import { NotificationToggle } from '@/app/components/NotificationToggle';
 import { track } from '@/lib/analytics';
 import { FoundingMemberModal } from '@/app/components/FoundingMemberModal';
@@ -311,7 +312,7 @@ function ShareRow({ diagnosisId, characterType, summary, userId, isPremium, onTi
     );
 }
 
-function ProfileWidget({ userData }: { userData: UserData }) {
+function ProfileWidget({ userData, now }: { userData: UserData; now: number }) {
     const latestDiagnosis = userData.diagnoses[0];
     const result: AnalysisResult | null = latestDiagnosis ? JSON.parse(latestDiagnosis.data) : null;
     const charEmoji: Record<string, string> = {
@@ -320,7 +321,7 @@ function ProfileWidget({ userData }: { userData: UserData }) {
 
     const isFriend = userData.profileType === 'friend';
     const daysLeft = userData.expiresAt
-        ? Math.max(0, Math.ceil((new Date(userData.expiresAt).getTime() - Date.now()) / 86400000))
+        ? Math.max(0, Math.ceil((new Date(userData.expiresAt).getTime() - now) / 86400000))
         : null;
 
     return (
@@ -512,6 +513,8 @@ export default function MyPage() {
     const router = useRouter();
     const { theme, toggle: toggleTheme } = useTheme();
     const [userData, setUserData] = useState<UserData | null>(null);
+    const [ownershipRequired, setOwnershipRequired] = useState(false);
+    const [profileTime, setProfileTime] = useState(0);
     const [profiles, setProfiles] = useState<ProfileTab[]>([]);
     const [activeId, setActiveId] = useState<string | null>(null);
     const [order, setOrder] = useState<WidgetId[]>(DEFAULT_ORDER);
@@ -579,6 +582,7 @@ export default function MyPage() {
 
     const loadProfile = useCallback(async (id: string) => {
         const res = await fetch(`/api/user?id=${id}`);
+        if (res.status === 403) { setOwnershipRequired(true); return null; }
         if (!res.ok) return null;
         return await res.json() as UserData;
     }, []);
@@ -589,7 +593,7 @@ export default function MyPage() {
             if (!id) { router.push('/start'); return; }
 
             const data = await loadProfile(id);
-            if (!data) { router.push('/start'); return; }
+            if (!data) { setLoading(false); return; }
 
             // Check/enforce friend expiry
             if (data.profileType === 'friend' && data.expiresAt && new Date(data.expiresAt) < new Date()) {
@@ -609,6 +613,7 @@ export default function MyPage() {
             }
 
             setUserData(data);
+            setProfileTime(Date.now());
             if (!data.email && localStorage.getItem('orba_registration_nudge_dismissed') !== '1') {
                 setShowRegistrationNudge(true);
             }
@@ -650,7 +655,7 @@ export default function MyPage() {
         if (id === activeId) return;
         setLoading(true);
         const data = await loadProfile(id);
-        if (!data) return;
+        if (!data) { setLoading(false); return; }
         localStorage.setItem('guf_user_id', id);
         setActiveId(id);
         setUserData(data);
@@ -713,6 +718,7 @@ export default function MyPage() {
         setTimeout(() => setGenCodeCopied(false), 2000);
     };
 
+    if (ownershipRequired) return <ProfileSessionRecovery />;
     if (loading) return (
         <div className="min-h-screen bg-mesh flex items-center justify-center">
             <div className="w-10 h-10 rounded-full border-2 border-dashed border-yellow-400/40 animate-spin" />
@@ -731,7 +737,7 @@ export default function MyPage() {
             case 'chat':
                 return <ChatWidget />;
             case 'profile':
-                return <div id="profile"><ProfileWidget userData={userData} /></div>;
+                return <div id="profile"><ProfileWidget userData={userData} now={profileTime} /></div>;
         }
     };
 

@@ -1,18 +1,24 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { checkUserAccess, createSessionToken, sessionCookieOptions, SESSION_COOKIE } from '@/lib/auth';
+import { checkUserAccess, createSessionToken, sessionCookieOptions, SESSION_COOKIE, guestCookieName, getSessionUserId } from '@/lib/auth';
+import type { User, Diagnosis } from '@prisma/client';
+
+const PUBLIC_FIELDS = ['id', 'email', 'name', 'birthDate', 'birthTime', 'birthPlace', 'gender', 'language', 'characterType', 'mbti', 'enneagram', 'createdAt', 'isPremium', 'tickets', 'widgetOrder', 'profileType', 'expiresAt', 'diagnoses'] as const;
+function userView(user: User & { diagnoses?: Diagnosis[] }) {
+    return Object.fromEntries(PUBLIC_FIELDS.map((key) => [key, user[key]]));
+}
 
 export async function POST(request: Request) {
     try {
         const body = await request.json().catch(() => ({}));
         // 注意: isPremium はここでは受け付けない（課金状態はサーバー側でのみ変更可能）
-        const { id, email, name, birthDate, birthTime, birthPlace, gender, language, characterType, mbti, enneagram, widgetOrder, profileType, expiresAt } = body;
+        const { id, name, birthDate, birthTime, birthPlace, gender, language, characterType, mbti, enneagram, widgetOrder, profileType, expiresAt } = body;
 
         let user = null;
 
         if (id) {
             const access = await checkUserAccess(id);
-            if (!access.ok && access.status !== 404) {
+            if (!access.ok) {
                 return NextResponse.json({ error: access.error }, { status: access.status });
             }
             if (access.ok) user = access.user;
@@ -22,7 +28,6 @@ export async function POST(request: Request) {
         if (!user) {
             user = await prisma.user.create({
                 data: {
-                    email: email || null,
                     name: name || null,
                     birthDate: birthDate || null,
                     birthTime: birthTime || null,
@@ -39,7 +44,6 @@ export async function POST(request: Request) {
         } else {
             // Update any provided fields（isPremium は除外）
             const updateData: Record<string, unknown> = {};
-            if (email !== undefined) updateData.email = email;
             if (name !== undefined) updateData.name = name;
             if (birthDate !== undefined) updateData.birthDate = birthDate;
             if (birthTime !== undefined) updateData.birthTime = birthTime;
@@ -58,18 +62,18 @@ export async function POST(request: Request) {
             }
         }
 
-        const { passwordHash: _ph, ...safe } = user;
-        void _ph;
-        const res = NextResponse.json(safe);
+        const res = NextResponse.json(userView(user));
         // 新規作成（インスタントアカウント）にもセッションを発行しておく
         if (created) {
-            res.cookies.set(SESSION_COOKIE, createSessionToken(user.id), sessionCookieOptions);
+            const token = createSessionToken(user.id);
+            res.cookies.set(guestCookieName(user.id), token, sessionCookieOptions);
+            // Preserve the main account session while adding a separate guest profile.
+            if (!await getSessionUserId()) res.cookies.set(SESSION_COOKIE, token, sessionCookieOptions);
         }
         return res;
-    } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.error('Error in /api/user:', message);
-        return NextResponse.json({ error: 'Failed to process user', details: message }, { status: 500 });
+    } catch {
+        console.error('Error in /api/user');
+        return NextResponse.json({ error: 'Failed to process user' }, { status: 500 });
     }
 }
 
@@ -87,8 +91,8 @@ export async function DELETE(request: Request) {
         await prisma.diagnosis.deleteMany({ where: { userId: id } });
         await prisma.user.delete({ where: { id } });
         return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error('Error deleting user:', error);
+    } catch {
+        console.error('Error deleting user');
         return NextResponse.json({ error: 'Failed to delete user' }, { status: 500 });
     }
 }
@@ -108,7 +112,7 @@ export async function GET(request: Request) {
         const user = await prisma.user.findUnique({
             where: { id },
             include: {
-                diagnoses: { orderBy: { createdAt: 'desc' } }
+                diagnoses: { orderBy: { createdAt: 'desc' }, take: 1 }
             }
         });
 
@@ -116,11 +120,9 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
-        const { passwordHash: _ph, ...safe } = user;
-        void _ph;
-        return NextResponse.json(safe);
-    } catch (error) {
-        console.error('Error fetching user:', error);
+        return NextResponse.json(userView(user));
+    } catch {
+        console.error('Error fetching user');
         return NextResponse.json({ error: 'Failed to fetch user' }, { status: 500 });
     }
 }

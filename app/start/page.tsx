@@ -13,6 +13,7 @@ import { OrbaMark } from '@/app/components/OrbaMark';
 import { AuthModal } from '@/app/components/AuthModal';
 import { FoundingMemberModal } from '@/app/components/FoundingMemberModal';
 import { track } from '@/lib/analytics';
+import { ProfileSessionRecovery } from '@/app/components/ProfileSessionRecovery';
 import { isLaunchFreeActive, launchFreeUntilLabel, PREMIUM_PRICE_LABEL } from '@/lib/launch';
 
 type Phase = 'select' | 'chat' | 'analyzing' | 'result';
@@ -139,7 +140,7 @@ function OrbSelect({ onSelect, isNewProfile }: { onSelect: (t: CharacterType) =>
   const [showAuth, setShowAuth] = useState(false);
 
   const redeem = async () => {
-    if (code.length < 6) return;
+    if (code.length !== 32) return;
     setCodeLoading(true); setCodeErr('');
     try {
       const res = await fetch(`/api/transfer?code=${code.toUpperCase()}`);
@@ -257,8 +258,8 @@ function OrbSelect({ onSelect, isNewProfile }: { onSelect: (t: CharacterType) =>
           </button>
         ) : (
           <div className="orba-partner-select__code">
-            <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 6))} placeholder="6文字のコード"
-              aria-label="6文字の引き継ぎコード" />
+            <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase().replace(/\s/gu, '').slice(0, 32))} placeholder="共有コードを貼り付け"
+              aria-label="共有コード" />
             {codeErr && <p role="alert">{codeErr}</p>}
             <div>
               <button onClick={() => { setShowCode(false); setCodeErr(''); }}>キャンセル</button>
@@ -603,6 +604,7 @@ function HomeInner() {
   const [phase, setPhase] = useState<Phase>('select');
   const [char, setChar] = useState<CharacterType | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [ownershipRequired, setOwnershipRequired] = useState(false);
   const [profileType] = useState<ProfileType>('self');
 
   useEffect(() => {
@@ -623,6 +625,7 @@ function HomeInner() {
         try {
           const check = await fetch(`/api/user?id=${id}`);
           if (check.ok) { const u = await check.json(); if (u.birthDate) { window.location.href = '/mypage'; return; } }
+          else if (check.status === 403) { setOwnershipRequired(true); return; }
           else { localStorage.removeItem('guf_user_id'); id = null; }
         } catch {}
       }
@@ -633,6 +636,8 @@ function HomeInner() {
     };
     init();
   }, [isNewProfile]);
+
+  if (ownershipRequired) return <ProfileSessionRecovery />;
 
   return (
     <main className="service-start-shell hig-shell relative min-h-screen w-full bg-mesh overflow-x-hidden text-white">

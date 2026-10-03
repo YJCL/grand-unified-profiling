@@ -10,8 +10,9 @@ import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import type { User } from '@prisma/client';
 
-const SECRET = process.env.AUTH_SECRET || 'dev-insecure-secret-change-me';
+const SECRET = process.env.AUTH_SECRET || (process.env.NODE_ENV === 'production' ? undefined : 'dev-insecure-secret-change-me');
 export const SESSION_COOKIE = 'guf_session';
+export const GUEST_COOKIE_PREFIX = 'guf_guest_';
 const MAX_AGE = 60 * 60 * 24 * 30; // 30日
 
 // ── パスワード ────────────────────────────────────────────
@@ -31,6 +32,7 @@ export function verifyPassword(password: string, stored: string): boolean {
 
 // ── セッショントークン（userId を HMAC 署名） ─────────────
 function sign(userId: string): string {
+  if (!SECRET) throw new Error('Session authentication is not configured');
   return createHmac('sha256', SECRET).update(userId).digest('hex');
 }
 
@@ -74,6 +76,21 @@ export const sessionCookieOptions = {
   maxAge: MAX_AGE,
 };
 
+export function guestCookieName(userId: string): string {
+  if (!/^[a-zA-Z0-9-]{1,64}$/u.test(userId)) throw new Error('Invalid profile identifier');
+  return `${GUEST_COOKIE_PREFIX}${userId}`;
+}
+
+// Additional guest profiles need their own signed, httpOnly proof of ownership.
+// Never mint this proof for a supplied existing ID without verifying ownership first.
+export async function hasProfileSession(userId: string): Promise<boolean> {
+  if (await getSessionUserId() === userId) return true;
+  if (!/^[a-zA-Z0-9-]{1,64}$/u.test(userId)) return false;
+  const store = await cookies();
+  const token = store.get(guestCookieName(userId))?.value;
+  return !!token && verifySessionToken(token) === userId;
+}
+
 // 現在のセッションの userId を取得（route handler / server component 用）
 export async function getSessionUserId(): Promise<string | null> {
   const store = await cookies();
@@ -83,19 +100,20 @@ export async function getSessionUserId(): Promise<string | null> {
 }
 
 // ── アクセス制御 ──────────────────────────────────────────
-//  ルール：本登録済みユーザー（passwordHashあり）のデータは
-//  セッション一致が必須。インスタントアカウントは従来通り
-//  「IDを知っている端末」を所有者とみなす（登録した瞬間から保護される）。
+// Every profile, including a guest, requires signed owner-session proof.
 export type AccessResult =
   | { ok: true; user: User }
   | { ok: false; status: number; error: string };
 
 export async function checkUserAccess(userId: string | null | undefined): Promise<AccessResult> {
   if (!userId) return { ok: false, status: 400, error: 'userId required' };
+  const sessionId = await getSessionUserId();
+  if (sessionId !== userId && !await hasProfileSession(userId)) {
+    return { ok: false, status: 403, error: 'プロフィールの所有者確認が必要です。登録済みの方はログインしてください。' };
+  }
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return { ok: false, status: 404, error: 'User not found' };
   if (user.passwordHash) {
-    const sessionId = await getSessionUserId();
     if (sessionId !== user.id) {
       return { ok: false, status: 403, error: 'ログインが必要です' };
     }

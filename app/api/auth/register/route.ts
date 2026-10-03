@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { hashPassword, createSessionToken, sessionCookieOptions, SESSION_COOKIE } from '@/lib/auth';
+import { hashPassword, createSessionToken, sessionCookieOptions, SESSION_COOKIE, checkUserAccess, guestCookieName } from '@/lib/auth';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -13,6 +13,14 @@ export async function POST(request: Request) {
         if (!EMAIL_RE.test(mail)) return NextResponse.json({ error: 'メールアドレスの形式が正しくありません' }, { status: 400 });
         if (typeof password !== 'string' || password.length < 8) return NextResponse.json({ error: 'パスワードは8文字以上にしてください' }, { status: 400 });
 
+        let current = null;
+        if (userId) {
+            const access = await checkUserAccess(userId);
+            if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
+            current = access.user;
+            if (current.passwordHash) return NextResponse.json({ error: '登録済みです。ログインまたはパスワード再設定をご利用ください。' }, { status: 409 });
+        }
+
         // 既に同じメールが使われていないか
         const existing = await prisma.user.findUnique({ where: { email: mail } });
         if (existing && existing.id !== userId) return NextResponse.json({ error: 'このメールアドレスは既に登録されています' }, { status: 409 });
@@ -20,14 +28,11 @@ export async function POST(request: Request) {
         const passwordHash = hashPassword(password);
         let user;
 
-        if (userId) {
-            const current = await prisma.user.findUnique({ where: { id: userId } });
-            if (current && !current.email) {
+        if (current) {
+            if (!current.email || current.email === mail) {
                 // インスタントアカウントを本登録（データはそのまま引き継ぐ）
-                user = await prisma.user.update({ where: { id: userId }, data: { email: mail, passwordHash } });
-            } else if (current && current.email === mail) {
-                user = await prisma.user.update({ where: { id: userId }, data: { passwordHash } });
-            }
+                user = await prisma.user.update({ where: { id: current.id }, data: { email: mail, passwordHash } });
+            } else return NextResponse.json({ error: '登録内容を確認してください' }, { status: 409 });
         }
         if (!user) {
             user = await prisma.user.create({ data: { email: mail, passwordHash, language: 'ja' } });
@@ -35,9 +40,10 @@ export async function POST(request: Request) {
 
         const res = NextResponse.json({ id: user.id, email: user.email, isPremium: user.isPremium, birthDate: user.birthDate });
         res.cookies.set(SESSION_COOKIE, createSessionToken(user.id), sessionCookieOptions);
+        res.cookies.set(guestCookieName(user.id), '', { ...sessionCookieOptions, maxAge: 0 });
         return res;
-    } catch (error) {
-        console.error('register error:', error instanceof Error ? error.message : error);
+    } catch {
+        console.error('register failed');
         return NextResponse.json({ error: '登録に失敗しました' }, { status: 500 });
     }
 }
