@@ -20,8 +20,8 @@ export async function POST(request: Request) {
             data: { tickets: { increment: 1 }, lastLoginBonusDate: today },
         });
         return NextResponse.json({ granted: true, tickets: updated.tickets });
-    } catch (error) {
-        console.error('login bonus error:', error);
+    } catch {
+        console.error('login bonus error:');
         return NextResponse.json({ error: 'error' }, { status: 500 });
     }
 }

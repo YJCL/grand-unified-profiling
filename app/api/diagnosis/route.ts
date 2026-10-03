@@ -52,8 +52,8 @@ export async function POST(request: Request) {
         }
 
         return NextResponse.json(diagnosis);
-    } catch (error) {
-        console.error('Error saving diagnosis:', error);
+    } catch {
+        console.error('Error saving diagnosis:');
         return NextResponse.json({ error: 'Failed to save diagnosis' }, { status: 500 });
     }
 }

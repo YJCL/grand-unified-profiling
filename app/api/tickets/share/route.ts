@@ -20,8 +20,8 @@ export async function POST(request: Request) {
             data: { tickets: { increment: 1 }, lastShareTicketDate: today },
         });
         return NextResponse.json({ granted: true, tickets: updated.tickets });
-    } catch (error) {
-        console.error('share ticket error:', error);
+    } catch {
+        console.error('share ticket error:');
         return NextResponse.json({ error: 'error' }, { status: 500 });
     }
 }

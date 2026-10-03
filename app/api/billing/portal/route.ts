@@ -29,8 +29,8 @@ export async function POST() {
       },
     });
     return NextResponse.json({ canceled: true, effectiveUntil: user.premiumUntil });
-  } catch (error) {
-    console.error('[billing/cancel] error', error);
+  } catch {
+    console.error('[billing/cancel] error');
     return NextResponse.json({ error: '解約処理に失敗しました。お問い合わせください。' }, { status: 500 });
   }
 }

@@ -124,10 +124,10 @@ export async function POST(request: Request) {
       });
     }
     return NextResponse.json({ received: true });
-  } catch (error) {
+  } catch {
     // Webhookを再送してもらうため、処理失敗時は記録を戻す。
     await prisma.billingEvent.delete({ where: { id: deliveryId } }).catch(() => undefined);
-    console.error('[billing/webhook] handler error', error);
+    console.error('[billing/webhook] handler error');
     return NextResponse.json({ error: 'handler error' }, { status: 500 });
   }
 }

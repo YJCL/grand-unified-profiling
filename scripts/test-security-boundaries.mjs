@@ -10,14 +10,14 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ts = createRequire(path.join(root, 'package.json'))('typescript');
 
-function load(file, mocks, env = {}, logger = console) {
+function load(file, mocks, env = {}, logger = console, globals = {}) {
   const loadedModule = { exports: {} };
   const code = ts.transpileModule(fs.readFileSync(path.join(root, file), 'utf8'), {
     compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, esModuleInterop: true },
   }).outputText;
   vm.runInNewContext(code, {
     module: loadedModule, exports: loadedModule.exports, process: { env }, console: logger,
-    Buffer, URL, btoa: (s) => Buffer.from(s).toString('base64'),
+    Buffer, URL, btoa: (s) => Buffer.from(s).toString('base64'), ...globals,
     require: (id) => {
       if (!Object.hasOwn(mocks, id)) throw new Error(`Unmocked dependency ${id}`);
       return mocks[id];
@@ -133,6 +133,43 @@ test('analytics drops reset tokens, contact details, diagnosis answers and free 
   const { minimizeAnalyticsProps } = load('lib/analytics-privacy.ts', {});
   const result = minimizeAnalyticsProps({ pagePath: '/reset?token=fictional-secret', firstReferrer: 'https://example.invalid/?email=fixture@example.invalid', answer: 'fictional-private-answer', utmCampaign: 'fixture@example.invalid', source: 'settings', questions: 3 });
   assert.deepEqual(JSON.parse(JSON.stringify(result)), { pagePath: '/reset', source: 'settings', questions: 3 });
+});
+
+test('profile calculation failure never returns or logs private inputs or provider exceptions', async () => {
+  const emitted = [];
+  const route = load('app/api/divine/route.ts', {
+    '@anthropic-ai/sdk': class { constructor() { this.messages = {}; } },
+    'next/server': { NextResponse: responseMock() },
+    '@/data/questions': { QUESTIONS: [] },
+    '@/lib/engine/profile': { buildGrandProfile: () => { throw new Error('fictional-sensitive-provider-detail'); } },
+    '@/lib/engine/summarize': {}, '@/lib/character': {}, '@/lib/prisma': {}, '@/lib/auth': {},
+    '@/lib/ai-safety': { evaluateAiSafetyInput: () => ({ action: 'allow', sanitizedText: '' }) },
+    '@/lib/ai-safety-log': {},
+  }, { ANTHROPIC_API_KEY: 'fixture-only' }, { error: (...args) => emitted.push(args.map(String).join(' ')) });
+  const res = await route.POST({ json: async () => ({ userProfile: { birthDate: 'fictional-birth-date', birthPlace: 'fictional-private-place' } }) });
+  assert.equal(res.status, 500);
+  assert.equal(Object.hasOwn(res.body, 'detail'), false);
+  assert.doesNotMatch(JSON.stringify(res.body) + emitted.join('\n'), /fictional-sensitive|fictional-birth|fictional-private/);
+});
+
+test('email delivery errors do not log recipient, reset URL or provider response body', async () => {
+  const emitted = [];
+  const logger = { warn: (...args) => emitted.push(args.join(' ')), error: (...args) => emitted.push(args.join(' ')) };
+  const message = { to: 'fictional-private@example.invalid', subject: 'fictional-private-subject', html: 'fictional-reset-secret' };
+  const skipped = load('lib/email.ts', {}, {}, logger);
+  assert.equal((await skipped.sendEmail(message)).skipped, true);
+  const failure = load('lib/email.ts', {}, { RESEND_API_KEY: 'fixture-only' }, logger, { fetch: async () => ({ ok: false, status: 400, text: async () => 'fictional-private-provider-response' }) });
+  assert.equal((await failure.sendEmail(message)).ok, false);
+  const thrown = load('lib/email.ts', {}, { RESEND_API_KEY: 'fixture-only' }, logger, { fetch: async () => { throw new Error('fictional-private-exception'); } });
+  assert.equal((await thrown.sendEmail(message)).ok, false);
+  assert.doesNotMatch(emitted.join('\n'), /fictional-private|fictional-reset/);
+});
+
+test('AI routes do not expose raw exception detail in public responses', () => {
+  for (const route of ['divine', 'iching']) {
+    const source = fs.readFileSync(path.join(root, `app/api/${route}/route.ts`), 'utf8');
+    assert.doesNotMatch(source, /detail:\s*error|console\.error\([^\n]*,\s*error/u);
+  }
 });
 
 function adminFixture(env) {

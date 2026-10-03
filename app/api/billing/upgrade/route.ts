@@ -60,9 +60,9 @@ export async function POST() {
     return NextResponse.json({ url: session.session_url });
   } catch (error) {
     if (error instanceof KomojuApiError) {
-      console.error('[billing/upgrade] KOMOJU error', error.status, error.details);
+      console.error('[billing/upgrade] KOMOJU error', error.status);
     } else {
-      console.error('[billing/upgrade] error', error);
+      console.error('[billing/upgrade] error');
     }
     return NextResponse.json({ error: '決済画面を開けませんでした。時間をおいてお試しください。' }, { status: 500 });
   }

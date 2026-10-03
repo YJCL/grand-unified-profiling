@@ -88,8 +88,8 @@ export async function POST(request: Request) {
                 gender: userProfile.gender || undefined,
             });
             factSheet = summarizeProfile(profile);
-        } catch (e) {
-            throw new Error(`engine(${userProfile.birthDate}/${userProfile.birthTime}/${userProfile.birthPlace}): ${e instanceof Error ? e.message : String(e)}`);
+        } catch {
+            throw new Error('Profile calculation failed');
         }
 
         // 心理テスト回答は補助的なヒントとして添える
@@ -265,10 +265,10 @@ ${answersText ? '## 心理テスト傾向（補助）\n' + answersText : ''}
         }
         return NextResponse.json(safetyOutput.value);
 
-    } catch (error) {
-        console.error('Error generating fortune:', error);
+    } catch {
+        console.error('Error generating fortune:');
         return NextResponse.json(
-            { error: 'Failed to generate fortune', detail: error instanceof Error ? error.message : String(error) },
+            { error: 'Failed to generate fortune' },
             { status: 500 }
         );
     }

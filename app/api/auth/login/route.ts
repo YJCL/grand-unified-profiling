@@ -49,8 +49,8 @@ export async function POST(request: Request) {
         const res = NextResponse.json({ id: user!.id, email: user!.email, isPremium: user!.isPremium, birthDate: user!.birthDate, name: user!.name });
         res.cookies.set(SESSION_COOKIE, createSessionToken(user!.id), sessionCookieOptions);
         return res;
-    } catch (error) {
-        console.error('login error:', error instanceof Error ? error.message : error);
+    } catch {
+        console.error('login error:');
         return NextResponse.json({ error: 'ログインに失敗しました' }, { status: 500 });
     }
 }

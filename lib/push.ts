@@ -50,7 +50,7 @@ export async function sendPush(sub: StoredSub, payload: PushPayload): Promise<bo
       // 購読が無効化された端末 → 掃除
       await prisma.pushSubscription.deleteMany({ where: { endpoint: sub.endpoint } }).catch(() => {});
     } else {
-      console.warn('push send failed:', status, (err as Error)?.message);
+      console.warn('push send failed:', status);
     }
     return false;
   }

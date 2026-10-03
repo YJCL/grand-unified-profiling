@@ -144,8 +144,8 @@ ${AI_SAFETY_PROMPT}`,
     if (saved.kind === 'missing') return NextResponse.json({ error: 'User not found' }, { status: 404 });
     if (saved.kind === 'ticket') return NextResponse.json({ error: 'ticket required', upgradeRequired: true }, { status: 402 });
     return NextResponse.json({ reading: saved.reading, tickets: saved.tickets, reused: saved.kind === 'existing' });
-  } catch (error) {
-    console.error('daily reading error:', error);
+  } catch {
+    console.error('daily reading error:');
     return NextResponse.json({ error: '今日の鑑定を読みきれませんでした。少し時間をおいて、もう一度お試しください。' }, { status: 500 });
   }
 }

@@ -27,8 +27,8 @@ export async function POST(request: Request) {
         const res = NextResponse.json({ id: user.id, email: user.email });
         res.cookies.set(SESSION_COOKIE, createSessionToken(user.id), sessionCookieOptions);
         return res;
-    } catch (error) {
-        console.error('reset error:', error);
+    } catch {
+        console.error('reset error:');
         return NextResponse.json({ error: '再設定に失敗しました' }, { status: 500 });
     }
 }
